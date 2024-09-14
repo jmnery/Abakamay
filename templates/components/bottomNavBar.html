@@ -1,0 +1,22 @@
+<div class="bottom-nav">
+  <a
+    href="{{ url_for('learn') }}"
+    class="{% if request.endpoint == 'learn' %}active{% endif %}"
+    >Learn</a
+  >
+  <a
+    href="{{ url_for('quiz') }}"
+    class="{% if request.endpoint == 'quiz' %}active{% endif %}"
+    >Quiz</a
+  >
+  <a
+    href="{{ url_for('collection') }}"
+    class="{% if request.endpoint == 'collection' %}active{% endif %}"
+    >Collection</a
+  >
+  <a
+    href="{{ url_for('profile') }}"
+    class="{% if request.endpoint == 'profile' %}active{% endif %}"
+    >Profile</a
+  >
+</div>

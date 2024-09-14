@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{% block title %}My App{% endblock %}</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .content {
+        flex: 1;
+        padding: 20px;
+      }
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 10px 0;
+        display: flex;
+        justify-content: space-around;
+      }
+      .bottom-nav a {
+        color: white;
+        text-decoration: none;
+        padding: 10px 15px;
+        display: inline-block;
+      }
+      .bottom-nav a.active {
+        background-color: #555;
+      }
+      .bottom-nav a:hover {
+        background-color: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>My App</h1>
+    </header>
+
+    <div class="content">{% block content %}{% endblock %}</div>
+
+    {% include 'components/bottomNavBar.html' %}
+  </body>
+</html>
