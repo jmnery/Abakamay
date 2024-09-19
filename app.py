@@ -1,45 +1,34 @@
-from flask import Flask, jsonify, request, redirect, url_for, session, flash, render_template, make_response
+from flask import Flask, jsonify, request, redirect, url_for, session, flash, render_template, make_response, Response
 import firebase_admin
-from firebase_admin import credentials, firestore, auth
+from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
 import os
+from databaseServices import initialize_firebase, add_user_to_db, get_all_users
+from camera import generate_frames
 
 app = Flask(__name__)
 
 # Set the secret key for session management
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
 
-# Firebase credentials
-credentialsURL = r'C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\services\credentials.json'
-firebaseUrl = 'https://abakada-flask-default-rtdb.firebaseio.com/'
-
-try:
-    cred = credentials.Certificate(credentialsURL)
-    firebase_admin.initialize_app(
-        cred, {"databaseURL": firebaseUrl})
-    print("Firebase initialized successfully.")
-except Exception as e:
-    print(f"Error initializing Firebase: {e}")
-
-# Initialize Firestore
-db = firestore.client()
+# Initialize Firebase
+credentials_path = r'C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\services\credentials.json'
+firebase_url = 'https://abakada-flask-default-rtdb.firebaseio.com/'
+initialize_firebase(credentials_path, firebase_url)
 
 
 @app.before_request
 def check_authentication():
-    # List of routes that can be accessed without being logged in
     public_routes = ['login', 'signup']
     if request.endpoint in public_routes and 'user_id' in session:
         return redirect(url_for('main'))
 
-    # Redirect users to login if trying to access protected routes without being authenticated
     if request.endpoint not in public_routes and 'user_id' not in session:
         return redirect(url_for('login'))
 
 
 @app.after_request
 def add_cache_control(response):
-    # Set cache control for all responses
     response.headers['Cache-Control'] = 'no-store'
     response.headers['Pragma'] = 'no-cache'
     return response
@@ -85,12 +74,7 @@ def signup():
                 password=password,
                 display_name=f"{first_name} {last_name}"
             )
-            db.collection('users').document(user.uid).set({
-                'firstName': first_name,
-                'lastName': last_name,
-                'email': email,
-                'age': age
-            })
+            add_user_to_db(user.uid, first_name, last_name, email, age)
             session['user_id'] = user.uid
             return redirect(url_for('main'))
         except ValueError as ve:
@@ -100,6 +84,7 @@ def signup():
     return render_template('signup.html')
 
 
+# Main route to redirect to the appropriate page
 @app.route('/main')
 def main():
     return render_template('tabs/learn.html')
@@ -136,14 +121,13 @@ def logout():
 
 @app.route('/data')
 def get_data():
-    users_ref = db.collection('users')
-    docs = users_ref.stream()
-
-    users = {}
-    for doc in docs:
-        users[doc.id] = doc.to_dict()
-
+    users = get_all_users()
     return jsonify(users)
+
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 if __name__ == '__main__':
