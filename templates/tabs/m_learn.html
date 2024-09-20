@@ -1,4 +1,47 @@
-{% extends 'base.html' %} {% block title %}Learn{% endblock %} {% block content
-%}
-<!-- Include the camera feed from camera.html -->
-{% include 'camera.html' %} {% endblock %}
+{% extends 'base.html' %} {% block title %}Syllables for {{ letter }}{% endblock
+%} {% block content %}
+
+<!-- Tabs navigation -->
+<ul class="nav nav-tabs" id="syllable-tabs" role="tablist">
+  {% for syllable in syllable_data.keys() %}
+  <li class="nav-item">
+    <a
+      class="nav-link {% if loop.first %}active{% endif %}"
+      id="tab-{{ syllable }}"
+      data-toggle="tab"
+      href="#content-{{ syllable }}"
+      role="tab"
+      aria-controls="content-{{ syllable }}"
+      aria-selected="{% if loop.first %}true{% else %}false{% endif %}"
+    >
+      {{ syllable }}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+
+<!-- Tabs content -->
+<div class="tab-content mt-2">
+  {% for syllable, words in syllable_data.items() %}
+  <div
+    class="tab-pane fade {% if loop.first %}show active{% endif %}"
+    id="content-{{ syllable }}"
+    role="tabpanel"
+    aria-labelledby="tab-{{ syllable }}"
+  >
+    <div class="container">
+      <div class="row">
+        {% if words %} {% for word in words %}
+        <div class="col-12 mb-2">
+          <div class="p-3 border bg-light rounded w-100">{{ word }}</div>
+        </div>
+        {% endfor %} {% else %}
+        <p>No words available</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

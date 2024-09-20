@@ -1,0 +1,32 @@
+{% extends 'base.html' %} {% block title %}Admin Panel{% endblock %} {% block
+content %}
+<h1>Admin Panel</h1>
+
+<form method="POST">
+  <div>
+    <label for="letter">Letter:</label>
+    <input type="text" name="letter" required />
+  </div>
+  <div>
+    <label for="syllable">Syllable:</label>
+    <input type="text" name="syllable" required />
+  </div>
+  <div>
+    <label for="words">Words (comma-separated):</label>
+    <input type="text" name="words" required />
+  </div>
+  <div>
+    <button type="submit">Add to Database</button>
+  </div>
+</form>
+
+{% if get_flashed_messages() %}
+<ul>
+  {% for message in get_flashed_messages(with_categories=true) %}
+  <li class="{{ message[0] }}">{{ message[1] }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
+{% endblock %}

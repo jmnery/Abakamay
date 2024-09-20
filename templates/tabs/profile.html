@@ -3,6 +3,9 @@ content %}
 <h1>Profile Page</h1>
 <p>Content for the Profile page.</p>
 
+<!-- Link to Admin Page -->
+<a href="{{ url_for('admin') }}" class="btn btn-secondary">Go to Admin Panel</a>
+
 <!-- Logout link -->
 <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
 {% endblock %}

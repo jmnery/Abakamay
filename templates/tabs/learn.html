@@ -2,4 +2,18 @@
 %}
 <h1>Learn Page</h1>
 <p>Content for the Learn page.</p>
+
+<div class="container">
+  <div class="row">
+    {% for letter in letters %}
+    <div class="col-md-3 mb-3">
+      <a
+        href="{{ url_for('m_learn', letter=letter) }}"
+        class="btn btn-info w-100"
+        >{{ letter }}</a
+      >
+    </div>
+    {% endfor %}
+  </div>
+</div>
 {% endblock %}

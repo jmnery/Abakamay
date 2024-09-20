@@ -3,7 +3,7 @@ import firebase_admin
 from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
 import os
-from databaseServices import initialize_firebase, add_user_to_db, get_all_users
+from databaseServices import initialize_firebase, add_user_to_db, get_all_users, add_letter_syllable_words, get_firestore_client
 from camera import generate_frames
 
 app = Flask(__name__)
@@ -57,7 +57,7 @@ def login():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if request.method == 'POST':
+    if request.method == ['POST']:
         first_name = request.form['firstName']
         last_name = request.form['lastName']
         email = request.form['email']
@@ -83,8 +83,27 @@ def signup():
             flash(f'Error creating user: {e}')
     return render_template('signup.html')
 
+# Route to display admin panel and handle form submission
 
-# Main route to redirect to the appropriate page
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+    if request.method == 'POST':
+        letter = request.form['letter']
+        syllable = request.form['syllable']
+        words = request.form['words']  # Comma-separated words input
+
+        # Add the letter, syllable, and words to Firebase
+        try:
+            add_letter_syllable_words(letter, syllable, words)
+            flash(
+                f"Successfully added letter: {letter}, syllable: {syllable}, and words: {words}", 'success')
+        except Exception as e:
+            flash(f"Failed to add to database: {e}", 'danger')
+
+    return render_template('admin.html')
+
+
 @app.route('/main')
 def main():
     return render_template('tabs/learn.html')
@@ -92,7 +111,36 @@ def main():
 
 @app.route('/learn')
 def learn():
-    return render_template('tabs/learn.html')
+    db = get_firestore_client()
+    letters_ref = db.collection('letters')
+    docs = letters_ref.stream()
+    letters = [doc.id for doc in docs]
+
+    return render_template('tabs/learn.html', letters=letters)
+
+
+@app.route('/m_learn/<letter>')
+def m_learn(letter):
+    db = get_firestore_client()
+    letter_ref = db.collection('letters').document(letter)
+
+    # Fetch the document for the letter
+    letter_doc = letter_ref.get()
+    if not letter_doc.exists:
+        return render_template('m_learn.html', letter=letter, syllable_data={})
+
+    letter_data = letter_doc.to_dict()
+
+    # Extract syllables field
+    syllable_data = {}
+    syllables = letter_data.get('syllables', {})
+
+    for syllable, words_list in syllables.items():
+        # Convert Firestore array to a list of words
+        words = [word for word in words_list if word]
+        syllable_data[syllable] = words
+
+    return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data)
 
 
 @app.route('/quiz')

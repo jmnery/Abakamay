@@ -45,3 +45,33 @@ def get_all_users():
     for doc in docs:
         users[doc.id] = doc.to_dict()
     return users
+
+# Function to add letter, syllable, and words to Firestore
+
+
+def add_letter_syllable_words(letter, syllable, words):
+    letter = letter.upper()
+    syllable = syllable.upper()
+    # Split words by comma and strip whitespace
+    words = [word.strip() for word in words.split(',')]
+
+    db = get_firestore_client()
+    letter_ref = db.collection('letters').document(letter)
+    letter_doc = letter_ref.get()
+
+    try:
+        if letter_doc.exists:
+            # Update the existing document by adding words to the syllable
+            letter_ref.update(
+                {f'syllables.{syllable}': firestore.ArrayUnion(words)})
+        else:
+            # Create a new document if it doesn't exist
+            letter_ref.set({
+                'syllables': {
+                    syllable: words
+                }
+            })
+        print(
+            f"Successfully added/updated letter {letter}, syllable {syllable}, and words: {words}")
+    except Exception as e:
+        print(f"Error adding to Firestore: {e}")
