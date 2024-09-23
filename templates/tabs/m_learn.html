@@ -1,8 +1,7 @@
-{% extends 'base.html' %} {% block title %}Syllables for {{ letter }}{% endblock
-%} {% block content %}
+{% extends 'camera.html' %} {% block tab_content %}
 
 <!-- Tabs navigation -->
-<ul class="nav nav-tabs" id="syllable-tabs" role="tablist">
+<ul class="nav nav-tabs nav-justified" id="syllable-tabs" role="tablist">
   {% for syllable in syllable_data.keys() %}
   <li class="nav-item">
     <a
@@ -29,11 +28,20 @@
     role="tabpanel"
     aria-labelledby="tab-{{ syllable }}"
   >
-    <div class="container">
+    <div class="container syllable-content">
       <div class="row">
         {% if words %} {% for word in words %}
         <div class="col-12 mb-2">
-          <div class="p-3 border bg-light rounded w-100">{{ word }}</div>
+          <div
+            class="p-3 btn btn-outline-info rounded w-100 word-box"
+            data-word="{{ word }}"
+            role="button"
+          >
+            {{ word }}
+            <button class="btn btn-secondary float-right d-none question-btn">
+              ?
+            </button>
+          </div>
         </div>
         {% endfor %} {% else %}
         <p>No words available</p>
@@ -43,5 +51,61 @@
   </div>
   {% endfor %}
 </div>
+
+<style>
+  /* Set a max height for the syllable content and make it scrollable */
+  .syllable-content {
+    max-height: 400px; /* Adjust this height as needed */
+    overflow-y: auto;
+  }
+
+  .word-box {
+    position: relative;
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: black;
+  }
+
+  /* Hover effect with a distinct background color */
+  .word-box:hover {
+    background-color: lightblue; /* Different hover color */
+    color: black; /* Text remains black */
+  }
+
+  /* Active state when the box is clicked */
+  .word-box.active {
+    background-color: blue;
+    color: white;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Ensure button remains hidden unless active */
+  .question-btn {
+    display: none;
+  }
+
+  /* Show the button when the word-box is active */
+  .word-box.active .question-btn {
+    display: inline-block;
+  }
+</style>
+
+<script>
+  document.querySelectorAll(".word-box").forEach((box) => {
+    box.addEventListener("click", function () {
+      document
+        .querySelectorAll(".word-box")
+        .forEach((b) => b.classList.remove("active"));
+      this.classList.add("active");
+    });
+  });
+</script>
 
 {% endblock %}

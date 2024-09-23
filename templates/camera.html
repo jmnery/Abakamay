@@ -1,18 +1,53 @@
 {% extends "base.html" %} {% block content %}
-<div class="camera-container">
-  <img
-    src="{{ url_for('video_feed') }}"
-    alt="Camera feed"
-    class="camera-feed"
-  />
+<div class="container-fluid position-relative">
+  <div class="row">
+    <!-- Black rectangle behind the camera feed (60% width) -->
+    <div class="col-md-7 position-relative p-0 camera-area">
+      <div class="black-rectangle"></div>
+      <div class="camera-container">
+        <img
+          src="{{ url_for('video_feed') }}"
+          alt="Camera feed"
+          class="camera-feed"
+        />
+      </div>
+      <!-- Input field below the camera -->
+      <div class="input-group input-group-lg mt-3">
+        <span class="input-group-text" id="inputGroup-sizing-lg">Input</span>
+        <input
+          type="text"
+          class="form-control"
+          aria-label="Sizing example input"
+          aria-describedby="inputGroup-sizing-lg"
+        />
+      </div>
+    </div>
+
+    <!-- Content (Tabs) (40% width) -->
+    <div class="col-md-5 tabs-area">
+      <!-- Content here, e.g., include m_learn.html -->
+      {% block tab_content %}{% endblock %}
+    </div>
+  </div>
 </div>
 
 <style>
+  .black-rectangle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 140px);
+    background-color: black;
+    z-index: -1; /* Ensure it's behind the camera feed */
+    border-radius: 30px;
+  }
+
   .camera-container {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
     height: calc(
       100vh - 140px
     ); /* Adjust this value based on the height of your bottom navbar */
@@ -26,6 +61,11 @@
     height: auto;
     object-fit: cover;
     border-radius: 30px;
+  }
+
+  .input-group {
+    width: 100%;
+    margin-top: 20px;
   }
 </style>
 {% endblock %}

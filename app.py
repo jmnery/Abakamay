@@ -126,17 +126,19 @@ def m_learn(letter):
 
     # Fetch the document for the letter
     letter_doc = letter_ref.get()
-    if not letter_doc.exists:
-        return render_template('m_learn.html', letter=letter, syllable_data={})
+    if not letter_doc.exists:  # Corrected this line
+        return render_template('tabs/m_learn.html', letter=letter, syllable_data={})
 
     letter_data = letter_doc.to_dict()
 
-    # Extract syllables field
-    syllable_data = {}
+    # Extract syllables field and sort syllables alphabetically or naturally
     syllables = letter_data.get('syllables', {})
 
-    for syllable, words_list in syllables.items():
-        # Convert Firestore array to a list of words
+    # Sort syllables alphabetically
+    sorted_syllables = dict(sorted(syllables.items()))
+
+    syllable_data = {}
+    for syllable, words_list in sorted_syllables.items():
         words = [word for word in words_list if word]
         syllable_data[syllable] = words
 
