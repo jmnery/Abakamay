@@ -1,0 +1,79 @@
+<div class="camera-container-wrapper">
+  <!-- Black rectangle behind the camera feed -->
+  <div class="black-rectangle"></div>
+
+  <!-- Camera feed -->
+  <div class="camera-container">
+    <img
+      src="{{ url_for('video_feed') }}"
+      alt="Camera feed"
+      class="camera-feed"
+    />
+  </div>
+</div>
+
+<!-- Input field below the camera -->
+<div class="input-group input-group-lg mt-3">
+  <span class="input-group-text" id="inputGroup-sizing-lg">Input</span>
+  <input
+    type="text"
+    class="form-control"
+    aria-label="Sizing example input"
+    aria-describedby="inputGroup-sizing-lg"
+  />
+</div>
+
+<style>
+  /* Ensure full height for the container */
+  .camera-container-wrapper {
+    position: bottom;
+    width: 100%;
+    height: calc(
+      100vh - 100px
+    ); /* Adjust based on height of the input field and bottom navbar */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center vertically */
+    align-items: center; /* Center horizontally */
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+
+  .black-rectangle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 60px); /* Adjust based on height of the input field */
+    background-color: black;
+    z-index: 1; /* Ensure it's behind the camera feed */
+    border-radius: 30px;
+  }
+
+  .camera-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 60px); /* Adjust based on height of the input field */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    z-index: 2; /* Ensure it's above the black rectangle */
+  }
+
+  .camera-feed {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: cover;
+    border-radius: 30px;
+  }
+
+  .input-group {
+    width: 100%;
+    margin-top: 20px; /* Space between camera feed and input field */
+  }
+</style>

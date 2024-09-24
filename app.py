@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, request, redirect, url_for, session, flash, render_template, make_response, Response
+from firebase_admin import firestore
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash, make_response, Response
 import firebase_admin
 from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
@@ -6,7 +7,7 @@ import os
 from databaseServices import initialize_firebase, add_user_to_db, get_all_users, add_letter_syllable_words, get_firestore_client
 from camera import generate_frames
 
-app = Flask(__name__)
+app = Flask(__name__)  # Only this instance should exist
 
 # Set the secret key for session management
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
@@ -15,6 +16,9 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
 credentials_path = r'C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\services\credentials.json'
 firebase_url = 'https://abakada-flask-default-rtdb.firebaseio.com/'
 initialize_firebase(credentials_path, firebase_url)
+
+# Firestore client initialization
+db = firestore.client()
 
 
 @app.before_request
@@ -49,7 +53,7 @@ def login():
         try:
             user = auth.get_user_by_email(email)
             session['user_id'] = user.uid
-            return redirect(url_for('main'))
+            return redirect(url_for('learn'))
         except FirebaseError as e:
             flash(f'Invalid login credentials: {e}')
     return render_template('login.html')
@@ -57,7 +61,7 @@ def login():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if request.method == ['POST']:
+    if request.method == 'POST':
         first_name = request.form['firstName']
         last_name = request.form['lastName']
         email = request.form['email']
@@ -93,7 +97,6 @@ def admin():
         syllable = request.form['syllable']
         words = request.form['words']  # Comma-separated words input
 
-        # Add the letter, syllable, and words to Firebase
         try:
             add_letter_syllable_words(letter, syllable, words)
             flash(
@@ -111,7 +114,6 @@ def main():
 
 @app.route('/learn')
 def learn():
-    db = get_firestore_client()
     letters_ref = db.collection('letters')
     docs = letters_ref.stream()
     letters = [doc.id for doc in docs]
@@ -121,22 +123,16 @@ def learn():
 
 @app.route('/m_learn/<letter>')
 def m_learn(letter):
-    db = get_firestore_client()
     letter_ref = db.collection('letters').document(letter)
-
-    # Fetch the document for the letter
     letter_doc = letter_ref.get()
-    if not letter_doc.exists:  # Corrected this line
+
+    if not letter_doc.exists:
         return render_template('tabs/m_learn.html', letter=letter, syllable_data={})
 
     letter_data = letter_doc.to_dict()
-
-    # Extract syllables field and sort syllables alphabetically or naturally
     syllables = letter_data.get('syllables', {})
 
-    # Sort syllables alphabetically
     sorted_syllables = dict(sorted(syllables.items()))
-
     syllable_data = {}
     for syllable, words_list in sorted_syllables.items():
         words = [word for word in words_list if word]
@@ -147,7 +143,19 @@ def m_learn(letter):
 
 @app.route('/quiz')
 def quiz():
-    return render_template('tabs/quiz.html')
+    letters_ref = db.collection('letters')
+    all_letters = letters_ref.stream()
+
+    letter_words = {}
+    for letter_doc in all_letters:
+        letter = letter_doc.id
+        syllables = letter_doc.to_dict().get('syllables', {})
+        words = []
+        for syllable, word_list in syllables.items():
+            words.extend(word_list)
+        letter_words[letter] = words
+
+    return render_template('tabs/quiz.html', letter_words=letter_words)
 
 
 @app.route('/collection')

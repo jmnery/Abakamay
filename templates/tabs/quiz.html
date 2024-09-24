@@ -1,5 +1,34 @@
 {% extends 'base.html' %} {% block title %}Quiz{% endblock %} {% block content
 %}
-<h1>Quiz Page</h1>
-<p>Content for the Quiz page.</p>
+
+<div class="container">
+  <!-- Loop through each letter and display words in boxes -->
+  {% for letter, words in letter_words.items() %}
+  <h3>{{ letter }}</h3>
+  <div class="word-boxes">
+    <!-- Loop through words for this letter -->
+    {% for word in words %}
+    <div class="word-box">{{ word }}</div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+
+<style>
+  .word-boxes {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .word-box {
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    width: 100px;
+    text-align: center;
+  }
+</style>
 {% endblock %}

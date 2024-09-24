@@ -12,7 +12,8 @@
       }
       .content {
         flex: 1;
-        padding: 20px;
+        /*margin-bottom: 65px; /* Adjust this value to match the height of the bottom navbar */
+        background-color: aquamarine;
       }
       .bottom-nav {
         position: fixed;
@@ -26,6 +27,7 @@
         display: flex;
         justify-content: space-around;
         opacity: 40%;
+        z-index: 1000; /* Ensure it's above other content */
       }
       .bottom-nav a {
         color: white;

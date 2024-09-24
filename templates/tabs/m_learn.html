@@ -1,62 +1,103 @@
-{% extends 'camera.html' %} {% block tab_content %}
-
-<!-- Tabs navigation -->
-<ul class="nav nav-tabs nav-justified" id="syllable-tabs" role="tablist">
-  {% for syllable in syllable_data.keys() %}
-  <li class="nav-item">
-    <a
-      class="nav-link {% if loop.first %}active{% endif %}"
-      id="tab-{{ syllable }}"
-      data-toggle="tab"
-      href="#content-{{ syllable }}"
-      role="tab"
-      aria-controls="content-{{ syllable }}"
-      aria-selected="{% if loop.first %}true{% else %}false{% endif %}"
-    >
-      {{ syllable }}
-    </a>
-  </li>
-  {% endfor %}
-</ul>
-
-<!-- Tabs content -->
-<div class="tab-content mt-2">
-  {% for syllable, words in syllable_data.items() %}
-  <div
-    class="tab-pane fade {% if loop.first %}show active{% endif %}"
-    id="content-{{ syllable }}"
-    role="tabpanel"
-    aria-labelledby="tab-{{ syllable }}"
-  >
-    <div class="container syllable-content">
-      <div class="row">
-        {% if words %} {% for word in words %}
-        <div class="col-12 mb-2">
-          <div
-            class="p-3 btn btn-outline-info rounded w-100 word-box"
-            data-word="{{ word }}"
-            role="button"
-          >
-            {{ word }}
-            <button class="btn btn-secondary float-right d-none question-btn">
-              ?
-            </button>
-          </div>
-        </div>
-        {% endfor %} {% else %}
-        <p>No words available</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-
+{% extends 'base.html' %} {% block content %}
 <style>
-  /* Set a max height for the syllable content and make it scrollable */
+  html,
+  body {
+    height: 100%; /* Ensure HTML and body take full height */
+    margin: 0; /* Remove default margin */
+  }
+
+  .container-fluid {
+    height: 100%; /* Ensure container takes full height */
+    display: flex;
+    flex-direction: column;
+    padding: 10px; /* Add padding to container */
+    box-sizing: border-box; /* Include padding in the total height calculation */
+  }
+
+  .row {
+    flex: 1; /* Allow row to grow and fill the container */
+    display: flex;
+    margin: 0; /* Remove default margin */
+    padding: 10px; /* Add padding to row */
+    box-sizing: border-box; /* Include padding in the total height calculation */
+  }
+
+  .col-md-7,
+  .col-md-5 {
+    padding: 0; /* Remove default padding */
+  }
+
+  /* Add space between columns */
+  .col-md-7 {
+    padding-right: 20px; /* Adjust this value to control the gap */
+  }
+
+  /* Container for camera and input field */
+  .camera-container-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 60px); /* Adjust based on height of bottom navbar */
+    position: relative;
+    /*padding: 10px; /* Add padding to the wrapper */
+    box-sizing: border-box; /* Include padding in the total height calculation */
+  }
+
+  /* Black rectangle behind the camera feed */
+  .black-rectangle {
+    width: 100%;
+    height: calc(
+      100% - 80px
+    ); /* Adjust based on height of input field and any margins */
+    background-color: black;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 30px;
+    z-index: 1; /* Ensure it's behind the camera feed */
+  }
+
+  /* Camera feed */
+  .camera-container {
+    width: 100%;
+    height: calc(
+      100% - 80px
+    ); /* Adjust based on height of input field and any margins */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    z-index: 2; /* Ensure it's above the black rectangle */
+    /*padding: 10px; /* Add padding to the camera container */
+    box-sizing: border-box; /* Include padding in the total height calculation */
+  }
+
+  .camera-feed {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+    border-radius: 30px;
+  }
+
+  /* Input field below the camera */
+  .input-group {
+    width: 100%;
+    margin-top: 20px; /* Space between camera feed and input field */
+    position: relative;
+    z-index: 3; /* Ensure it's above everything else */
+    padding: 10px; /* Add padding to the input group */
+    box-sizing: border-box; /* Include padding in the total height calculation */
+  }
+
   .syllable-content {
-    max-height: 400px; /* Adjust this height as needed */
+    max-height: calc(
+      100vh - 60px
+    ); /* Adjust this height as needed to fit within the available space */
     overflow-y: auto;
+    padding: 10px; /* Add padding to syllable content */
+    box-sizing: border-box; /* Include padding in the total height calculation */
   }
 
   .word-box {
@@ -81,7 +122,6 @@
 
   /* Active state when the box is clicked */
   .word-box.active {
-    background-color: blue;
     color: white;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
   }
@@ -97,15 +137,106 @@
   }
 </style>
 
-<script>
-  document.querySelectorAll(".word-box").forEach((box) => {
-    box.addEventListener("click", function () {
-      document
-        .querySelectorAll(".word-box")
-        .forEach((b) => b.classList.remove("active"));
-      this.classList.add("active");
-    });
-  });
-</script>
+<div class="container-fluid">
+  <div class="row">
+    <!-- First column with camera and input box (60% width) -->
+    <div class="col-md-7">
+      <div class="camera-container-wrapper">
+        <!-- Black rectangle behind the camera feed -->
+        <div class="black-rectangle"></div>
 
+        <!-- Camera feed -->
+        <div class="camera-container">
+          <img
+            src="{{ url_for('video_feed') }}"
+            alt="Camera feed"
+            class="camera-feed"
+          />
+        </div>
+
+        <!-- Input field below the camera -->
+        <div class="input-group input-group-lg mt-3">
+          <span class="input-group-text" id="inputGroup-sizing-lg">Input</span>
+          <input
+            type="text"
+            class="form-control"
+            aria-label="Sizing example input"
+            aria-describedby="inputGroup-sizing-lg"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Second column with tabs (40% width) -->
+    <div class="col-md-5">
+      {% block tab_content %}
+      <!-- Tabs navigation -->
+      <ul class="nav nav-tabs nav-justified" id="syllable-tabs" role="tablist">
+        {% for syllable in syllable_data.keys() %}
+        <li class="nav-item">
+          <a
+            class="nav-link {% if loop.first %}active{% endif %}"
+            id="tab-{{ syllable }}"
+            data-toggle="tab"
+            href="#content-{{ syllable }}"
+            role="tab"
+            aria-controls="content-{{ syllable }}"
+            aria-selected="{% if loop.first %}true{% else %}false{% endif %}"
+          >
+            {{ syllable }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <!-- Tabs content -->
+      <div class="tab-content mt-2">
+        {% for syllable, words in syllable_data.items() %}
+        <div
+          class="tab-pane fade {% if loop.first %}show active{% endif %}"
+          id="content-{{ syllable }}"
+          role="tabpanel"
+          aria-labelledby="tab-{{ syllable }}"
+        >
+          <div class="container syllable-content">
+            <div class="row">
+              {% if words %} {% for word in words %}
+              <div class="col-12 mb-2">
+                <div
+                  class="p-3 btn btn-outline-info rounded w-100 word-box"
+                  data-word="{{ word }}"
+                  role="button"
+                >
+                  {{ word }}
+                  <button
+                    class="btn btn-secondary float-right d-none question-btn"
+                  >
+                    ?
+                  </button>
+                </div>
+              </div>
+              {% endfor %} {% else %}
+              <p>No words available</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Old Tabs CSS and JS -->
+      <script>
+        document.querySelectorAll(".word-box").forEach((box) => {
+          box.addEventListener("click", function () {
+            document
+              .querySelectorAll(".word-box")
+              .forEach((b) => b.classList.remove("active"));
+            this.classList.add("active");
+          });
+        });
+      </script>
+      {% endblock %}
+    </div>
+  </div>
+</div>
 {% endblock %}
