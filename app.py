@@ -4,7 +4,7 @@ import firebase_admin
 from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
 import os
-from databaseServices import initialize_firebase, add_user_to_db, get_all_users, add_letter_syllable_words, get_firestore_client
+from databaseServices import initialize_firebase, add_user_to_db, get_all_users, add_letter_syllable_words, get_firestore_client, get_letter_words_and_completed, get_letter_words
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -76,7 +76,7 @@ def signup():
             user = auth.create_user(
                 email=email,
                 password=password,
-                display_name=f"{first_name} {last_name}"
+                display_name=f"{first_name} {last_name}",
             )
             add_user_to_db(user.uid, first_name, last_name, email, age)
             session['user_id'] = user.uid
@@ -86,8 +86,6 @@ def signup():
         except FirebaseError as e:
             flash(f'Error creating user: {e}')
     return render_template('signup.html')
-
-# Route to display admin panel and handle form submission
 
 
 @app.route('/admin', methods=['GET', 'POST'])
@@ -143,19 +141,14 @@ def m_learn(letter):
 
 @app.route('/quiz')
 def quiz():
-    letters_ref = db.collection('letters')
-    all_letters = letters_ref.stream()
+    user_id = session.get('user_id')  # Get the current user's ID
 
-    letter_words = {}
-    for letter_doc in all_letters:
-        letter = letter_doc.id
-        syllables = letter_doc.to_dict().get('syllables', {})
-        words = []
-        for syllable, word_list in syllables.items():
-            words.extend(word_list)
-        letter_words[letter] = words
+    if not user_id:
+        return redirect(url_for('login'))
 
-    return render_template('tabs/quiz.html', letter_words=letter_words)
+    letter_words, completed_words = get_letter_words_and_completed(user_id)
+
+    return render_template('tabs/quiz.html', letter_words=letter_words, completed_words=completed_words)
 
 
 @app.route('/collection')
