@@ -1,6 +1,77 @@
 {% extends 'base.html' %} {% block title %}Quiz{% endblock %} {% block content
 %}
 
+<style>
+  .navbar {
+    margin-bottom: 0;
+    padding-left: 30px !important;
+    padding-right: 30px !important;
+  }
+
+  .container-fluid {
+    height: calc(100vh - 56px); /* Adjusted for the fixed navbar height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin-top: 56px;
+    overflow: hidden;
+  }
+
+  .row {
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+  }
+
+  .col-md-6 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0; /* Remove default padding */
+  }
+
+  .quiz-option {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  .option-box {
+    background-color: #f1f1f1;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column; /* Stack icon and text vertically */
+    justify-content: center; /* Center text horizontally */
+    align-items: center; /* Center text vertically */
+    height: 400px; /* Set height */
+    width: 100vh; /* Set width to match height for perfect square */
+    cursor: pointer;
+    margin: 50px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .option-box:hover {
+    background-color: #eaeaea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  h2 {
+    font-size: 32px;
+    color: #333;
+    font-weight: bold;
+    margin: 0; /* Remove margin to align text properly */
+  }
+
+  .icon-container {
+    font-size: 48px; /* Size of the icon */
+    margin-bottom: 10px; /* Space between icon and text */
+  }
+</style>
+
 <!-- Top Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
   <div class="navbar-brand" style="color: white">Quiz</div>
@@ -17,7 +88,6 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ml-auto">
-      <!-- Align tabs to the right -->
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
       </li>
@@ -33,69 +103,37 @@
     </ul>
   </div>
 </nav>
-<div class="container">
+
+<div class="container-fluid">
   <div class="row">
-    <div class="col-md-6 text-center">
+    <div class="col-md-6 d-flex justify-content-center align-items-center">
       <div
         class="quiz-option"
         onclick="window.location.href=`{{ url_for('m_quiz') }}`"
       >
         <div class="option-box">
-          <h2>Random</h2>
+          <div class="icon-container">
+            <i class="fa-solid fa-dice"></i>
+          </div>
+          <h2>Random Word</h2>
         </div>
       </div>
     </div>
-    <div class="col-md-6 text-center">
+    <div class="col-md-6 d-flex justify-content-center align-items-center">
       <div
         class="quiz-option"
         onclick="window.location.href=`{{ url_for('picker') }}`"
       >
         <div class="option-box">
-          <h2>Picker</h2>
+          <div class="icon-container">
+            <i class="fa-solid fa-hand-point-up"></i>
+          </div>
+
+          <h2>Pick a Word</h2>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<style>
-  .navbar {
-    margin-bottom: 0;
-
-    padding-left: 30px !important;
-    padding-right: 30px !important;
-  }
-
-  .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-
-  .quiz-option {
-    width: 100%;
-    padding: 40px;
-  }
-
-  .option-box {
-    background-color: #f1f1f1;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    padding: 50px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .option-box:hover {
-    background-color: #eaeaea;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-
-  h2 {
-    font-size: 32px;
-    color: #333;
-    font-weight: bold;
-  }
-</style>
 {% endblock %}

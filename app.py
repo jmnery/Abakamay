@@ -183,7 +183,14 @@ def picker():
 
 @app.route('/collection')
 def collection():
-    return render_template('tabs/collection.html')
+    user_id = session.get('user_id')  # Get the current user's ID
+
+    if not user_id:
+        return redirect(url_for('login'))
+
+    # Fetch the letter words and completed words (assume you have a helper function for this)
+    letter_words, completed_words = get_letter_words_and_completed(user_id)
+    return render_template('tabs/collection.html', letter_words=letter_words, completed_words=completed_words)
 
 
 @app.route('/profile')

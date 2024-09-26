@@ -1,50 +1,37 @@
 {% extends 'base.html' %} {% block title %}Quiz{% endblock %} {% block content
 %}
 
-<div class="container">
-  <div class="filter-options" style="text-align: right; margin-bottom: 20px">
-    <!-- Radio buttons for filtering -->
-    <label><input type="radio" name="filter" value="all" checked /> All</label>
-    <label
-      ><input type="radio" name="filter" value="completed" /> Completed</label
-    >
-    <label
-      ><input type="radio" name="filter" value="incomplete" /> Incomplete</label
-    >
-  </div>
-
-  <!-- Check if there are any letters to display -->
-  <div id="quiz-content">
-    {% if letter_words|length == 0 %}
-    <!-- Show message if there are no letters -->
-    <div class="no-data-message">
-      <p>No data available.</p>
-    </div>
-    {% else %}
-    <!-- Loop through each letter and display words in boxes -->
-    {% for letter, words in letter_words.items() %}
-    <div class="letter-section">
-      <h3>{{ letter }}</h3>
-      <div class="word-boxes">
-        <!-- Loop through words for this letter -->
-        {% for word in words %}
-        <div
-          class="word-box {% if word in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
-        >
-          {{ word }}
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endfor %} {% endif %}
-  </div>
-</div>
-
 <style>
+  .container-picker {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    padding: 30px;
+    padding-top: 80px;
+    padding-bottom: 10px;
+    box-sizing: border-box;
+  }
+
+  .filter-card {
+    width: 200px;
+    max-height: 200px;
+    overflow: hidden;
+    box-sizing: border-box;
+    margin-right: 25px;
+  }
+
+  .word-boxes-container {
+    flex: 1;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+
   .word-boxes {
     display: flex;
     flex-wrap: wrap;
-    margin-bottom: 20px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 10px;
   }
 
   .word-box {
@@ -53,30 +40,28 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     background-image: url("https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/giphy.webp?alt=media");
-    background-size: cover; /* Ensure the image covers the entire box */
-    background-position: center; /* Center the image */
-    width: 350px; /* Increased width */
-    height: 180px; /* Reduced height */
+    background-size: cover;
+    background-position: center;
+    flex: 1 1 calc(33.333% - 20px);
+    max-width: calc(33.333% - 20px);
+    height: 180px;
     text-align: center;
-    font-size: 18px; /* Slightly larger font */
+    font-size: 18px;
     font-weight: 500;
-    color: white; /* Makes text more visible on top of the background */
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
-
-    /* Flexbox properties for centering text */
+    color: white;
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
   .completed {
-    background-color: #d4edda; /* Light green */
-    border-color: #c3e6cb; /* Green border */
+    background-color: #d4edda;
+    border-color: #c3e6cb;
   }
 
   .incomplete {
-    background-color: #f8d7da; /* Light red */
-    border-color: #f5c6cb; /* Red border */
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
   }
 
   .no-data-message {
@@ -88,21 +73,137 @@
     font-size: 18px;
     color: #666;
   }
+
+  .navbar {
+    margin-bottom: 0;
+    padding-left: 30px !important;
+    padding-right: 30px !important;
+  }
+
+  .navbar-nav {
+    margin-left: auto;
+  }
+
+  .letter-heading {
+    background-color: #f8f9fa;
+    padding: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0; /* Stick to the top */
+    z-index: 100; /* Ensure it stays on top of other content */
+    margin-right: 13px;
+  }
+
+  .letter-section {
+    margin-bottom: 30px;
+  }
+
+  .filter-options {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    gap: 5px; /* Add spacing between the radio buttons */
+  }
 </style>
 
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+  <!-- Back button -->
+  <a class="navbar-brand" href="javascript:history.back()">
+    <i class="bi bi-arrow-left"></i>
+    <!-- Bootstrap Icon for back arrow -->
+  </a>
+  <div class="navbar-brand" style="color: white">Quiz</div>
+  <button
+    class="navbar-toggler"
+    type="button"
+    data-toggle="collapse"
+    data-target="#navbarNav"
+    aria-controls="navbarNav"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="{{ url_for('quiz') }}">Quiz</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container-picker">
+  <div class="filter-card card">
+    <h5 class="card-header">Filter Options</h5>
+    <div class="card-body">
+      <div class="filter-options">
+        <!-- Radio buttons for filtering -->
+        <label
+          ><input type="radio" name="filter" value="all" checked /> All</label
+        >
+        <label
+          ><input type="radio" name="filter" value="completed" />
+          Completed</label
+        >
+        <label
+          ><input type="radio" name="filter" value="incomplete" />
+          Incomplete</label
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="word-boxes-container">
+    <!-- Check if there are any letters to display -->
+    <div id="quiz-content">
+      {% if letter_words|length == 0 %}
+      <div class="no-data-message">
+        <p>No data available.</p>
+      </div>
+      {% else %}
+      <!-- Loop through each letter and display words in boxes -->
+      {% for letter, words in letter_words.items() %}
+      <div class="letter-section">
+        <div class="letter-heading">{{ letter }}</div>
+        <div class="word-boxes">
+          {% for word in words %}
+          <div
+            class="word-box {% if word in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
+          >
+            {{ word }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %} {% endif %}
+    </div>
+  </div>
+</div>
+
 <script>
-  // JavaScript to handle filtering of words
   document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
     radio.addEventListener("change", function () {
       var filter = this.value;
       var hasVisibleWord = false;
       var hasVisibleLetter = false;
 
-      // Iterate through each letter section
       document.querySelectorAll(".letter-section").forEach(function (section) {
         var anyVisible = false;
 
-        // Iterate through each word box in this section
         section.querySelectorAll(".word-box").forEach(function (box) {
           if (filter === "all") {
             box.style.display = "block";
@@ -124,17 +225,14 @@
           }
         });
 
-        // Show or hide the letter section based on visibility of word boxes
         section.style.display = anyVisible ? "block" : "none";
         hasVisibleLetter = hasVisibleLetter || anyVisible;
       });
 
-      // Show or hide the "No data available" message
       document.querySelector(".no-data-message").style.display =
         hasVisibleLetter ? "none" : "flex";
     });
 
-    // Trigger change event on page load to show the initial filter
     document
       .querySelector('input[name="filter"]:checked')
       .dispatchEvent(new Event("change"));
