@@ -1,38 +1,32 @@
 {% extends 'base.html' %} {% block title %}Learn{% endblock %} {% block content
 %}
 <style>
-  html,
-  body {
-    height: 100%;
-    margin: 0;
-  }
-
   .main_container {
     display: flex;
-    height: calc(
-      100% - 60px
-    ); /* Adjust 60px to the height of your bottom navigation bar */
-    width: 100%; /* Ensure container takes up the full width */
-    box-sizing: border-box; /* Include padding and border in element's total width and height */
+    height: 100vh;
+    width: 100%;
     padding: 30px;
+    padding-top: 80px; /* Add padding to prevent content from hiding behind the navbar */
+    padding-bottom: 10;
+    box-sizing: border-box;
   }
 
   .card {
-    width: 300px; /* Set a fixed width for the card */
-    max-height: 200px; /* Limit the height of the card */
-    overflow: hidden; /* Hide any overflow content */
-    box-sizing: border-box; /* Include padding and border in element's total width */
+    width: 200px;
+    max-height: 200px;
+    overflow: hidden;
+    box-sizing: border-box;
+    margin-right: 25px;
   }
 
   .button_container {
-    flex: 1; /* Allow the button container to take up the remaining space */
+    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100%;
     overflow: hidden;
-    /* Removed width: 100% */
   }
 
   .row {
@@ -40,15 +34,74 @@
     height: 100%;
   }
 
-  .btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    text-align: center;
+  .option-box {
+    display: flex; /* Added to center text */
+    justify-content: center; /* Center text horizontally */
+    align-items: center; /* Center text vertically */
+    height: 100%; /* Full height of the parent */
+    background-color: #f1f1f1;
+    border: 2px solid #ccc;
     border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    flex: 1; /* Ensure the box takes up available height */
+  }
+
+  .option-box:hover {
+    background-color: #eaeaea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  h2 {
+    font-size: 32px;
+    color: #333;
+    font-weight: bold;
+    margin: 0; /* Remove margin to align properly */
+  }
+
+  .navbar {
+    margin-bottom: 0;
+    padding-left: 30px !important;
+    padding-right: 30px !important;
+  }
+
+  .col-md-3 {
+    padding-left: 5px;
+    padding-right: 5px;
   }
 </style>
+
+<!-- Fixed Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+  <a class="navbar-brand" href="#">Abakada Flask</a>
+  <button
+    class="navbar-toggler"
+    type="button"
+    data-toggle="collapse"
+    data-target="#navbarNav"
+    aria-controls="navbarNav"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link active" href="{{ url_for('learn') }}">Learn</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+      </li>
+    </ul>
+  </div>
+</nav>
 
 <div class="main_container">
   <!-- Card Section -->
@@ -65,11 +118,12 @@
     <div class="row">
       {% for letter in letters %}
       <div class="col-md-3 mb-3">
-        <a
-          href="{{ url_for('m_learn', letter=letter) }}"
-          class="btn btn-info w-100"
-          >{{ letter }}</a
+        <div
+          class="option-box"
+          onclick="window.location.href=`{{ url_for('m_learn', letter=letter) }}`"
         >
+          <h2>{{ letter }}</h2>
+        </div>
       </div>
       {% endfor %}
     </div>

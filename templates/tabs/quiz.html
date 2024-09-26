@@ -1,5 +1,38 @@
 {% extends 'base.html' %} {% block title %}Quiz{% endblock %} {% block content
 %}
+
+<!-- Top Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+  <div class="navbar-brand" style="color: white">Quiz</div>
+  <button
+    class="navbar-toggler"
+    type="button"
+    data-toggle="collapse"
+    data-target="#navbarNav"
+    aria-controls="navbarNav"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ml-auto">
+      <!-- Align tabs to the right -->
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="{{ url_for('quiz') }}">Quiz</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+      </li>
+    </ul>
+  </div>
+</nav>
 <div class="container">
   <div class="row">
     <div class="col-md-6 text-center">
@@ -26,6 +59,13 @@
 </div>
 
 <style>
+  .navbar {
+    margin-bottom: 0;
+
+    padding-left: 30px !important;
+    padding-right: 30px !important;
+  }
+
   .container {
     display: flex;
     justify-content: center;
