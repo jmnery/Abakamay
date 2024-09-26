@@ -182,7 +182,7 @@
           {% for word in words %}
           <div
             class="word-box {% if word.text in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
-            style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}.{{ word.extension }}?alt=media');"
+            style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}{{ word.extension }}?alt=media');"
           ></div>
           {% endfor %}
         </div>

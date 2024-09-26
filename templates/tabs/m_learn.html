@@ -254,7 +254,7 @@
               {% for word in words %}
               <div
                 class="word-item"
-                style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}.{{ word.extension }}?alt=media');"
+                style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}{{ word.extension }}?alt=media');"
               >
                 <span>{{ word.text }}</span>
               </div>

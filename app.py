@@ -4,7 +4,7 @@ import firebase_admin
 from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
 import os
-from databaseServices import initialize_firebase, add_user_to_db, get_all_users, add_letter_syllable_words, get_firestore_client, get_letter_words_and_completed, get_letter_words_and_completed_with_images
+from databaseServices import initialize_firebase, add_user_to_db, get_all_users, add_letter_syllable_words, get_firestore_client, get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -15,7 +15,8 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
 # Initialize Firebase
 credentials_path = r'C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\services\credentials.json'
 firebase_url = 'https://abakada-flask-default-rtdb.firebaseio.com/'
-initialize_firebase(credentials_path, firebase_url)
+storage_bucket = 'abakada-flask.appspot.com'
+initialize_firebase(credentials_path, firebase_url, storage_bucket)
 
 # Firestore client initialization
 db = firestore.client()
@@ -93,14 +94,20 @@ def admin():
     if request.method == 'POST':
         letter = request.form['letter']
         syllable = request.form['syllable']
-        words = request.form['words']  # Comma-separated words input
+        words = request.form['words'].split(',')
+        file = request.files['file']  # The uploaded file from the form
 
-        try:
-            add_letter_syllable_words(letter, syllable, words)
+        # Call the function to upload file and save data
+        # Pass all the necessary data
+        result = upload_file_to_storage(file, letter, syllable, words)
+
+        if result['status'] == 'success':
             flash(
-                f"Successfully added letter: {letter}, syllable: {syllable}, and words: {words}", 'success')
-        except Exception as e:
-            flash(f"Failed to add to database: {e}", 'danger')
+                ('success', f"File uploaded successfully! URL: {result['file_url']}"))
+        else:
+            flash(('error', result['message']))
+
+        return redirect(url_for('admin'))
 
     return render_template('admin.html')
 
