@@ -1,136 +1,61 @@
 {% extends 'base.html' %} {% block title %}Quiz{% endblock %} {% block content
 %}
-
 <div class="container">
-  <div class="filter-options" style="text-align: right; margin-bottom: 20px">
-    <!-- Radio buttons for filtering -->
-    <label><input type="radio" name="filter" value="all" checked /> All</label>
-    <label
-      ><input type="radio" name="filter" value="completed" /> Completed</label
-    >
-    <label
-      ><input type="radio" name="filter" value="incomplete" /> Incomplete</label
-    >
-  </div>
-
-  <!-- Check if there are any letters to display -->
-  <div id="quiz-content">
-    {% if letter_words|length == 0 %}
-    <!-- Show message if there are no letters -->
-    <div class="no-data-message">
-      <p>No data available.</p>
-    </div>
-    {% else %}
-    <!-- Loop through each letter and display words in boxes -->
-    {% for letter, words in letter_words.items() %}
-    <div class="letter-section">
-      <h3>{{ letter }}</h3>
-      <div class="word-boxes">
-        <!-- Loop through words for this letter -->
-        {% for word in words %}
-        <div
-          class="word-box {% if word in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
-        >
-          {{ word }}
+  <div class="row">
+    <div class="col-md-6 text-center">
+      <div
+        class="quiz-option"
+        onclick="window.location.href=`{{ url_for('m_quiz') }}`"
+      >
+        <div class="option-box">
+          <h2>Random</h2>
         </div>
-        {% endfor %}
       </div>
     </div>
-    {% endfor %} {% endif %}
+    <div class="col-md-6 text-center">
+      <div
+        class="quiz-option"
+        onclick="window.location.href=`{{ url_for('picker') }}`"
+      >
+        <div class="option-box">
+          <h2>Picker</h2>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <style>
-  .word-boxes {
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-
-  .word-box {
-    padding: 15px;
-    margin: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    width: 120px;
-    text-align: center;
-    font-size: 16px;
-    font-weight: 500;
-    color: #333;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .completed {
-    background-color: #d4edda; /* Light green */
-    border-color: #c3e6cb; /* Green border */
-  }
-
-  .incomplete {
-    background-color: #f8d7da; /* Light red */
-    border-color: #f5c6cb; /* Red border */
-  }
-
-  .no-data-message {
+  .container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 60vh;
-    text-align: center;
-    font-size: 18px;
-    color: #666;
+    height: 100vh;
+  }
+
+  .quiz-option {
+    width: 100%;
+    padding: 40px;
+  }
+
+  .option-box {
+    background-color: #f1f1f1;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .option-box:hover {
+    background-color: #eaeaea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  h2 {
+    font-size: 32px;
+    color: #333;
+    font-weight: bold;
   }
 </style>
-
-<script>
-  // JavaScript to handle filtering of words
-  document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
-    radio.addEventListener("change", function () {
-      var filter = this.value;
-      var hasVisibleWord = false;
-      var hasVisibleLetter = false;
-
-      // Iterate through each letter section
-      document.querySelectorAll(".letter-section").forEach(function (section) {
-        var anyVisible = false;
-
-        // Iterate through each word box in this section
-        section.querySelectorAll(".word-box").forEach(function (box) {
-          if (filter === "all") {
-            box.style.display = "block";
-            anyVisible = true;
-          } else if (
-            filter === "completed" &&
-            box.classList.contains("completed")
-          ) {
-            box.style.display = "block";
-            anyVisible = true;
-          } else if (
-            filter === "incomplete" &&
-            box.classList.contains("incomplete")
-          ) {
-            box.style.display = "block";
-            anyVisible = true;
-          } else {
-            box.style.display = "none";
-          }
-        });
-
-        // Show or hide the letter section based on visibility of word boxes
-        section.style.display = anyVisible ? "block" : "none";
-        hasVisibleLetter = hasVisibleLetter || anyVisible;
-      });
-
-      // Show or hide the "No data available" message
-      document.querySelector(".no-data-message").style.display =
-        hasVisibleLetter ? "none" : "flex";
-    });
-
-    // Trigger change event on page load to show the initial filter
-    document
-      .querySelector('input[name="filter"]:checked')
-      .dispatchEvent(new Event("change"));
-  });
-</script>
-
 {% endblock %}

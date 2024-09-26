@@ -1,0 +1,30 @@
+{% extends 'base.html' %} {% block title %}Random Quiz{% endblock %} {% block
+content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="random-word-box">
+        <h2>{{ word }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .random-word-box {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    font-size: 24px;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  h2 {
+    font-size: 36px;
+    font-weight: bold;
+    color: #333;
+  }
+</style>
+{% endblock %}

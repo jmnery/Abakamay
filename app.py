@@ -141,14 +141,44 @@ def m_learn(letter):
 
 @app.route('/quiz')
 def quiz():
-    user_id = session.get('user_id')  # Get the current user's ID
+    return render_template('tabs/quiz.html')
+
+
+@app.route('/m_quiz')
+def m_quiz():
+    user_id = session.get('user_id')
 
     if not user_id:
         return redirect(url_for('login'))
 
     letter_words, completed_words = get_letter_words_and_completed(user_id)
 
-    return render_template('tabs/quiz.html', letter_words=letter_words, completed_words=completed_words)
+    # Randomly select a word from the available words
+    all_words = []
+    for words in letter_words.values():
+        all_words.extend(words)
+
+    if not all_words:
+        flash('No words available for the quiz.')
+        return redirect(url_for('quiz'))
+
+    import random
+    random_word = random.choice(all_words)
+
+    return render_template('tabs/m_quiz.html', word=random_word)
+
+
+@app.route('/picker')
+def picker():
+    user_id = session.get('user_id')  # Get the current user's ID
+
+    if not user_id:
+        return redirect(url_for('login'))
+
+    # Fetch the letter words and completed words (assume you have a helper function for this)
+    letter_words, completed_words = get_letter_words_and_completed(user_id)
+
+    return render_template('tabs/picker.html', letter_words=letter_words, completed_words=completed_words)
 
 
 @app.route('/collection')
