@@ -4,7 +4,7 @@ import firebase_admin
 from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
 import os
-from databaseServices import initialize_firebase, add_user_to_db, get_all_users, add_letter_syllable_words, get_firestore_client, get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage
+from databaseServices import initialize_firebase, add_user_to_db, get_all_users,   get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist

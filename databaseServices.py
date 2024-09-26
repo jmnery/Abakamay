@@ -58,36 +58,6 @@ def get_all_users():
         users[doc.id] = doc.to_dict()
     return users
 
-# Function to add letter, syllable, and words to Firestore
-
-
-def add_letter_syllable_words(letter, syllable, words):
-    letter = letter.upper()
-    syllable = syllable.upper()
-    # Split words by comma and strip whitespace
-    words = [word.strip() for word in words.split(',')]
-
-    db = get_firestore_client()
-    letter_ref = db.collection('letters').document(letter)
-    letter_doc = letter_ref.get()
-
-    try:
-        if letter_doc.exists:
-            # Update the existing document by adding words to the syllable
-            letter_ref.update(
-                {f'syllables.{syllable}': firestore.ArrayUnion(words)})
-        else:
-            # Create a new document if it doesn't exist
-            letter_ref.set({
-                'syllables': {
-                    syllable: words
-                }
-            })
-        print(
-            f"Successfully added/updated letter {letter}, syllable {syllable}, and words: {words}")
-    except Exception as e:
-        print(f"Error adding to Firestore: {e}")
-
 
 def get_letter_words_and_completed(user_id):
     db = get_firestore_client()
@@ -205,7 +175,6 @@ def upload_file_to_storage(file, letter, syllable, words):
         file_extension = os.path.splitext(file.filename)[1]
 
         # Define the path for storing the file in Firebase Storage
-        # Organize based on letter and syllable
         file_path = f'{file.filename}'
 
         # Get a reference to the Firebase Storage bucket
@@ -223,20 +192,33 @@ def upload_file_to_storage(file, letter, syllable, words):
         # Get the public URL of the uploaded file
         file_url = blob.public_url
 
-        # Add or update Firestore document for the letter with syllable and words info
+        # Firestore client initialization
         db = firestore.client()
+
+        # Retrieve the Firestore document for the letter
         letter_ref = db.collection('words').document(letter)
         letter_doc = letter_ref.get()
 
+        # Prepare new word entries for the syllable
+        new_words = [{'text': word.lower(), 'extension': file_extension}
+                     for word in words]
+
         if letter_doc.exists:
+            # Get the existing data
             letter_data = letter_doc.to_dict()
             syllables = letter_data.get('syllables', {})
-            syllables[syllable] = [
-                {'text': word.lower(), 'extension': file_extension} for word in words]
+
+            # Append the new words to the existing ones for the syllable
+            if syllable in syllables:
+                syllables[syllable].extend(new_words)
+            else:
+                syllables[syllable] = new_words
+
+            # Update the Firestore document
             letter_ref.update({'syllables': syllables})
         else:
-            syllables = {syllable: [
-                {'text': word.lower(), 'extension': file_extension} for word in words]}
+            # Create a new document if it doesn't exist
+            syllables = {syllable: new_words}
             letter_ref.set({'syllables': syllables})
 
         return {'status': 'success', 'file_url': file_url}
