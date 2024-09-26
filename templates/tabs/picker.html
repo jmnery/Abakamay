@@ -39,7 +39,6 @@
     margin: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    background-image: url("https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/giphy.webp?alt=media");
     background-size: cover;
     background-position: center;
     flex: 1 1 calc(33.333% - 20px);
@@ -182,10 +181,9 @@
         <div class="word-boxes">
           {% for word in words %}
           <div
-            class="word-box {% if word in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
-          >
-            {{ word }}
-          </div>
+            class="word-box {% if word.text in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
+            style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}.{{ word.extension }}?alt=media');"
+          ></div>
           {% endfor %}
         </div>
       </div>

@@ -38,7 +38,6 @@ content %}
     margin: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    background-image: url("https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/giphy.webp?alt=media");
     background-size: cover;
     background-position: center;
     flex: 1 1 calc(33.333% - 20px);
@@ -222,14 +221,14 @@ content %}
         <div class="word-boxes">
           {% for word in words %}
           <div
-            class="word-box {% if word in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
+            class="word-box {% if word.text in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
+            style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}.{{ word.extension }}?alt=media');"
           >
-            <span class="word-text">{{ word }}</span>
+            <span class="word-text">{{ word.text }}</span>
             <div class="icon-container">
               <i class="fa-solid fa-lock"></i>
             </div>
           </div>
-
           {% endfor %}
         </div>
       </div>
@@ -242,31 +241,20 @@ content %}
   document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
     radio.addEventListener("change", function () {
       var filter = this.value;
-      var hasVisibleWord = false;
       var hasVisibleLetter = false;
 
       document.querySelectorAll(".letter-section").forEach(function (section) {
         var anyVisible = false;
 
         section.querySelectorAll(".word-box").forEach(function (box) {
-          if (filter === "all") {
-            box.style.display = "block";
-            anyVisible = true;
-          } else if (
-            filter === "completed" &&
-            box.classList.contains("completed")
-          ) {
-            box.style.display = "block";
-            anyVisible = true;
-          } else if (
-            filter === "incomplete" &&
-            box.classList.contains("incomplete")
-          ) {
-            box.style.display = "block";
-            anyVisible = true;
-          } else {
-            box.style.display = "none";
-          }
+          var isCompleted = box.classList.contains("completed");
+          var shouldDisplay =
+            filter === "all" ||
+            (filter === "completed" && isCompleted) ||
+            (filter === "incomplete" && !isCompleted);
+
+          box.style.display = shouldDisplay ? "block" : "none";
+          anyVisible = anyVisible || shouldDisplay;
         });
 
         section.style.display = anyVisible ? "block" : "none";

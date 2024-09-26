@@ -1,6 +1,5 @@
 {% extends 'base.html' %} {% block content %}
 <style>
-  /* Ensure HTML and body take full height */
   html,
   body {
     height: 100%;
@@ -8,7 +7,6 @@
     overflow: hidden;
   }
 
-  /* Container and row styling */
   .container-fluid {
     height: calc(100vh - 56px); /* Full height minus the navbar height */
     padding: 0;
@@ -33,15 +31,12 @@
     box-sizing: border-box;
   }
 
-  /* Navbar styling */
   .navbar {
     margin-bottom: 0;
-
     padding-left: 30px !important;
     padding-right: 30px !important;
   }
 
-  /* Tabs styling */
   .nav-tabs {
     display: flex;
     flex-wrap: nowrap;
@@ -60,19 +55,18 @@
     display: block;
     padding: 10px 0;
     font-weight: bold;
-    color: black; /* Default text color for inactive tabs */
+    color: black;
   }
 
   .nav-tabs .nav-link.active {
-    border-color: #007bff; /* Active tab underline color */
-    color: blue !important; /* Active tab text color */
+    border-color: #007bff;
+    color: blue !important;
   }
 
   .nav-tabs .nav-link:not(.active) {
-    color: black; /* Inactive tab text color */
+    color: black;
   }
 
-  /* Word box container styling */
   .word-box-container {
     max-height: calc(100vh - 56px - 60px);
     overflow-y: auto;
@@ -88,7 +82,6 @@
     position: relative;
     width: 100%;
     padding-top: 80%;
-    background-image: url("https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/giphy.webp?alt=media");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -120,7 +113,6 @@
     z-index: 2;
   }
 
-  /* Camera component styling */
   .camera-wrapper {
     display: flex;
     justify-content: center;
@@ -184,12 +176,10 @@
 
 <!-- Top Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-  <!-- Back button -->
   <a class="navbar-brand" href="javascript:history.back()">
     <i class="bi bi-arrow-left"></i>
-    <!-- Bootstrap Icon for back arrow -->
   </a>
-  <div class="navbar-brand" style="color: white">{{letter}}</div>
+  <div class="navbar-brand" style="color: white">{{ letter }}</div>
   <button
     class="navbar-toggler"
     type="button"
@@ -203,7 +193,6 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ml-auto">
-      <!-- Align tabs to the right -->
       <li class="nav-item">
         <a class="nav-link active" href="{{ url_for('learn') }}">Learn</a>
       </li>
@@ -263,8 +252,11 @@
           <div class="word-box-container">
             <div class="word-box">
               {% for word in words %}
-              <div class="word-item">
-                <span>{{ word }}</span>
+              <div
+                class="word-item"
+                style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}.{{ word.extension }}?alt=media');"
+              >
+                <span>{{ word.text }}</span>
               </div>
               {% endfor %}
             </div>

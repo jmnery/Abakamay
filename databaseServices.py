@@ -139,3 +139,51 @@ def get_letter_words(user_id):
         letter_words[letter] = words
 
     return letter_words
+
+
+def get_letter_words_and_completed_with_images(user_id):
+    db = get_firestore_client()
+    """
+    Fetches letter words with images and completed words for a user.
+    Returns a tuple (letter_words, completed_words).
+    """
+    completed_words = {}
+    letter_words = {}
+
+    # Fetch completed words
+    user_ref = db.collection('users').document(user_id)
+    user_doc = user_ref.get()
+
+    if user_doc.exists:
+        completed_data = user_doc.to_dict().get('completed', {})
+        for letter, words in completed_data.items():
+            if isinstance(words, list):
+                completed_words[letter] = set(
+                    word for word in words if isinstance(word, str))
+
+    # Fetch letter words
+    letters_ref = db.collection('words')
+    docs = letters_ref.stream()
+
+    for doc in docs:
+        letter = doc.id
+        letter_data = doc.to_dict()
+        syllables = letter_data.get('syllables', {})
+
+        words = []
+        for syllable, word_list in syllables.items():
+            if isinstance(word_list, list):
+                for word_info in word_list:
+                    if isinstance(word_info, dict):
+                        text = word_info.get('text', '')
+                        extension = word_info.get('extension', 'jpg')
+                        value = word_info.get('value', '')
+                        words.append({
+                            'text': text,
+                            'extension': extension,
+                            'value': value
+                        })
+
+        letter_words[letter] = words
+
+    return letter_words, completed_words

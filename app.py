@@ -4,7 +4,7 @@ import firebase_admin
 from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
 import os
-from databaseServices import initialize_firebase, add_user_to_db, get_all_users, add_letter_syllable_words, get_firestore_client, get_letter_words_and_completed, get_letter_words
+from databaseServices import initialize_firebase, add_user_to_db, get_all_users, add_letter_syllable_words, get_firestore_client, get_letter_words_and_completed, get_letter_words_and_completed_with_images
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -112,7 +112,7 @@ def main():
 
 @app.route('/learn')
 def learn():
-    letters_ref = db.collection('letters')
+    letters_ref = db.collection('words')
     docs = letters_ref.stream()
     letters = [doc.id for doc in docs]
 
@@ -121,10 +121,12 @@ def learn():
 
 @app.route('/m_learn/<letter>')
 def m_learn(letter):
-    letter_ref = db.collection('letters').document(letter)
+    # Fetch data from the 'words' collection
+    letter_ref = db.collection('words').document(letter)
     letter_doc = letter_ref.get()
 
     if not letter_doc.exists:
+        # If the document doesn't exist, return an empty template
         return render_template('tabs/m_learn.html', letter=letter, syllable_data={})
 
     letter_data = letter_doc.to_dict()
@@ -133,9 +135,13 @@ def m_learn(letter):
     sorted_syllables = dict(sorted(syllables.items()))
     syllable_data = {}
     for syllable, words_list in sorted_syllables.items():
-        words = [word for word in words_list if word]
+        # Remove any empty entries and structure data
+        words = [{'text': word.get('text', ''), 'extension': word.get(
+            'extension', '')} for word in words_list if word]
         syllable_data[syllable] = words
 
+    # This will now print: {'A': [{'text': 'aklat', 'extension': 'jpg'}, {'text': 'aso', 'extension': 'png'}]}
+    print(syllable_data)
     return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data)
 
 
@@ -176,7 +182,8 @@ def picker():
         return redirect(url_for('login'))
 
     # Fetch the letter words and completed words (assume you have a helper function for this)
-    letter_words, completed_words = get_letter_words_and_completed(user_id)
+    letter_words, completed_words = get_letter_words_and_completed_with_images(
+        user_id)
 
     return render_template('tabs/picker.html', letter_words=letter_words, completed_words=completed_words)
 
@@ -189,7 +196,9 @@ def collection():
         return redirect(url_for('login'))
 
     # Fetch the letter words and completed words (assume you have a helper function for this)
-    letter_words, completed_words = get_letter_words_and_completed(user_id)
+    letter_words, completed_words = get_letter_words_and_completed_with_images(
+        user_id)
+
     return render_template('tabs/collection.html', letter_words=letter_words, completed_words=completed_words)
 
 
