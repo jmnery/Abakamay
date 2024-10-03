@@ -172,11 +172,9 @@ def m_learn(letter):
     for syllable, words_list in sorted_syllables.items():
         # Remove any empty entries and structure data
         words = [{'text': word.get('text', ''), 'extension': word.get(
-            'extension', '')} for word in words_list if word]
+            'extension', ''), 'value': word.get('value', '')} for word in words_list if word]
         syllable_data[syllable] = words
 
-    # This will now print: {'A': [{'text': 'aklat', 'extension': 'jpg'}, {'text': 'aso', 'extension': 'png'}]}
-    print(syllable_data)
     return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data)
 
 

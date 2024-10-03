@@ -28,7 +28,7 @@
           aria-describedby="inputGroup-sizing-lg"
           disabled
         />
-        <button class="button btn-primary" type="button">Submit</button>
+        <button class="button" type="button" id="submitButton">Submit</button>
       </div>
     </div>
   </div>
@@ -40,7 +40,11 @@
     height: 100%;
     margin: 0;
   }
-
+  .button {
+    background-color: var(--primary-color);
+    color: white;
+    border: 2px rgb(77, 71, 71);
+  }
   .camera-wrapper {
     display: flex;
     justify-content: center;

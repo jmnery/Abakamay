@@ -235,6 +235,8 @@
               <div
                 class="word-item"
                 style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}{{ word.extension }}?alt=media');"
+                data-word="{{word.text}}"
+                data-value="{{word.value}}"
               >
                 <span>{{ word.text }}</span>
               </div>
@@ -244,38 +246,96 @@
         </div>
         {% endfor %}
       </div>
+    </div>
+  </div>
+</div>
 
-      <!-- Message Card -->
-      <div class="message-card" id="messageCard">
-        <div class="card text-center">
-          <div class="card-body">
-            <h5 class="card-title">Please select a word</h5>
-          </div>
-        </div>
+<!-- Modal Correct -->
+<div
+  class="modal fade"
+  id="wordModalCorrect"
+  tabindex="-1"
+  aria-labelledby="wordModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: var(--green)">
+        <h5 class="modal-title" id="wordModalLabelCorrect" style="color: white">
+          You are CORRECT!!! &#127881;
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
+      <div class="modal-body">
+        <p id="modalWordCorrect" class="mt-3"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+        <button
+          type="button"
+          class="btn"
+          style="background-color: var(--green); color: white"
+        >
+          Marked as Learned
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-      <!-- Input Container -->
-      <div class="input-container" id="inputContainer" style="display: none">
-        <div class="input-group input-group-lg">
-          <span class="input-group-text" id="inputGroup-sizing-lg">Input:</span>
-          <input
-            type="text"
-            class="form-control"
-            aria-label="Sizing example input"
-            aria-describedby="inputGroup-sizing-lg"
-            disabled
-          />
-          <button class="button btn-primary" type="button">Submit</button>
-        </div>
+<!-- Modal Wrong -->
+<div
+  class="modal fade"
+  id="wordModalWrong"
+  tabindex="-1"
+  aria-labelledby="wordModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: var(--red)">
+        <h5 class="modal-title" id="wordModalLabelWrong" style="color: white">
+          You are incorrect &#128531;
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="modalWordWrong" class="mt-3"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Try Again
+        </button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+  // Store the selected word and value
+  let selectedWord = "";
+  let selectedValue = "";
   // Enable input container on word box click
   document.querySelectorAll(".word-item").forEach(function (wordItem) {
     wordItem.addEventListener("click", function () {
+      selectedWord = this.getAttribute("data-word");
+      selectedValue = this.getAttribute("data-value");
       // Get the word text (from the span inside the word-item)
       const wordText = this.querySelector("span").innerText;
 
@@ -288,7 +348,7 @@
 
       const inputField = inputContainer.querySelector("input");
       inputField.disabled = false; // Enable the input field
-      inputField.value = wordText; // Set the input field value to the selected word
+      inputField.value = selectedValue;
       inputField.focus(); // Optionally focus the input field
 
       // (Optional) Highlight the selected word visually (add 'selected' class)
@@ -298,6 +358,58 @@
       this.classList.add("selected"); // Add 'selected' class to the clicked word
     });
   });
+  // Handle form submission
+  function submitInput() {
+    const userInput = document
+      .getElementById("inputContainer")
+      .querySelector("input").value;
+
+    // Check if user input matches the selected word's value
+    if (userInput === selectedValue) {
+      // Replace spaces with hyphens for selectedValue
+      const formattedValue = selectedValue.replace(/ /g, "-");
+
+      // Update modal content
+      document.getElementById("modalWordCorrect").innerHTML =
+        "Congratulations! You got it right! The syllabified version of <span style='color: var(--green); font-weight: bold;'>" +
+        selectedWord +
+        "</span> is <span style='color: var(--green); font-weight: bold;'>" +
+        formattedValue +
+        "</span>.";
+
+      // Show the modal
+      const wordModal = new bootstrap.Modal(
+        document.getElementById("wordModalCorrect")
+      );
+      wordModal.show();
+    } else {
+      // Update modal content
+      document.getElementById("modalWordWrong").innerHTML =
+        "Sorry, that's not correct. The correct syllabified version of <span style='color: var(--red); font-weight: bold;'>" +
+        selectedWord +
+        "</span> is not " +
+        "<span style='color: var(--red); font-weight: bold;'>" +
+        userInput +
+        "</span>.";
+
+      // Show the modal
+      const wordModal = new bootstrap.Modal(
+        document.getElementById("wordModalWrong")
+      );
+      wordModal.show();
+    }
+  }
+
+  // Get the submit button from cameraLearn.html
+  const submitButtonInCamera = document.getElementById("submitButton");
+
+  // Check if the button exists to avoid errors
+  if (submitButtonInCamera) {
+    // Attach the event listener to the submit button
+    submitButtonInCamera.addEventListener("click", function () {
+      submitInput(); // Call the submitInput function
+    });
+  }
 
   // If needed, you can hide the input container and show the message card again when you want
   // For example, when the input is submitted or if a reset action occurs
