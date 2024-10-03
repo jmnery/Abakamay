@@ -3,6 +3,10 @@
   <head>
     <title>{% block title %}My App{% endblock %}</title>
     <style>
+      :root {
+        --primary-color: #007ea7;
+        --black: #353a47;
+      }
       body {
         margin: 0;
         font-family: Arial, sans-serif;
@@ -10,8 +14,27 @@
         flex-direction: column;
         min-height: 100vh;
       }
+      @font-face {
+        font-family: "Montserrat";
+        src: url("{{ url_for('static', filename='assets/Montserrat-VariableFont_wght.ttf') }}")
+          format("truetype");
+        font-weight: 100 900; /* Adjust the weight if needed */
+        font-style: normal;
+      }
       .content {
         flex: 1;
+        background-color: rgb(232, 241, 242);
+        font-family: "Montserrat", sans-serif;
+      }
+      .navbar {
+        margin-bottom: 0;
+        padding-left: 30px !important;
+        padding-right: 30px !important;
+        background-color: var(--black);
+      }
+
+      .navbar-brand {
+        font-weight: bold;
       }
     </style>
     <!-- Bootstrap CSS -->

@@ -31,12 +31,6 @@
     box-sizing: border-box;
   }
 
-  .navbar {
-    margin-bottom: 0;
-    padding-left: 30px !important;
-    padding-right: 30px !important;
-  }
-
   .nav-tabs {
     display: flex;
     flex-wrap: nowrap;
@@ -60,7 +54,7 @@
 
   .nav-tabs .nav-link.active {
     border-color: #007bff;
-    color: blue !important;
+    color: var(--primary) !important;
   }
 
   .nav-tabs .nav-link:not(.active) {
@@ -113,13 +107,55 @@
     z-index: 2;
   }
 
+  .word-item.selected {
+    border: 3px solid var(--primary);
+    opacity: 0.9;
+  }
+
   .btn {
     height: calc(100% - 2px);
+  }
+
+  .message-card {
+    display: none; /* Initially hidden */
+    width: 100%;
+    text-align: center;
+    margin: 10px 0;
+  }
+
+  .card-body {
+    background-color: #f8f9fa !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    border: 1px solid #ccc !important;
+    border-radius: 5px !important;
+    color: rgba(0, 0, 0, 0.663);
+  }
+
+  .input-container {
+    width: 100%;
+    padding: 10px 0;
+    box-sizing: border-box;
+  }
+
+  .input-group {
+    display: flex;
+    width: 100%; /* Make input field and button full width */
+  }
+
+  .input-group .form-control {
+    flex: 1; /* Input field takes up remaining space */
+    margin-right: 10px; /* Space between input field and button */
+  }
+
+  .button {
+    border-radius: 5px;
+    padding: 0 30px 0 30px; /* Make button height match input field */
   }
 </style>
 
 <!-- Top Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
   <a class="navbar-brand" href="javascript:history.back()">
     <i class="bi bi-arrow-left"></i>
   </a>
@@ -157,7 +193,7 @@
 <div class="container-fluid">
   <div class="row">
     <!-- First column with 60% width -->
-    <div class="col-md-8">{% include 'components/cameraComponent.html' %}</div>
+    <div class="col-md-8">{% include 'components/cameraLearn.html' %}</div>
 
     <!-- Second column with 40% width -->
     <div class="col-md-4">
@@ -208,8 +244,63 @@
         </div>
         {% endfor %}
       </div>
+
+      <!-- Message Card -->
+      <div class="message-card" id="messageCard">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Please select a word</h5>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Container -->
+      <div class="input-container" id="inputContainer" style="display: none">
+        <div class="input-group input-group-lg">
+          <span class="input-group-text" id="inputGroup-sizing-lg">Input:</span>
+          <input
+            type="text"
+            class="form-control"
+            aria-label="Sizing example input"
+            aria-describedby="inputGroup-sizing-lg"
+            disabled
+          />
+          <button class="button btn-primary" type="button">Submit</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+<script>
+  // Enable input container on word box click
+  document.querySelectorAll(".word-item").forEach(function (wordItem) {
+    wordItem.addEventListener("click", function () {
+      // Get the word text (from the span inside the word-item)
+      const wordText = this.querySelector("span").innerText;
+
+      // Show the input container and enable the input field
+      const inputContainer = document.getElementById("inputContainer");
+      const messageCard = document.getElementById("messageCard");
+
+      messageCard.style.display = "none"; // Hide the message card
+      inputContainer.style.display = "block"; // Show the input container
+
+      const inputField = inputContainer.querySelector("input");
+      inputField.disabled = false; // Enable the input field
+      inputField.value = wordText; // Set the input field value to the selected word
+      inputField.focus(); // Optionally focus the input field
+
+      // (Optional) Highlight the selected word visually (add 'selected' class)
+      document.querySelectorAll(".word-item").forEach(function (item) {
+        item.classList.remove("selected"); // Remove 'selected' class from all
+      });
+      this.classList.add("selected"); // Add 'selected' class to the clicked word
+    });
+  });
+
+  // If needed, you can hide the input container and show the message card again when you want
+  // For example, when the input is submitted or if a reset action occurs
+</script>
 
 {% endblock %}
