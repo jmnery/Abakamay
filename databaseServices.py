@@ -236,3 +236,21 @@ def upload_file_to_storage(file, letter, syllable, letterType, words, value):
 
     except Exception as e:
         return {'status': 'error', 'message': str(e)}
+
+
+def add_learned_word(user_id, letter, syllable, word):
+    db = get_firestore_client()
+    # Reference to the user's document in Firestore
+    user_ref = db.collection('users').document(user_id)
+
+    # Update the learned field
+    user_ref.set({
+        'learned': {
+            letter: {
+                syllable: firestore.ArrayUnion([word])
+            }
+        }
+    }, merge=True)
+
+    print(
+        f"Added word '{word}' for user '{user_id}' under letter '{letter}' and syllable '{syllable}'.")

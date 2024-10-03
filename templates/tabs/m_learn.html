@@ -257,6 +257,7 @@
   tabindex="-1"
   aria-labelledby="wordModalLabel"
   aria-hidden="true"
+  data-backdrop="static"
 >
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -284,6 +285,7 @@
           type="button"
           class="btn"
           style="background-color: var(--green); color: white"
+          onclick="markAsLearned('{{ letter }}', syllable, selectedWord)"
         >
           Marked as Learned
         </button>
@@ -299,6 +301,7 @@
   tabindex="-1"
   aria-labelledby="wordModalLabel"
   aria-hidden="true"
+  data-backdrop="static"
 >
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -331,13 +334,19 @@
   // Store the selected word and value
   let selectedWord = "";
   let selectedValue = "";
+  let syllable = ""; // Declare the syllable variable globally
   // Enable input container on word box click
   document.querySelectorAll(".word-item").forEach(function (wordItem) {
     wordItem.addEventListener("click", function () {
       selectedWord = this.getAttribute("data-word");
       selectedValue = this.getAttribute("data-value");
-      // Get the word text (from the span inside the word-item)
       const wordText = this.querySelector("span").innerText;
+
+      // Get the current active tab to find the syllable
+      const activeTab = document.querySelector(".nav-tabs .nav-link.active");
+      syllable = activeTab
+        ? activeTab.getAttribute("id").replace("-tab", "")
+        : null; // Assign the syllable value to the global variable
 
       // Show the input container and enable the input field
       const inputContainer = document.getElementById("inputContainer");
@@ -351,13 +360,14 @@
       inputField.value = selectedValue;
       inputField.focus(); // Optionally focus the input field
 
-      // (Optional) Highlight the selected word visually (add 'selected' class)
+      // Highlight the selected word visually
       document.querySelectorAll(".word-item").forEach(function (item) {
         item.classList.remove("selected"); // Remove 'selected' class from all
       });
       this.classList.add("selected"); // Add 'selected' class to the clicked word
     });
   });
+
   // Handle form submission
   function submitInput() {
     const userInput = document
@@ -409,6 +419,29 @@
     submitButtonInCamera.addEventListener("click", function () {
       submitInput(); // Call the submitInput function
     });
+  }
+
+  function markAsLearned(letter, syllable, word) {
+    console.log(letter, " ", syllable, "", word);
+    // Send an AJAX request to the Flask backend to mark the word as learned
+    fetch("/mark_as_learned", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ letter: letter, syllable: syllable, word: word }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          alert("Word marked as learned!");
+          $("#wordModalCorrect").modal("hide");
+        } else {
+          alert("Error marking word as learned.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   }
 
   // If needed, you can hide the input container and show the message card again when you want

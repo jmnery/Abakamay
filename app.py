@@ -7,7 +7,7 @@ from firebase_admin.exceptions import FirebaseError
 import os
 import json
 import random
-from databaseServices import initialize_firebase, add_user_to_db, get_all_users,   get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage
+from databaseServices import initialize_firebase, add_user_to_db, get_all_users,   get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage, add_learned_word
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -176,6 +176,29 @@ def m_learn(letter):
         syllable_data[syllable] = words
 
     return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data)
+
+
+@app.route('/mark_as_learned', methods=['POST'])
+def mark_as_learned():
+    user_id = session.get('user_id')
+
+    # Check if user_id exists
+    if not user_id:
+        return jsonify({"message": "User not logged in."}), 401
+
+    data = request.get_json()
+    letter = data.get('letter')
+    syllable = data.get('syllable')
+    word = data.get('word')
+
+    print(f"data: {letter}: {syllable}: {word}")
+
+    # Call the function to add the learned word to Firestore
+    try:
+        add_learned_word(user_id, letter, syllable, word)
+        return jsonify({"message": "Word marked as learned!"}), 200
+    except Exception as e:
+        return jsonify({"message": "Error marking word as learned.", "error": str(e)}), 500
 
 
 @app.route('/quiz')
