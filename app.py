@@ -1,9 +1,12 @@
+from flask import jsonify
 from firebase_admin import firestore
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash, make_response, Response
 import firebase_admin
 from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
 import os
+import json
+import random
 from databaseServices import initialize_firebase, add_user_to_db, get_all_users,   get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage
 from camera import generate_frames
 
@@ -42,7 +45,7 @@ def add_cache_control(response):
 @app.route('/')
 def home():
     if 'user_id' in session:
-        return redirect(url_for('main'))
+        return redirect(url_for('learn'))
     return redirect(url_for('login'))
 
 
@@ -81,7 +84,7 @@ def signup():
             )
             add_user_to_db(user.uid, first_name, last_name, email, age)
             session['user_id'] = user.uid
-            return redirect(url_for('main'))
+            return redirect(url_for('learn'))
         except ValueError as ve:
             flash(f'Error: {ve}')
         except FirebaseError as e:
@@ -157,16 +160,17 @@ def quiz():
     return render_template('tabs/quiz.html')
 
 
-@app.route('/m_quiz')
-def m_quiz():
+@app.route('/m_quiz/<wordID>', methods=['GET'])
+@app.route('/m_quiz', methods=['GET'])
+def m_quiz(wordID=None):
     user_id = session.get('user_id')
 
     if not user_id:
         return redirect(url_for('login'))
 
-    letter_words, completed_words = get_letter_words_and_completed(user_id)
+    letter_words, completed_words = get_letter_words_and_completed_with_images(
+        user_id)
 
-    # Randomly select a word from the available words
     all_words = []
     for words in letter_words.values():
         all_words.extend(words)
@@ -175,10 +179,43 @@ def m_quiz():
         flash('No words available for the quiz.')
         return redirect(url_for('quiz'))
 
-    import random
-    random_word = random.choice(all_words)
+    all_words = [word for word in all_words if isinstance(word, dict)]
 
-    return render_template('tabs/m_quiz.html', word=random_word)
+    if not all_words:
+        flash('No valid words available.')
+        return redirect(url_for('quiz'))
+
+    # Use session to store currentIndex
+    if 'currentIndex' in session:
+        currentIndex = session['currentIndex']
+    else:
+        currentIndex = 0  # Default to the first word
+
+    # If no wordID is provided, pick a random word
+    if not wordID:
+        random_word = random.choice(all_words)
+        wordID = random_word.get('wordID')
+        session['currentIndex'] = all_words.index(random_word)
+        return redirect(url_for('m_quiz', wordID=wordID))
+
+    selected_word = next((word for word in all_words if str(
+        word.get('wordID')) == str(wordID)), None)
+    if not selected_word:
+        flash('Invalid word selected.')
+        return redirect(url_for('quiz'))
+
+    currentIndex = all_words.index(selected_word)
+    session['currentIndex'] = currentIndex  # Update the session index
+
+    all_words_json = json.dumps(all_words)
+
+    return render_template(
+        'tabs/m_quiz.html',
+        word=selected_word,
+        currentIndex=currentIndex,
+        totalWords=len(all_words),
+        all_words=all_words_json
+    )
 
 
 @app.route('/picker')

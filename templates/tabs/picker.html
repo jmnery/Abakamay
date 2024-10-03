@@ -183,6 +183,7 @@
           <div
             class="word-box {% if word.text in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
             style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}{{ word.extension }}?alt=media');"
+            data-word-id="{{ word.wordID }}"
           ></div>
           {% endfor %}
         </div>
@@ -234,6 +235,15 @@
     document
       .querySelector('input[name="filter"]:checked')
       .dispatchEvent(new Event("change"));
+  });
+
+  document.querySelectorAll(".word-box").forEach(function (box) {
+    box.addEventListener("click", function () {
+      var wordID = this.getAttribute("data-word-id");
+      if (wordID) {
+        window.location.href = "/m_quiz/" + wordID;
+      }
+    });
   });
 </script>
 

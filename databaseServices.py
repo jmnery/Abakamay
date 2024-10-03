@@ -7,10 +7,6 @@ from werkzeug.utils import secure_filename
 # Firebase credentials and initialization
 
 
-import firebase_admin
-from firebase_admin import credentials, firestore, storage
-
-
 def initialize_firebase(credentials_path, database_url, storage_bucket):
     try:
         # Initialize Firebase with provided credentials and services
@@ -158,10 +154,12 @@ def get_letter_words_and_completed_with_images(user_id):
                         text = word_info.get('text', '')
                         extension = word_info.get('extension', 'jpg')
                         value = word_info.get('value', '')
+                        wordID = word_info.get('wordID', '')
                         words.append({
                             'text': text,
                             'extension': extension,
-                            'value': value
+                            'value': value,
+                            'wordID': wordID
                         })
 
         letter_words[letter] = words

@@ -1,30 +1,292 @@
 {% extends 'base.html' %} {% block title %}Random Quiz{% endblock %} {% block
 content %}
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="random-word-box">
-        <h2>{{ word }}</h2>
+
+<body
+  class="m_quiz"
+  data-total-words="{{ totalWords }}"
+  data-all-words="{{ all_words }}"
+  data-current-index="{{ currentIndex }}"
+>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .navbar {
+      margin-bottom: 0;
+      padding-left: 30px !important;
+      padding-right: 30px !important;
+    }
+
+    .navbar-nav {
+      margin-left: auto;
+    }
+
+    .container-mquiz {
+      height: calc(100vh - 56px); /* Full height minus the navbar height */
+      padding: 0px;
+      margin-top: 56px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .row {
+      margin: 0px;
+      padding: 0px;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      display: flex;
+      gap: 0px; /* Add space between items */
+    }
+
+    .arrow-button {
+      font-size: 3rem;
+      color: #333;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .arrow-button:hover {
+      color: #0056b3;
+    }
+
+    .left,
+    .right {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .col-md-4.right {
+      max-width: 100%;
+      height: 100%; /* Let it grow to fill the height */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-block: 20px;
+      padding-left: 0px;
+      padding-right: 15px;
+    }
+
+    .image {
+      background-size: cover; /* Ensure the image covers the container */
+      background-position: center;
+      background-repeat: no-repeat;
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      border: 1px solid #000;
+    }
+
+    .option-box {
+      background-color: #f1f1f1;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      padding-inline: 20px;
+      padding-block: 50px;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .option-box:hover {
+      background-color: #eaeaea;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      font-size: 32px;
+      color: #333;
+      font-weight: bold;
+      margin: 0; /* Remove margin to align text properly */
+    }
+  </style>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <a class="navbar-brand" href="javascript:history.back()">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div class="navbar-brand" style="color: white">Quiz</div>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('quiz') }}">Quiz</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container-mquiz">
+    <div class="row">
+      <!-- Left Arrow Icon inside the option-box -->
+      <div class="text-center">
+        <div class="option-box" id="left-arrow">
+          <i class="bi bi-arrow-left arrow-button"></i>
+        </div>
+      </div>
+
+      <!-- Camera component -->
+      <div class="col-md-6 left">
+        {% include 'components/cameraComponent.html' %}
+      </div>
+
+      <!-- Image component -->
+      <div class="col-md-4 right">
+        <div
+          class="image"
+          style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}{{ word.extension }}?alt=media');"
+        ></div>
+      </div>
+
+      <!-- Right Arrow Icon inside the option-box -->
+      <div class="text-center">
+        <div class="option-box" id="right-arrow">
+          <i class="bi bi-arrow-right arrow-button"></i>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<style>
-  .random-word-box {
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 30px;
-    text-align: center;
-    font-size: 24px;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
-  }
+  <!-- Bootstrap Modal for notifications -->
+  <div
+    class="modal fade"
+    id="limitModal"
+    tabindex="-1"
+    aria-labelledby="limitModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="limitModalLabel">Notification</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          You have reached the limit of the word list.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  h2 {
-    font-size: 36px;
-    font-weight: bold;
-    color: #333;
-  }
-</style>
-{% endblock %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      console.log("Page loaded");
+
+      // Retrieve data from data-* attributes
+      const total_words = parseInt(
+        document.body.getAttribute("data-total-words"),
+        10
+      );
+      const allWordsData = document.body.getAttribute("data-all-words");
+      let allWords;
+
+      // Debugging output
+      console.log("allWordsData:", allWordsData); // Log the data for debugging
+
+      // Try parsing the JSON data safely
+      try {
+        allWords = JSON.parse(allWordsData); // Parse the JSON data
+        console.log("Parsed allWords:", allWords); // Log the parsed data
+      } catch (error) {
+        console.error("Failed to parse allWords:", error);
+        alert("Error parsing word data. Please try again."); // User-friendly error message
+        return; // Exit if parsing fails
+      }
+
+      let current_index = parseInt(
+        document.body.getAttribute("data-current-index"),
+        10
+      );
+
+      // Get the left and right arrow elements by ID
+      const leftArrow = document.getElementById("left-arrow");
+      const rightArrow = document.getElementById("right-arrow");
+
+      // Add event listeners to the arrows
+      leftArrow.addEventListener("click", previousItem);
+      rightArrow.addEventListener("click", nextItem);
+
+      function previousItem() {
+        console.log("Left button clicked: Going to the previous word.");
+        if (current_index > 0) {
+          current_index--;
+          let wordID = allWords[current_index].wordID;
+          fetch("/update_current_index", {
+            method: "POST",
+            body: JSON.stringify({ currentIndex: current_index }),
+            headers: { "Content-Type": "application/json" },
+          });
+          window.location.href = "/m_quiz/" + wordID;
+        } else {
+          showLimitModal("beginning");
+        }
+      }
+
+      function nextItem() {
+        console.log("Right button clicked: Going to the next word.");
+        if (current_index < total_words - 1) {
+          current_index++;
+          let wordID = allWords[current_index].wordID;
+          fetch("/update_current_index", {
+            method: "POST",
+            body: JSON.stringify({ currentIndex: current_index }),
+            headers: { "Content-Type": "application/json" },
+          });
+          window.location.href = "/m_quiz/" + wordID;
+        } else {
+          showLimitModal("end");
+        }
+      }
+
+      // Function to show the modal notification when reaching a limit
+      function showLimitModal(boundary) {
+        const modal = new bootstrap.Modal(
+          document.getElementById("limitModal")
+        );
+        const modalBody = document.querySelector(".modal-body");
+
+        modalBody.textContent = `You have reached the ${boundary} of the word list.`;
+        modal.show(); // Show the modal using Bootstrap's method
+      }
+    });
+  </script>
+
+  {% endblock %}
+</body>
