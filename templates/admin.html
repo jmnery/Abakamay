@@ -58,6 +58,11 @@
     <form method="POST" enctype="multipart/form-data">
       <!-- Enable file upload -->
       <div>
+        <label for="file">Upload Image:</label>
+        <input type="file" name="file" accept="image/*" required />
+        <!-- File picker -->
+      </div>
+      <div>
         <label for="letter">Letter:</label>
         <input type="text" name="letter" required />
       </div>
@@ -66,14 +71,18 @@
         <input type="text" name="syllable" required />
       </div>
       <div>
+        <label for="type">Type:</label>
+        <input type="text" name="type" required />
+      </div>
+      <div>
         <label for="words">Words (comma-separated):</label>
         <input type="text" name="words" required />
       </div>
       <div>
-        <label for="file">Upload Image:</label>
-        <input type="file" name="file" accept="image/*" required />
-        <!-- File picker -->
+        <label for="value">Value:</label>
+        <input type="text" name="value" required />
       </div>
+
       <div>
         <button type="submit">Add to Database</button>
       </div>

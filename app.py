@@ -97,12 +97,15 @@ def admin():
     if request.method == 'POST':
         letter = request.form['letter']
         syllable = request.form['syllable']
+        letter_type = request.form['type']
         words = request.form['words'].split(',')
+        value = request.form['value']
         file = request.files['file']  # The uploaded file from the form
 
         # Call the function to upload file and save data
         # Pass all the necessary data
-        result = upload_file_to_storage(file, letter, syllable, words)
+        result = upload_file_to_storage(
+            file, letter,  syllable, letter_type, words, value)
 
         if result['status'] == 'success':
             flash(
@@ -124,9 +127,31 @@ def main():
 def learn():
     letters_ref = db.collection('words')
     docs = letters_ref.stream()
-    letters = [doc.id for doc in docs]
 
-    return render_template('tabs/learn.html', letters=letters)
+    vowels = []
+    consonants = []
+
+    # Assuming that the document has a 'type' field which could be 'vowel' or 'consonant'
+    for doc in docs:
+        letter_data = doc.to_dict()
+        letter_type = letter_data.get('type', '')
+        if letter_type == 'vowel':
+            vowels.append(doc.id)
+        elif letter_type == 'consonant':
+            consonants.append(doc.id)
+
+    # Combine both for displaying 'all' or filter as needed
+    all_letters = vowels + consonants
+    # Define the custom order
+    custom_order = ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L',
+                    'M', 'N', 'Ng', 'O', 'P', 'R', 'S', 'T', 'U', 'W', 'Y']
+
+    # Sort all_letters based on the custom order
+    all_letters.sort(key=lambda letter: custom_order.index(letter))
+    print("vowels: ",  vowels)
+    print("consonants: ",  consonants)
+
+    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants)
 
 
 @app.route('/m_learn/<letter>')

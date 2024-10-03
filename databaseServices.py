@@ -3,6 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore, storage
 import os
 from werkzeug.utils import secure_filename
+import uuid
 
 # Firebase credentials and initialization
 
@@ -167,7 +168,7 @@ def get_letter_words_and_completed_with_images(user_id):
     return letter_words, completed_words
 
 
-def upload_file_to_storage(file, letter, syllable, words):
+def upload_file_to_storage(file, letter, syllable, letterType, words, value):
     try:
         # Extract the file extension
         file_extension = os.path.splitext(file.filename)[1]
@@ -198,7 +199,7 @@ def upload_file_to_storage(file, letter, syllable, words):
         letter_doc = letter_ref.get()
 
         # Prepare new word entries for the syllable
-        new_words = [{'text': word.lower(), 'extension': file_extension}
+        new_words = [{'text': word.lower(), 'extension': file_extension, 'value': value, 'wordID': str(uuid.uuid4())}
                      for word in words]
 
         if letter_doc.exists:
@@ -212,12 +213,24 @@ def upload_file_to_storage(file, letter, syllable, words):
             else:
                 syllables[syllable] = new_words
 
-            # Update the Firestore document
-            letter_ref.update({'syllables': syllables})
+            # Check if letterType is provided; otherwise, keep the existing one
+            if not letterType:
+                # Default to empty if no existing type
+                letterType = letter_data.get('type', '')
+
+            # Update the Firestore document, including the letterType
+            letter_ref.update({
+                'syllables': syllables,
+                'type': letterType  # Use the existing or provided letterType
+            })
         else:
             # Create a new document if it doesn't exist
             syllables = {syllable: new_words}
-            letter_ref.set({'syllables': syllables})
+            letter_ref.set({
+                'syllables': syllables,
+                # Add letterType or set as empty if not provided
+                'type': letterType if letterType else ''
+            })
 
         return {'status': 'success', 'file_url': file_url}
 
