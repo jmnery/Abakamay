@@ -261,6 +261,49 @@ def add_learned_word(user_id, letter, syllable, word):
     print(
         f"Added word '{word}' for user '{user_id}' under letter '{letter}' and syllable '{syllable}'.")
 
+
+def get_all_words():
+    db = get_firestore_client()
+    # Adjust this to match your Firestore structure
+    words_ref = db.collection('words')
+    words = []
+
+    # Fetch only the necessary fields from each document to avoid excessive loading time
+    docs = words_ref.stream()
+    for doc in docs:
+        word_data = doc.to_dict()
+        for syllable, syllable_data in word_data.get('syllables', {}).items():
+            for word_info in syllable_data:
+                # Assuming you store the word text
+                word = {
+                    'text': word_info.get('text', ''),         # Word text
+                    # Word extension (e.g., .jpg, .png)
+                    'extension': word_info.get('extension', '')
+                }
+                words.append(word)
+
+    return words
+
+
+def get_user_progress(user_id):
+    db = get_firestore_client()
+    user_ref = db.collection('users').document(user_id)
+    user_data = user_ref.get().to_dict()
+
+    if not user_data:  # Check if user_data is None
+        return []
+
+    completed_words = []
+
+    learned = user_data.get('learned', {})
+    for letter, syllables in learned.items():
+        for syllable, words in syllables.items():
+            if isinstance(words, list):  # Ensure words is a list
+                completed_words.extend(words)
+
+    return completed_words
+
+
 # # Function to get the total number of words for a given letter
 
 

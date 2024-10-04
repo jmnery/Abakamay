@@ -7,7 +7,7 @@ from firebase_admin.exceptions import FirebaseError
 import os
 import json
 import random
-from databaseServices import initialize_firebase, add_user_to_db, get_all_users,   get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage, add_learned_word
+from databaseServices import get_all_words, get_user_progress, initialize_firebase, add_user_to_db, get_all_users,   get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage, add_learned_word
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -230,62 +230,65 @@ def quiz():
     return render_template('tabs/quiz.html')
 
 
-@app.route('/m_quiz/<wordID>', methods=['GET'])
+@app.route('/m_quiz/<int:index>', methods=['GET'])
 @app.route('/m_quiz', methods=['GET'])
-def m_quiz(wordID=None):
+def m_quiz(index=None):
     user_id = session.get('user_id')
 
     if not user_id:
         return redirect(url_for('login'))
 
-    letter_words, completed_words = get_letter_words_and_completed_with_images(
-        user_id)
+    # Retrieve quiz words from the session
+    quiz_words = session.get('quiz_words')
 
-    all_words = []
-    for words in letter_words.values():
-        all_words.extend(words)
-
-    if not all_words:
-        flash('No words available for the quiz.')
+    if not quiz_words:
+        flash('No words available for the quiz. Please start a new quiz.')
         return redirect(url_for('quiz'))
 
-    all_words = [word for word in all_words if isinstance(word, dict)]
-
-    if not all_words:
-        flash('No valid words available.')
-        return redirect(url_for('quiz'))
-
-    # Use session to store currentIndex
-    if 'currentIndex' in session:
-        currentIndex = session['currentIndex']
+    # Use session to store the current index if not provided
+    if index is None:
+        index = session.get('currentIndex', 0)
     else:
-        currentIndex = 0  # Default to the first word
+        session['currentIndex'] = index  # Update the session index
 
-    # If no wordID is provided, pick a random word
-    if not wordID:
-        random_word = random.choice(all_words)
-        wordID = random_word.get('wordID')
-        session['currentIndex'] = all_words.index(random_word)
-        return redirect(url_for('m_quiz', wordID=wordID))
-
-    selected_word = next((word for word in all_words if str(
-        word.get('wordID')) == str(wordID)), None)
-    if not selected_word:
-        flash('Invalid word selected.')
+    # Ensure the index is valid
+    if index < 0 or index >= len(quiz_words):
+        flash('Invalid word index selected.')
         return redirect(url_for('quiz'))
 
-    currentIndex = all_words.index(selected_word)
-    session['currentIndex'] = currentIndex  # Update the session index
-
-    all_words_json = json.dumps(all_words)
-
+    selected_word = quiz_words[index]
+    print("mquiz: ", quiz_words)
     return render_template(
         'tabs/m_quiz.html',
         word=selected_word,
-        currentIndex=currentIndex,
-        totalWords=len(all_words),
-        all_words=all_words_json
+        currentIndex=index,
+        totalWords=len(quiz_words),
+        all_words=json.dumps(quiz_words),  # Pass all words as JSON
+        quizWords=json.dumps(quiz_words)
     )
+
+
+@app.route('/randomize')
+def randomize():
+    user_id = session.get('user_id')
+
+    all_words = get_all_words()
+    completed_words = get_user_progress(user_id)
+
+    available_words = [
+        word for word in all_words if word not in completed_words]
+
+    # Get 10 random words or fewer if not enough available
+    quiz_words = random.sample(available_words, 10) if len(
+        available_words) >= 10 else available_words
+
+    # Store quiz words in the session
+    session['quiz_words'] = quiz_words
+    session['currentIndex'] = 0  # Reset current index to the first word
+
+    print("Hehe: ", quiz_words)
+    # Redirect to m_quiz with index 0
+    return redirect(url_for('m_quiz', index=0))
 
 
 @app.route('/picker')

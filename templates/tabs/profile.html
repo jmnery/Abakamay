@@ -12,8 +12,51 @@ content %}
     box-sizing: border-box;
   }
 
+  .card {
+    flex: 1; /* Make cards take equal space */
+    margin: 10px; /* Add some margin between cards */
+    min-height: 0; /* Allow cards to take full height */
+  }
+
+  .achievements-card {
+    flex: 1.5; /* Make the achievements card wider */
+  }
+
+  .avatar {
+    width: 15vw; /* Set a responsive width for the avatar */
+    height: 15vw; /* Set a responsive height for the avatar */
+    max-width: 150px; /* Set a max-width to avoid it becoming too large */
+    max-height: 150px; /* Set a max-height to avoid it becoming too large */
+    border-radius: 50%; /* Make the avatar rounded */
+    object-fit: cover; /* Ensure the image covers the area without distortion */
+    margin-bottom: 15px; /* Add space below the avatar */
+  }
+
+  .divider {
+    height: 1px; /* Set height for the divider */
+    background-color: #ccc; /* Set color for the divider */
+    margin: 10px 0; /* Add margin above and below the divider */
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between; /* Space between label and value */
+    align-items: center; /* Center items vertically */
+    margin: 5px 0; /* Add vertical spacing */
+  }
+
   .navbar-nav {
     margin-left: auto;
+  }
+
+  @media (max-width: 768px) {
+    .container-profile {
+      flex-direction: column; /* Stack cards on smaller screens */
+    }
+
+    .card {
+      width: 100%; /* Make cards take full width on smaller screens */
+    }
   }
 </style>
 
@@ -44,19 +87,61 @@ content %}
       <li class="nav-item">
         <a class="nav-link active" href="{{ url_for('profile') }}">Profile</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+      </li>
     </ul>
   </div>
 </nav>
+
 <div class="container-profile">
-  <!-- Link to Admin Page -->
-  <div>
-    <a href="{{ url_for('admin') }}" class="btn btn-secondary"
-      >Go to Admin Panel</a
-    >
+  <div class="card">
+    <div class="card-header">My Profile</div>
+    <div class="card-body text-center">
+      <!-- Dummy avatar icon -->
+      <img src="https://via.placeholder.com/100" alt="Avatar" class="avatar" />
+
+      <!-- Using flexbox to align labels and values -->
+      <div class="info-row">
+        <h5>User ID:</h5>
+        <span id="userID">12345</span>
+      </div>
+      <div class="divider"></div>
+
+      <div class="info-row">
+        <h5>Full Name:</h5>
+        <span id="fullName">John Doe</span>
+      </div>
+      <div class="divider"></div>
+
+      <div class="info-row">
+        <h5>Age:</h5>
+        <span id="age">30</span>
+      </div>
+      <div class="divider"></div>
+
+      <div class="info-row">
+        <h5>Birthday:</h5>
+        <span id="birthday">January 1, 1994</span>
+      </div>
+      <div class="divider"></div>
+
+      <div class="info-row">
+        <h5>Email:</h5>
+        <span id="email">johndoe@example.com</span>
+      </div>
+    </div>
   </div>
-  <!-- Logout link -->
-  <div>
-    <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
+
+  <div class="card achievements-card">
+    <div class="card-header">Achievements</div>
+    <div class="card-body">
+      <p>Your achievements go here.</p>
+      <!-- Add more details as needed -->
+    </div>
   </div>
 </div>
 

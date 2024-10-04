@@ -4,8 +4,8 @@ content %}
 <body
   class="m_quiz"
   data-total-words="{{ totalWords }}"
-  data-all-words="{{ all_words }}"
   data-current-index="{{ currentIndex }}"
+  data-quiz-words="{{ quizWords }}"
 >
   <style>
     html,
@@ -20,7 +20,7 @@ content %}
     }
 
     .container-mquiz {
-      height: calc(100vh - 56px); /* Full height minus the navbar height */
+      height: calc(100vh - 56px);
       padding: 0px;
       margin-top: 56px;
       display: flex;
@@ -34,7 +34,7 @@ content %}
       align-items: center;
       justify-content: center;
       display: flex;
-      gap: 0px; /* Add space between items */
+      gap: 0px;
     }
 
     .arrow-button {
@@ -57,7 +57,7 @@ content %}
 
     .col-md-4.right {
       max-width: 100%;
-      height: 100%; /* Let it grow to fill the height */
+      height: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -67,7 +67,7 @@ content %}
     }
 
     .image {
-      background-size: cover; /* Ensure the image covers the container */
+      background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       width: 100%;
@@ -99,7 +99,7 @@ content %}
       font-size: 32px;
       color: #333;
       font-weight: bold;
-      margin: 0; /* Remove margin to align text properly */
+      margin: 0;
     }
   </style>
 
@@ -139,27 +139,28 @@ content %}
 
   <div class="container-mquiz">
     <div class="row">
-      <!-- Left Arrow Icon inside the option-box -->
       <div class="text-center">
         <div class="option-box" id="left-arrow">
           <i class="bi bi-arrow-left arrow-button"></i>
         </div>
       </div>
 
-      <!-- Camera component -->
       <div class="col-md-6 left">
         {% include 'components/cameraQuiz.html' %}
       </div>
 
-      <!-- Image component -->
       <div class="col-md-4 right">
+        {% if quizWords %}
         <div
           class="image"
-          style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}{{ word.extension }}?alt=media');"
+          id="word-image"
+          style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ quizWords[currentIndex].text }}{{ quizWords[currentIndex].extension }}?alt=media');"
         ></div>
+        {% else %}
+        <p>No words available for the quiz.</p>
+        {% endif %}
       </div>
 
-      <!-- Right Arrow Icon inside the option-box -->
       <div class="text-center">
         <div class="option-box" id="right-arrow">
           <i class="bi bi-arrow-right arrow-button"></i>
@@ -168,7 +169,6 @@ content %}
     </div>
   </div>
 
-  <!-- Bootstrap Modal for notifications -->
   <div
     class="modal fade"
     id="limitModal"
@@ -203,73 +203,65 @@ content %}
     document.addEventListener("DOMContentLoaded", function () {
       console.log("Page loaded");
 
-      // Retrieve data from data-* attributes
-      const total_words = parseInt(
+      // Variables for total words and current index
+      let totalWords = parseInt(
         document.body.getAttribute("data-total-words"),
         10
       );
-      const allWordsData = document.body.getAttribute("data-all-words");
-      let allWords;
-
-      // Debugging output
-      console.log("allWordsData:", allWordsData); // Log the data for debugging
-
-      // Try parsing the JSON data safely
-      try {
-        allWords = JSON.parse(allWordsData); // Parse the JSON data
-        console.log("Parsed allWords:", allWords); // Log the parsed data
-      } catch (error) {
-        console.error("Failed to parse allWords:", error);
-        alert("Error parsing word data. Please try again."); // User-friendly error message
-        return; // Exit if parsing fails
-      }
-
-      let current_index = parseInt(
+      let currentIndex = parseInt(
         document.body.getAttribute("data-current-index"),
         10
       );
+      let quizWords = JSON.parse(document.body.getAttribute("data-quiz-words"));
 
-      // Get the left and right arrow elements by ID
+      // Display the first word initially
+      updateWordDisplay(currentIndex);
+
+      // Get arrow elements
       const leftArrow = document.getElementById("left-arrow");
       const rightArrow = document.getElementById("right-arrow");
 
-      // Add event listeners to the arrows
+      // Arrow event listeners
       leftArrow.addEventListener("click", previousItem);
       rightArrow.addEventListener("click", nextItem);
 
+      // Function to update the displayed word
+      function updateWordDisplay(index) {
+        if (quizWords.length === 0) return; // Avoid errors if the list is empty
+        let word = quizWords[index];
+        const imageElement = document.getElementById("word-image");
+
+        if (imageElement) {
+          // Check if the element exists
+          // Update image background
+          imageElement.style.backgroundImage = `url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/${word.text}${word.extension}?alt=media')`;
+          console.log(`Displaying word at index ${index}:`, word);
+        } else {
+          console.error("Element with id 'word-image' not found.");
+        }
+      }
+
+      // Function to handle the previous word navigation
       function previousItem() {
-        console.log("Left button clicked: Going to the previous word.");
-        if (current_index > 0) {
-          current_index--;
-          let wordID = allWords[current_index].wordID;
-          fetch("/update_current_index", {
-            method: "POST",
-            body: JSON.stringify({ currentIndex: current_index }),
-            headers: { "Content-Type": "application/json" },
-          });
-          window.location.href = "/m_quiz/" + wordID;
+        if (currentIndex > 0) {
+          currentIndex--;
+          updateWordDisplay(currentIndex);
         } else {
           showLimitModal("beginning");
         }
       }
 
+      // Function to handle the next word navigation
       function nextItem() {
-        console.log("Right button clicked: Going to the next word.");
-        if (current_index < total_words - 1) {
-          current_index++;
-          let wordID = allWords[current_index].wordID;
-          fetch("/update_current_index", {
-            method: "POST",
-            body: JSON.stringify({ currentIndex: current_index }),
-            headers: { "Content-Type": "application/json" },
-          });
-          window.location.href = "/m_quiz/" + wordID;
+        if (currentIndex < quizWords.length - 1) {
+          currentIndex++;
+          updateWordDisplay(currentIndex);
         } else {
           showLimitModal("end");
         }
       }
 
-      // Function to show the modal notification when reaching a limit
+      // Function to show modal notification
       function showLimitModal(boundary) {
         const modal = new bootstrap.Modal(
           document.getElementById("limitModal")
@@ -277,7 +269,7 @@ content %}
         const modalBody = document.querySelector(".modal-body");
 
         modalBody.textContent = `You have reached the ${boundary} of the word list.`;
-        modal.show(); // Show the modal using Bootstrap's method
+        modal.show();
       }
     });
   </script>
