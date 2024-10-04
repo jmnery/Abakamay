@@ -38,7 +38,8 @@
 
   .option-box {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: space-between; /* Ensures the letter is at the top and the progress bar at the bottom */
     align-items: center;
     min-height: 14vh;
     background-color: #f1f1f1;
@@ -46,6 +47,7 @@
     border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    padding: 10px;
     flex: 1;
   }
 
@@ -60,6 +62,13 @@
     font-weight: bold;
     margin: 0;
   }
+  .letter-container {
+    flex: 1; /* Allow this div to take up available space */
+    display: flex; /* Enable flexbox for centering */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 50px; /* Optional: adjust the minimum height as needed */
+  }
 
   .col-md-3 {
     padding-left: 5px;
@@ -69,8 +78,13 @@
 
   .filter-options {
     display: flex;
-    flex-direction: column; /* Stack items vertically */
-    gap: 5px; /* Add spacing between the radio buttons */
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  /* Ensure the progress bar is at the bottom and takes full width */
+  .progress-container {
+    width: 100%;
   }
 </style>
 
@@ -109,7 +123,6 @@
   <div class="card">
     <h5 class="card-header">Welcome, {{ username }}</h5>
     <div class="card-body">
-      <!-- Filter Section -->
       <div class="filter-options">
         <label
           ><input type="radio" name="filter" value="all" checked /> All</label
@@ -125,7 +138,6 @@
     </div>
   </div>
 
-  <!-- Button Container Section -->
   <div class="button_container">
     <div class="row">
       {% for letter in letters %}
@@ -136,7 +148,27 @@
           class="option-box"
           onclick="window.location.href=`{{ url_for('m_learn', letter=letter) }}`"
         >
-          <h2>{{ letter }}</h2>
+          <div class="letter-container">
+            <h2>{{ letter }}</h2>
+          </div>
+
+          <!-- Progress bar at the bottom -->
+          <div class="progress-container">
+            <div class="progress" style="height: 8px; margin-inline: 12px">
+              {% set total_words = progress_data[letter]['total_words'] %} {%
+              set learned_words = progress_data[letter]['learned_words'] %} {%
+              set progress_percent = (learned_words / total_words) * 100 if
+              total_words > 0 else 0 %}
+              <div
+                class="progress-bar progress-bar-striped progress-bar-animated bg-info"
+                role="progressbar"
+                style="width: {{ progress_percent }}%"
+                aria-valuenow="{{ learned_words }}"
+                aria-valuemin="0"
+                aria-valuemax="{{ total_words }}"
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
       {% endfor %}

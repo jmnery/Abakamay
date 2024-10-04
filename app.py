@@ -125,33 +125,57 @@ def main():
 
 @app.route('/learn')
 def learn():
+    # Fetch the user_id from session or however you store the user's login information
+    user_id = session.get('user_id')  # Adjust this based on your login system
+
     letters_ref = db.collection('words')
     docs = letters_ref.stream()
 
     vowels = []
     consonants = []
+    progress_data = {}
 
-    # Assuming that the document has a 'type' field which could be 'vowel' or 'consonant'
+    learned_data = {}
+
+    # Fetch the learned data for the user in one go
+    user_ref = db.collection('users').document(user_id)
+    user_doc = user_ref.get()
+
+    if user_doc.exists:
+        learned_data = user_doc.to_dict().get('learned', {})
+
+    # Process each letter
     for doc in docs:
+        letter = doc.id
         letter_data = doc.to_dict()
         letter_type = letter_data.get('type', '')
+
         if letter_type == 'vowel':
-            vowels.append(doc.id)
+            vowels.append(letter)
         elif letter_type == 'consonant':
-            consonants.append(doc.id)
+            consonants.append(letter)
+
+        # Get the total words using wordCount and learned words directly from learned_data
+        total_words = letter_data.get('wordCount', 0)
+        # learned_words = len(learned_data.get(letter, {}).get('syllable', []))
+        learned_words = learned_data.get(letter, {}).get('wordCount', 0)
+
+        # Store progress data for each letter
+        progress_data[letter] = {
+            'total_words': total_words,
+            'learned_words': learned_words
+        }
 
     # Combine both for displaying 'all' or filter as needed
     all_letters = vowels + consonants
+
     # Define the custom order
     custom_order = ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L',
                     'M', 'N', 'Ng', 'O', 'P', 'R', 'S', 'T', 'U', 'W', 'Y']
 
     # Sort all_letters based on the custom order
     all_letters.sort(key=lambda letter: custom_order.index(letter))
-    print("vowels: ",  vowels)
-    print("consonants: ",  consonants)
-
-    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants)
+    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data)
 
 
 @app.route('/m_learn/<letter>')

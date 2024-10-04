@@ -252,5 +252,43 @@ def add_learned_word(user_id, letter, syllable, word):
         }
     }, merge=True)
 
+    # Increment the wordCount for the letter in the learned document
+    user_ref.update({
+        # Increment wordCount by 1
+        f'learned.{letter}.wordCount': firestore.Increment(1)
+    })
+
     print(
         f"Added word '{word}' for user '{user_id}' under letter '{letter}' and syllable '{syllable}'.")
+
+# # Function to get the total number of words for a given letter
+
+
+# def getTotalWordNum(letter):
+#     db = get_firestore_client()
+#     words_ref = db.collection('words').document(letter)
+#     words_doc = words_ref.get()
+
+#     if words_doc.exists:
+#         return words_doc.to_dict().get('wordCount', 0)
+#     return 0
+
+
+# # Function to get the total number of learned words for a given user and letter
+
+
+# def getTotalLearnedNum(user_id, letter):
+#     db = get_firestore_client()
+#     user_ref = db.collection('users').document(user_id)
+#     user_doc = user_ref.get()
+
+#     if user_doc.exists:
+#         learned_data = user_doc.to_dict().get('learned', {})
+#         letter_data = learned_data.get(letter, {})
+
+#         # Use wordCount directly if it exists, else calculate learned_word_count
+#         learned_word_count = letter_data.get('wordCount', 0)
+
+#         return learned_word_count
+
+#     return 0
