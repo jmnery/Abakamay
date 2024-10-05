@@ -32,7 +32,7 @@ content %}
       padding: 0px;
       height: 100%;
       align-items: center;
-      justify-content: center;
+      justify-content: center; /* Distributes space between left and right sections */
       display: flex;
       gap: 0px;
     }
@@ -64,6 +64,7 @@ content %}
       padding-block: 20px;
       padding-left: 0px;
       padding-right: 15px;
+      flex-direction: column; /* Stacks pagination and image vertically */
     }
 
     .image {
@@ -74,6 +75,16 @@ content %}
       height: 100%;
       border-radius: 20px;
       border: 1px solid #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative; /* Ensure the spinner stays in the center */
+    }
+
+    .spinner-border {
+      display: none; /* Hide the spinner by default */
+      position: absolute; /* Position it relative to the image container */
+      color: var(--black);
     }
 
     .option-box {
@@ -151,14 +162,33 @@ content %}
 
       <div class="col-md-4 right">
         {% if quizWords %}
-        <div
-          class="image"
-          id="word-image"
-          style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ quizWords[currentIndex].text }}{{ quizWords[currentIndex].extension }}?alt=media');"
-        ></div>
+        <div class="image" id="word-image">
+          <div id="spinner" class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
         {% else %}
         <p>No words available for the quiz.</p>
         {% endif %}
+        <div class="text-center" style="margin-top: 10px">
+          <!-- Add Pagination Here -->
+          <nav>
+            <ul class="pagination justify-content-center">
+              {% for i in range(1, 11) %}
+              <li
+                class="page-item {% if currentIndex == i-1 %}active{% endif %}"
+              >
+                <a
+                  class="page-link"
+                  href="javascript:void(0)"
+                  data-index="{{ i-1 }}"
+                  >{{ i }}</a
+                >
+              </li>
+              {% endfor %}
+            </ul>
+          </nav>
+        </div>
       </div>
 
       <div class="text-center">
@@ -169,41 +199,8 @@ content %}
     </div>
   </div>
 
-  <div
-    class="modal fade"
-    id="limitModal"
-    tabindex="-1"
-    aria-labelledby="limitModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="limitModalLabel">Notification</h5>
-          <button
-            type="button"
-            class="btn-close"
-            data-dismiss="modal"
-            aria-label="Close"
-          ></button>
-        </div>
-        <div class="modal-body">
-          You have reached the limit of the word list.
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      console.log("Page loaded");
-
-      // Variables for total words and current index
       let totalWords = parseInt(
         document.body.getAttribute("data-total-words"),
         10
@@ -214,63 +211,81 @@ content %}
       );
       let quizWords = JSON.parse(document.body.getAttribute("data-quiz-words"));
 
-      // Display the first word initially
+      // Check if quizWords is defined and is an array
+      if (!quizWords || !Array.isArray(quizWords) || quizWords.length === 0) {
+        console.error("quizWords is undefined or empty.");
+        return; // Exit if quizWords is not available
+      }
+
       updateWordDisplay(currentIndex);
 
-      // Get arrow elements
-      const leftArrow = document.getElementById("left-arrow");
-      const rightArrow = document.getElementById("right-arrow");
-
-      // Arrow event listeners
-      leftArrow.addEventListener("click", previousItem);
-      rightArrow.addEventListener("click", nextItem);
-
-      // Function to update the displayed word
       function updateWordDisplay(index) {
-        if (quizWords.length === 0) return; // Avoid errors if the list is empty
-        let word = quizWords[index];
+        if (!quizWords || quizWords.length === 0) return;
+
+        const word = quizWords[index];
         const imageElement = document.getElementById("word-image");
+        const spinner = document.getElementById("spinner");
 
         if (imageElement) {
-          // Check if the element exists
-          // Update image background
-          imageElement.style.backgroundImage = `url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/${word.text}${word.extension}?alt=media')`;
-          console.log(`Displaying word at index ${index}:`, word);
+          // Show spinner and remove current background
+          spinner.style.display = "block";
+          imageElement.style.backgroundImage = "none";
+
+          // Preload the image
+          const img = new Image();
+          img.onload = function () {
+            // Once loaded, hide the spinner and update the background image
+            spinner.style.display = "none";
+            imageElement.style.backgroundImage = `url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/${word.text}${word.extension}?alt=media')`;
+          };
+          img.src = `https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/${word.text}${word.extension}?alt=media`;
         } else {
           console.error("Element with id 'word-image' not found.");
         }
+
+        updatePagination(index);
       }
 
-      // Function to handle the previous word navigation
-      function previousItem() {
-        if (currentIndex > 0) {
-          currentIndex--;
+      function updatePagination(index) {
+        const pageItems = document.querySelectorAll(".page-item");
+        pageItems.forEach(function (item, i) {
+          if (i === index) {
+            item.classList.add("active");
+          } else {
+            item.classList.remove("active");
+          }
+        });
+      }
+
+      document.querySelectorAll(".page-link").forEach(function (link) {
+        link.addEventListener("click", function () {
+          const index = parseInt(this.getAttribute("data-index"), 10);
+          currentIndex = index;
           updateWordDisplay(currentIndex);
-        } else {
-          showLimitModal("beginning");
-        }
-      }
+        });
+      });
 
-      // Function to handle the next word navigation
-      function nextItem() {
-        if (currentIndex < quizWords.length - 1) {
-          currentIndex++;
+      document
+        .getElementById("left-arrow")
+        .addEventListener("click", function () {
+          if (currentIndex > 0) {
+            currentIndex--;
+          } else {
+            currentIndex = totalWords - 1;
+          }
           updateWordDisplay(currentIndex);
-        } else {
-          showLimitModal("end");
-        }
-      }
+        });
 
-      // Function to show modal notification
-      function showLimitModal(boundary) {
-        const modal = new bootstrap.Modal(
-          document.getElementById("limitModal")
-        );
-        const modalBody = document.querySelector(".modal-body");
-
-        modalBody.textContent = `You have reached the ${boundary} of the word list.`;
-        modal.show();
-      }
+      document
+        .getElementById("right-arrow")
+        .addEventListener("click", function () {
+          if (currentIndex < totalWords - 1) {
+            currentIndex++;
+          } else {
+            currentIndex = 0;
+          }
+          updateWordDisplay(currentIndex);
+        });
     });
   </script>
 
