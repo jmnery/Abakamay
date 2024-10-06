@@ -7,55 +7,85 @@ content %}
     height: 100vh;
     width: 100%;
     padding: 30px;
-    padding-top: 80px;
+    padding-top: 65px;
     padding-bottom: 10px;
     box-sizing: border-box;
   }
 
   .card {
-    flex: 1; /* Make cards take equal space */
-    margin: 10px; /* Add some margin between cards */
-    min-height: 0; /* Allow cards to take full height */
+    flex: 1;
+    margin: 10px;
+    min-height: 0;
   }
 
   .achievements-card {
-    flex: 1.5; /* Make the achievements card wider */
+    flex: 1.5;
+    position: relative;
   }
 
   .avatar {
-    width: 15vw; /* Set a responsive width for the avatar */
-    height: 15vw; /* Set a responsive height for the avatar */
-    max-width: 150px; /* Set a max-width to avoid it becoming too large */
-    max-height: 150px; /* Set a max-height to avoid it becoming too large */
-    border-radius: 50%; /* Make the avatar rounded */
-    object-fit: cover; /* Ensure the image covers the area without distortion */
-    margin-bottom: 15px; /* Add space below the avatar */
+    width: 15vw;
+    height: 15vw;
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
   }
 
   .divider {
-    height: 1px; /* Set height for the divider */
-    background-color: #ccc; /* Set color for the divider */
-    margin: 10px 0; /* Add margin above and below the divider */
+    height: 1px;
+    background-color: #ccc;
+    margin: 10px 0;
   }
 
   .info-row {
     display: flex;
-    justify-content: space-between; /* Space between label and value */
-    align-items: center; /* Center items vertically */
-    margin: 5px 0; /* Add vertical spacing */
+    justify-content: space-between;
+    align-items: center;
+    margin: 5px 0;
   }
 
   .navbar-nav {
     margin-left: auto;
   }
 
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    justify-items: center;
+    align-items: center;
+    display: none; /* Initially hidden until images are loaded */
+  }
+
+  .achievement-icon {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+  }
+
+  .spinner-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
   @media (max-width: 768px) {
     .container-profile {
-      flex-direction: column; /* Stack cards on smaller screens */
+      flex-direction: column;
     }
 
     .card {
-      width: 100%; /* Make cards take full width on smaller screens */
+      width: 100%;
+    }
+
+    .achievements-grid {
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     }
   }
 </style>
@@ -101,48 +131,97 @@ content %}
   <div class="card">
     <div class="card-header">My Profile</div>
     <div class="card-body text-center">
-      <!-- Dummy avatar icon -->
       <img src="https://via.placeholder.com/100" alt="Avatar" class="avatar" />
 
-      <!-- Using flexbox to align labels and values -->
       <div class="info-row">
         <h5>User ID:</h5>
-        <span id="userID">12345</span>
+        <span id="userID">{{ user_id }}</span>
       </div>
       <div class="divider"></div>
 
       <div class="info-row">
         <h5>Full Name:</h5>
-        <span id="fullName">John Doe</span>
+        <span id="fullName">{{ full_name }}</span>
       </div>
       <div class="divider"></div>
 
       <div class="info-row">
         <h5>Age:</h5>
-        <span id="age">30</span>
+        <span id="age">{{ age }}</span>
       </div>
       <div class="divider"></div>
 
       <div class="info-row">
         <h5>Birthday:</h5>
-        <span id="birthday">January 1, 1994</span>
+        <span id="birthday">{{ birthday }}</span>
       </div>
       <div class="divider"></div>
 
       <div class="info-row">
         <h5>Email:</h5>
-        <span id="email">johndoe@example.com</span>
+        <span id="email">{{ email }}</span>
       </div>
     </div>
   </div>
 
   <div class="card achievements-card">
     <div class="card-header">Achievements</div>
-    <div class="card-body">
-      <p>Your achievements go here.</p>
-      <!-- Add more details as needed -->
+
+    <!-- Spinner -->
+    <div class="spinner-container" id="spinner">
+      <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Achievements Grid -->
+    <div class="card-body achievements-grid" id="achievementsGrid">
+      {% for letter in 'ABKDEGHILMNOPRSTUWY' %}
+      <img
+        src="{{ url_for('static', filename='assets/letter_icon/' + letter + '_outline.png') }}"
+        alt="{{ letter }}"
+        class="achievement-icon"
+      />
+      {% endfor %}
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const achievementsGrid = document.getElementById("achievementsGrid");
+    const spinner = document.getElementById("spinner");
+    const images = achievementsGrid.getElementsByTagName("img");
+    const totalImages = images.length;
+    let loadedImagesCount = 0;
+
+    // Show the achievements grid only when all images have loaded
+    const checkAllImagesLoaded = () => {
+      if (loadedImagesCount === totalImages) {
+        spinner.style.display = "none"; // Hide the spinner
+        achievementsGrid.style.display = "grid"; // Show the images grid
+      }
+    };
+
+    // Set up event listeners for each image
+    Array.from(images).forEach((image) => {
+      image.onload = () => {
+        loadedImagesCount++;
+        checkAllImagesLoaded();
+      };
+
+      image.onerror = () => {
+        loadedImagesCount++; // Count failed loads too
+        checkAllImagesLoaded();
+      };
+    });
+
+    // If there are no images, hide the spinner immediately
+    if (totalImages === 0) {
+      spinner.style.display = "none";
+      achievementsGrid.style.display = "grid"; // Show empty grid
+    }
+  });
+</script>
 
 {% endblock %}

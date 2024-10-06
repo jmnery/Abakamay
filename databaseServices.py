@@ -285,6 +285,28 @@ def get_all_words():
     return words
 
 
+def get_words_by_letter(letter):
+    db = get_firestore_client()
+    words_ref = db.collection('words').document(letter)
+    words = []
+
+    # Fetch the document for the specific letter
+    doc = words_ref.get()
+    if doc.exists:
+        word_data = doc.to_dict()
+        # Iterate over syllables for the given letter
+        for syllable, syllable_data in word_data.get('syllables', {}).items():
+            for word_info in syllable_data:
+                word = {
+                    'text': word_info.get('text', ''),        # Word text
+                    # Word extension
+                    'extension': word_info.get('extension', '')
+                }
+                words.append(word)
+
+    return words
+
+
 def get_user_progress(user_id):
     db = get_firestore_client()
     user_ref = db.collection('users').document(user_id)
@@ -303,6 +325,20 @@ def get_user_progress(user_id):
 
     return completed_words
 
+
+def get_user_data(user_id):
+    db = get_firestore_client()
+    try:
+        user_ref = db.collection('users').document(user_id)
+        user_doc = user_ref.get()
+        if user_doc.exists:
+            return user_doc.to_dict()
+        else:
+            print("No such user!")
+            return None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 # # Function to get the total number of words for a given letter
 

@@ -1,3 +1,5 @@
+from flask import render_template, session
+from datetime import datetime
 from flask import jsonify
 from firebase_admin import firestore
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash, make_response, Response
@@ -7,7 +9,7 @@ from firebase_admin.exceptions import FirebaseError
 import os
 import json
 import random
-from databaseServices import get_all_words, get_user_progress, initialize_firebase, add_user_to_db, get_all_users,   get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage, add_learned_word
+from databaseServices import get_all_words, get_user_data, get_user_progress, get_words_by_letter, initialize_firebase, add_user_to_db, get_all_users,   get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage, add_learned_word
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -268,8 +270,8 @@ def m_quiz(index=None):
     )
 
 
-@app.route('/randomize')
-def randomize():
+@app.route('/randomizeAll')
+def randomizeAll():
     user_id = session.get('user_id')
 
     all_words = get_all_words()
@@ -291,18 +293,63 @@ def randomize():
     return redirect(url_for('m_quiz', index=0))
 
 
+@app.route('/randomizeCategory/<letter>')
+def randomizeCategory(letter):
+    user_id = session.get('user_id')
+
+    # Retrieve all words for the specific letter
+    all_words = get_words_by_letter(letter)
+    completed_words = get_user_progress(user_id)
+
+    # Filter words to only those that have not been completed
+    available_words = [
+        word for word in all_words if word not in completed_words]
+
+    # Get 10 random words or fewer if not enough available
+    quiz_words = random.sample(available_words, 10) if len(
+        available_words) >= 10 else available_words
+
+    # Store quiz words in the session
+    session['quiz_words'] = quiz_words
+    session['currentIndex'] = 0  # Reset current index to the first word
+
+    print("Hehe: ", quiz_words)
+    # Redirect to m_quiz with index 0
+    return redirect(url_for('m_quiz', index=0))
+
+
 @app.route('/picker')
 def picker():
-    user_id = session.get('user_id')  # Get the current user's ID
+    # Fetch the user_id from session or however you store the user's login information
+    user_id = session.get('user_id')  # Adjust this based on your login system
 
-    if not user_id:
-        return redirect(url_for('login'))
+    letters_ref = db.collection('words')
+    docs = letters_ref.stream()
 
-    # Fetch the letter words and completed words (assume you have a helper function for this)
-    letter_words, completed_words = get_letter_words_and_completed_with_images(
-        user_id)
+    vowels = []
+    consonants = []
 
-    return render_template('tabs/picker.html', letter_words=letter_words, completed_words=completed_words)
+    # Process each letter
+    for doc in docs:
+        letter = doc.id
+        letter_data = doc.to_dict()
+        letter_type = letter_data.get('type', '')
+
+        if letter_type == 'vowel':
+            vowels.append(letter)
+        elif letter_type == 'consonant':
+            consonants.append(letter)
+
+    # Combine both for displaying 'all' or filter as needed
+    all_letters = vowels + consonants
+
+    # Define the custom order
+    custom_order = ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L',
+                    'M', 'N', 'Ng', 'O', 'P', 'R', 'S', 'T', 'U', 'W', 'Y']
+
+    # Sort all_letters based on the custom order
+    all_letters.sort(key=lambda letter: custom_order.index(letter))
+    return render_template('tabs/picker.html', letters=all_letters, vowels=vowels, consonants=consonants)
 
 
 @app.route('/collection')
@@ -319,9 +366,41 @@ def collection():
     return render_template('tabs/collection.html', letter_words=letter_words, completed_words=completed_words)
 
 
+# Initialize Firestore if not already initialized
+# firebase_admin.initialize_app()
+db = firestore.client()
+
+
 @app.route('/profile')
 def profile():
-    return render_template('tabs/profile.html')
+    # Fetch the user document (replace 'user_id' with the actual user ID or retrieve dynamically)
+    user_id = session.get('user_id')
+    user_doc = db.collection('users').document(user_id).get()
+
+    if user_doc.exists:
+        user_data = user_doc.to_dict()
+        # Combine first and last name
+        full_name = f"{user_data.get('firstName', '')} {user_data.get('lastName', '')}"
+
+        # Format the birthday
+        raw_birthday = user_data.get('birthday', '')
+        try:
+            # Convert Firestore timestamp to a Python datetime object
+            if isinstance(raw_birthday, datetime):
+                formatted_birthday = raw_birthday.strftime("%B %d, %Y")
+            else:
+                formatted_birthday = "Unknown Date"
+        except ValueError:
+            formatted_birthday = "Unknown Date"  # Handle the case where parsing fails
+
+        # Pass the formatted data to the template
+        return render_template('tabs/profile.html', full_name=full_name,
+                               email=user_data.get('email', ''),
+                               user_id=user_data.get('userID', ''),
+                               age=user_data.get('age', ''),
+                               birthday=formatted_birthday)
+    else:
+        return "User not found", 404
 
 
 @app.route('/logout')
