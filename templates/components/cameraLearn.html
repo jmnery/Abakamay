@@ -6,7 +6,13 @@
         src="{{ url_for('video_feed') }}"
         alt="Camera feed"
         class="camera-feed"
+        id="cameraFeed"
       />
+      <!-- Spinner -->
+      <div id="loadingSpinner" class="spinner" style="display: none">
+        <div class="double-bounce1"></div>
+        <div class="double-bounce2"></div>
+      </div>
     </div>
 
     <!-- Card to show when no word is selected -->
@@ -20,15 +26,28 @@
 
     <div class="input-container" id="inputContainer" style="display: none">
       <div class="input-group input-group-lg">
-        <span class="input-group-text" id="inputGroup-sizing-lg">Input:</span>
+        <span class="input-group-text" id="inputGroup-sizing-lg">
+          <i class="fa-solid fa-hand"></i>
+        </span>
         <input
           type="text"
           class="form-control"
+          id="inputField"
           aria-label="Sizing example input"
           aria-describedby="inputGroup-sizing-lg"
           disabled
+          autocomplete="off"
+          spellcheck="false"
         />
-        <button class="button" type="button" id="submitButton">Submit</button>
+        <button class="btn btn-secondary" type="button" id="backspaceButton">
+          <i class="fas fa-backspace"></i>
+        </button>
+        <button class="btn btn-danger" type="button" id="trashButton">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+        <button class="btn btn-primary" type="button" id="submitButton">
+          Submit
+        </button>
       </div>
     </div>
   </div>
@@ -44,7 +63,16 @@
     background-color: var(--primary-color);
     color: white;
     border: 2px rgb(77, 71, 71);
+    border-radius: 5px;
+    padding: 0 20px; /* Adjust padding for consistent button sizes */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+  .button i {
+    margin: 0;
+  }
+
   .camera-wrapper {
     display: flex;
     justify-content: center;
@@ -102,17 +130,22 @@
 
   .input-group {
     display: flex;
-    width: 100%; /* Make input field and button full width */
+    width: 100%; /* Make input field and buttons full width */
+    gap: 10px; /* Add gaps between the input field and buttons */
+  }
+  .btn {
+    border-radius: 10px !important; /* Adjust the border-radius as needed */
   }
 
   .input-group .form-control {
     flex: 1; /* Input field takes up remaining space */
-    margin-right: 10px; /* Space between input field and button */
+    margin-right: 10px; /* Space between input field and buttons */
+    border-radius: 10px; /* Also applying to input field for consistency */
   }
 
   .button {
     border-radius: 5px;
-    padding: 0 30px 0 30px; /* Make button height match input field */
+    padding: 0 20px; /* Make button height match input field */
   }
 
   .card {
@@ -127,5 +160,75 @@
   h5 {
     margin-bottom: 0px !important;
   }
+
+  .spinner {
+    position: absolute; /* Position the spinner absolutely */
+    width: 60px; /* Size of the spinner */
+    height: 60px;
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    margin-top: -30px; /* Adjust to half the height */
+    margin-left: -30px; /* Adjust to half the width */
+    z-index: 20; /* Ensure it's above the camera feed */
+  }
+
+  .double-bounce1,
+  .double-bounce2 {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: white; /* Spinner color */
+    opacity: 0.6;
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: double-bounce 2s infinite ease-in-out;
+  }
+
+  .double-bounce2 {
+    animation-delay: -1s; /* Delay for the second bounce */
+  }
+
+  @keyframes double-bounce {
+    0%,
+    100% {
+      transform: scale(0);
+    }
+    50% {
+      transform: scale(1);
+    }
+  }
 </style>
+
+<script>
+  // Get the input field and buttons
+  const inputField = document.getElementById("inputField");
+  const backspaceButton = document.getElementById("backspaceButton");
+  const trashButton = document.getElementById("trashButton");
+
+  // Handle backspace button click: Remove last character
+  backspaceButton.addEventListener("click", () => {
+    if (inputField.value.length > 0) {
+      inputField.value = inputField.value.slice(0, -1);
+    }
+  });
+
+  // Handle trash button click: Clear the input field
+  trashButton.addEventListener("click", () => {
+    inputField.value = "";
+  });
+
+  // Get the camera feed image and the loading spinner
+  const cameraFeed = document.getElementById("cameraFeed");
+  const loadingSpinner = document.getElementById("loadingSpinner");
+
+  // Show the spinner when the camera feed starts loading
+  loadingSpinner.style.display = "flex"; // Show the spinner
+
+  // Hide the spinner once the camera feed has loaded
+  cameraFeed.onload = function () {
+    loadingSpinner.style.display = "none"; // Hide the spinner
+  };
+</script>
+
 {% endblock %}

@@ -188,19 +188,57 @@ def m_learn(letter):
 
     if not letter_doc.exists:
         # If the document doesn't exist, return an empty template
-        return render_template('tabs/m_learn.html', letter=letter, syllable_data={})
+        return render_template('tabs/m_learn.html', letter=letter, syllable_data={}, learned_words=set())
 
     letter_data = letter_doc.to_dict()
     syllables = letter_data.get('syllables', {})
+
+    # Fetch the current user's learned words
+    # Assuming you have user authentication and session management
+    user_id = session.get('user_id')
+    user_ref = db.collection('users').document(user_id)
+    user_doc = user_ref.get()
+
+    learned_words = set()
+    completed_words = set()  # Initialize completed words set
+
+    if user_doc.exists:
+        learned_data = user_doc.to_dict()
+
+        # Check if learned words for the specific letter exist
+        learned_letter_data = learned_data.get('learned', {}).get(letter, {})
+
+        # Extract syllable arrays and combine them into the learned words set
+        for syllable, words in learned_letter_data.items():
+            if isinstance(words, list):  # Ensure that it's a list
+                learned_words.update(words)  # Add learned words to the set
+
+        # Check for completed words for the specific letter
+        completed_letter_data = learned_data.get(
+            'completed', {}).get(letter, [])
+        if isinstance(completed_letter_data, list):  # Ensure it's a list
+            # Add completed words to the set
+            completed_words.update(completed_letter_data)
 
     sorted_syllables = dict(sorted(syllables.items()))
     syllable_data = {}
     for syllable, words_list in sorted_syllables.items():
         # Remove any empty entries and structure data
-        words = [{'text': word.get('text', ''), 'extension': word.get(
-            'extension', ''), 'value': word.get('value', '')} for word in words_list if word]
+        words = [
+            {
+                'text': word.get('text', ''),
+                'extension': word.get('extension', ''),
+                'value': word.get('value', ''),
+                # Add learned status
+                'learned': word.get('text') in learned_words,
+                # Add completed status
+                'completed': word.get('text') in completed_words
+            }
+            for word in words_list if word
+        ]
         syllable_data[syllable] = words
 
+    print('syllable: ', syllable_data)
     return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data)
 
 

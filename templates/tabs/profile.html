@@ -195,31 +195,43 @@ content %}
     const totalImages = images.length;
     let loadedImagesCount = 0;
 
-    // Show the achievements grid only when all images have loaded
+    // Timeout duration in milliseconds
+    const timeoutDuration = 10000; // 10 seconds
+    let timeoutId;
+
+    // Function to check if all images are loaded
     const checkAllImagesLoaded = () => {
       if (loadedImagesCount === totalImages) {
+        clearTimeout(timeoutId); // Clear the timeout
         spinner.style.display = "none"; // Hide the spinner
         achievementsGrid.style.display = "grid"; // Show the images grid
       }
     };
 
     // Set up event listeners for each image
-    Array.from(images).forEach((image) => {
-      image.onload = () => {
-        loadedImagesCount++;
-        checkAllImagesLoaded();
-      };
-
-      image.onerror = () => {
-        loadedImagesCount++; // Count failed loads too
-        checkAllImagesLoaded();
-      };
-    });
-
-    // If there are no images, hide the spinner immediately
     if (totalImages === 0) {
+      // If no images, hide the spinner and show the empty grid immediately
+      clearTimeout(timeoutId); // Clear the timeout
       spinner.style.display = "none";
       achievementsGrid.style.display = "grid"; // Show empty grid
+    } else {
+      Array.from(images).forEach((image) => {
+        image.onload = () => {
+          loadedImagesCount++;
+          checkAllImagesLoaded();
+        };
+
+        image.onerror = () => {
+          loadedImagesCount++; // Count failed loads too
+          checkAllImagesLoaded();
+        };
+      });
+
+      // Timeout function to hide the spinner after a set duration
+      timeoutId = setTimeout(() => {
+        spinner.style.display = "none"; // Hide the spinner
+        achievementsGrid.style.display = "grid"; // Show the images grid even if they are not fully loaded
+      }, timeoutDuration);
     }
   });
 </script>

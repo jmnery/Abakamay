@@ -184,7 +184,6 @@ content %}
     <h5 class="card-header">Filter Options</h5>
     <div class="card-body">
       <div class="filter-options">
-        <!-- Radio buttons for filtering -->
         <label
           ><input type="radio" name="filter" value="all" checked /> All</label
         >
@@ -201,15 +200,12 @@ content %}
   </div>
 
   <div class="word-boxes-container">
-    <!-- Check if there are any letters to display -->
     <div id="quiz-content">
       {% if letter_words|length == 0 %}
       <div class="no-data-message">
         <p>No data available.</p>
       </div>
-      {% else %}
-      <!-- Loop through each letter and display words in boxes -->
-      {% for letter, words in letter_words.items() %}
+      {% else %} {% for letter, words in letter_words.items() %}
       <div class="letter-section">
         <div class="letter-heading">{{ letter }}</div>
         <div class="word-boxes">
@@ -218,6 +214,8 @@ content %}
             class="word-box {% if word.text in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
             style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}{{ word.extension }}?alt=media');"
           >
+            <div class="spinner"></div>
+            <!-- Spinner added here -->
             <span class="word-text">{{ word.text }}</span>
             <div class="icon-container">
               <i class="fa-solid fa-lock"></i>
@@ -232,6 +230,25 @@ content %}
 </div>
 
 <script>
+  document.querySelectorAll(".word-box").forEach(function (box) {
+    const spinner = box.querySelector(".spinner");
+    const imageUrl = box.style.backgroundImage.slice(5, -2); // Extract the URL from the style
+
+    spinner.style.display = "block"; // Show spinner initially
+
+    const img = new Image();
+    img.src = imageUrl;
+
+    img.onload = function () {
+      spinner.style.display = "none"; // Hide spinner when image loads
+    };
+
+    img.onerror = function () {
+      spinner.style.display = "none"; // Hide spinner if image fails to load
+    };
+  });
+
+  // Existing filter functionality...
   document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
     radio.addEventListener("change", function () {
       var filter = this.value;
