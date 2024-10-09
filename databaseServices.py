@@ -150,6 +150,13 @@ def add_learned_word(user_id, letter, syllable, word):
         f"Added word '{word}' for user '{user_id}' under letter '{letter}' and syllable '{syllable}'.")
 
 
+def get_all_letters():
+    db = get_firestore_client()
+    """Retrieve all letters in the words collection."""
+    letters_ref = db.collection('words').stream()
+    return [letter.id for letter in letters_ref]
+
+
 def get_all_words():
     db = get_firestore_client()
     # Adjust this to match your Firestore structure

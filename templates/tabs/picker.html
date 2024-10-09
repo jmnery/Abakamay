@@ -150,20 +150,60 @@
 
   <div class="button_container">
     <div class="row">
-      {% for letter in letters %}
+      {% for letter in all_letters %}
       <div
         class="col-md-3 mb-3 letter-box all {{ 'vowel' if letter in vowels else 'consonant' }}"
       >
         <div
           class="option-box"
-          onclick="window.location.href=`{{ url_for('randomizeCategory', letter=letter) }}`"
+          data-id="{{ userId }}"
+          onclick="checkCompletedCount('{{ letter.letter }}','{{letter.totalWords}}', this.dataset.id)"
         >
           <div class="letter-container">
-            <h2>{{ letter }}</h2>
+            <h2>{{ letter.letter }}</h2>
           </div>
         </div>
       </div>
       {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  id="wordCountModal"
+  tabindex="-1"
+  aria-labelledby="wordCountModalLabel"
+  aria-hidden="true"
+  data-bs-backdrop="static"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="wordCountModalLabel">Not Enough Words</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        You have only {{ count }} completed words for this category. Would you
+        like to proceed with the quiz anyway, or would you prefer to add a
+        random word from another letter?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="addBtn">
+          Add Random Word
+        </button>
+        <button type="button" class="btn btn-primary" id="proceedBtn">
+          Proceed with Quiz
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -189,6 +229,53 @@
       });
     });
   });
+
+  // This assumes that Bootstrap's modal is correctly initialized
+  function checkCompletedCount(letter, totalWordCount, userId) {
+    // Fetch user data from the Flask API
+    fetch(`/api/user/${userId}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((userData) => {
+        // Get the word count for the specified letter
+        const userWordCount =
+          userData.complete && userData.complete[letter]
+            ? userData.complete[letter].wordCount
+            : 0;
+
+        // Check if there are enough completed words
+        if (totalWordCount - userWordCount < 10) {
+          const remainingWords = totalWordCount - userWordCount;
+          document.getElementById("wordCountModalLabel").innerText =
+            "Not Enough Words";
+          document.querySelector(
+            ".modal-body"
+          ).innerHTML = `You only  have <span style='color: var(--red); font-weight: bold;'>${remainingWords}</span> remaining words for this category. Would you like to proceed with the quiz anyway, or would you prefer to add a random word from other letters?`;
+          $("#wordCountModal").modal("show");
+
+          // Attach event listeners for modal buttons
+          document.getElementById("addBtn").onclick = function () {
+            const redirectUrl = `/randomizeCategory/${letter}?action=add`;
+            window.location.href = redirectUrl;
+          };
+
+          document.getElementById("proceedBtn").onclick = function () {
+            const redirectUrl = `/randomizeCategory/${letter}?action=proceed`;
+            window.location.href = redirectUrl;
+          };
+        } else {
+          alert("No completed words for this category.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user data: ", error);
+        alert("Error fetching data. Please try again later.");
+      });
+  }
 </script>
 
 {% endblock %}

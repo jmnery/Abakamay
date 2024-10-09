@@ -1,3 +1,4 @@
+from flask import request
 from flask import render_template, session
 from datetime import datetime
 from flask import jsonify
@@ -9,7 +10,7 @@ from firebase_admin.exceptions import FirebaseError
 import os
 import json
 import random
-from databaseServices import get_all_words, get_user_data, get_user_progress, get_words_by_letter, initialize_firebase, add_user_to_db, get_all_users, upload_file_to_storage, add_learned_word
+from databaseServices import get_all_letters, get_all_words, get_user_data, get_user_progress, get_words_by_letter, initialize_firebase, add_user_to_db, get_all_users, upload_file_to_storage, add_learned_word
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -298,7 +299,6 @@ def m_quiz(index=None):
         return redirect(url_for('quiz'))
 
     selected_word = quiz_words[index]
-    print("mquiz: ", quiz_words)
     return render_template(
         'tabs/m_quiz.html',
         word=selected_word,
@@ -317,7 +317,7 @@ def randomizeAll():
     completed_words = get_user_progress(user_id)
 
     available_words = [
-        word for word in all_words if word not in completed_words]
+        word for word in all_words if word['text'] not in completed_words]
 
     # Get 10 random words or fewer if not enough available
     quiz_words = random.sample(available_words, 10) if len(
@@ -333,27 +333,52 @@ def randomizeAll():
     return redirect(url_for('m_quiz', index=0))
 
 
-@app.route('/randomizeCategory/<letter>')
+@app.route('/randomizeCategory/<letter>')  # Added mode parameter
 def randomizeCategory(letter):
     user_id = session.get('user_id')
 
-    # Retrieve all words for the specific letter
-    all_words = get_words_by_letter(letter)
     completed_words = get_user_progress(user_id)
 
-    # Filter words to only those that have not been completed
-    available_words = [
-        word for word in all_words if word not in completed_words]
+    if request.args.get('action') == 'proceed':
+        # Retrieve all words for the specific letter
+        all_words = get_words_by_letter(letter)
 
-    # Get 10 random words or fewer if not enough available
-    quiz_words = random.sample(available_words, 10) if len(
-        available_words) >= 10 else available_words
+        # Filter words to only those that have not been completed
+        available_words = [
+            word for word in all_words if word['text'] not in completed_words]
+
+        # Get up to 10 random uncompleted words from the available words
+        quiz_words = random.sample(available_words, 10) if len(
+            available_words) >= 10 else available_words
+    elif request.args.get('action') == 'add':
+        all_words = get_all_words()  # Get all words from Firestore
+        # Filter words by letter and those that have not been completed
+        available_words = [
+            word for word in all_words if word['text'] not in completed_words and letter in word['text'].upper()]
+        # First, get up to 10 uncompleted words from the available words
+        quiz_words = random.sample(available_words, 10) if len(
+            available_words) >= 10 else available_words
+
+        # Then, if less than 10, fill in from other letters
+        if len(quiz_words) < 10:
+            additional_words = []  # Initialize list for additional words
+
+            # Filter available words to find those from other letters
+            for word in all_words:
+                if word['text'] not in completed_words and letter not in word['text'].upper():
+                    additional_words.append(word)
+
+            # Randomly select the required number of additional words
+            additional_choices = random.sample(additional_words, 10 - len(quiz_words)) if len(
+                additional_words) >= (10 - len(quiz_words)) else additional_words
+
+            # Add additional words to make a total of 10
+            quiz_words.extend(additional_choices)
 
     # Store quiz words in the session
     session['quiz_words'] = quiz_words
     session['currentIndex'] = 0  # Reset current index to the first word
 
-    print("Hehe: ", quiz_words)
     # Redirect to m_quiz with index 0
     return redirect(url_for('m_quiz', index=0))
 
@@ -368,6 +393,7 @@ def picker():
 
     vowels = []
     consonants = []
+    all_letters = []  # List to store letter and total words as dictionaries
 
     # Process each letter
     for doc in docs:
@@ -375,24 +401,30 @@ def picker():
         letter_data = doc.to_dict()
         letter_type = letter_data.get('type', '')
 
-        if letter_type == 'vowel':
-            vowels.append(letter)
-        elif letter_type == 'consonant':
-            consonants.append(letter)
+        # Get the total words using wordCount from letter_data
+        total_words = letter_data.get('wordCount', 0)
 
-    # Combine both for displaying 'all' or filter as needed
-    all_letters = vowels + consonants
+        # Create a dictionary for each letter
+        letter_info = {
+            'letter': letter,
+            'totalWords': total_words
+        }
+
+        all_letters.append(letter_info)  # Append to the all_letters list
+
+        # Classify letters into vowels and consonants
+        if letter_type == 'vowel':
+            vowels.append(letter_info)  # Append letter info to vowels
+        elif letter_type == 'consonant':
+            consonants.append(letter_info)  # Append letter info to consonants
 
     # Define the custom order
     custom_order = ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L',
                     'M', 'N', 'Ng', 'O', 'P', 'R', 'S', 'T', 'U', 'W', 'Y']
 
-    print("letters: ", all_letters)
-    print("vowels: ", vowels)
-    print("consonants: ", consonants)
     # Sort all_letters based on the custom order
-    all_letters.sort(key=lambda letter: custom_order.index(letter))
-    return render_template('tabs/picker.html', letters=all_letters, vowels=vowels, consonants=consonants)
+    all_letters.sort(key=lambda x: custom_order.index(x['letter']))
+    return render_template('tabs/picker.html', all_letters=all_letters, vowels=vowels, consonants=consonants, userId=user_id)
 
 
 @app.route('/collection')
@@ -492,6 +524,13 @@ def profile():
                                birthday=formatted_birthday)
     else:
         return "User not found", 404
+
+
+@app.route('/api/user/<user_id>')
+def get_user_data(user_id):
+    user_data = db.collection('users').document(
+        user_id).get().to_dict() if user_id else {}
+    return jsonify(user_data)
 
 
 @app.route('/logout')
