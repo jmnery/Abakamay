@@ -13,7 +13,7 @@ content %}
 
   .filter-card {
     width: 200px;
-    max-height: 200px;
+    max-height: 250px;
     overflow: hidden;
     box-sizing: border-box;
     margin-right: 25px;
@@ -144,6 +144,50 @@ content %}
     flex-direction: column; /* Stack items vertically */
     gap: 5px; /* Add spacing between the radio buttons */
   }
+
+  .bookmark-container {
+    display: flex; /* Align bookmarks horizontally */
+    gap: 5px; /* Space between the bookmarks */
+    position: absolute; /* Position relative to the word box */
+    top: 0px; /* Adjust this to move them inside the box */
+    right: 5px; /* Adjust this to move them inside the box */
+    z-index: 2; /* Ensure they are above other content */
+  }
+
+  .bookmark {
+    width: 30px; /* Make the bookmark smaller */
+    height: 60px; /* Adjust the height to fit within the word box */
+    clip-path: polygon(
+      0% 0%,
+      100% 0%,
+      100% 100%,
+      50% calc(100% - 10px),
+      /* Adjust this value for a smoother bottom */ 0% 100%,
+      0% 0%
+    );
+    display: flex; /* Center the icon */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+  }
+
+  .bookmark i {
+    color: white; /* Ensure icon color is white */
+    font-size: 16px; /* Make the icon smaller to match the bookmark size */
+  }
+
+  .bookmark.learned {
+    background: var(--green); /* Adjust your green color */
+  }
+
+  .bookmark.completed {
+    background: var(--red); /* Adjust your red color */
+  }
+
+  hr {
+    height: 5px;
+    background-color: #7e7e7e;
+    margin: 10px 0; /* Adjust the margin as needed */
+  }
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
@@ -184,39 +228,84 @@ content %}
     <h5 class="card-header">Filter Options</h5>
     <div class="card-body">
       <div class="filter-options">
-        <label
-          ><input type="radio" name="filter" value="all" checked /> All</label
-        >
-        <label
-          ><input type="radio" name="filter" value="completed" />
-          Completed</label
-        >
-        <label
-          ><input type="radio" name="filter" value="incomplete" />
-          Incomplete</label
-        >
+        <!-- Main Filter Group -->
+        <label>
+          <input type="radio" name="filter-main" value="all" checked /> All
+        </label>
+      </div>
+      <hr />
+      <!-- Divider -->
+      <div class="filter-options">
+        <!-- Complete Filter Group -->
+        <label>
+          <input type="radio" name="filter-complete" value="completed" />
+          Completed
+        </label>
+        <label>
+          <input type="radio" name="filter-complete" value="not-complete" />
+          Incomplete
+        </label>
+      </div>
+      <hr />
+      <!-- Divider -->
+      <div class="filter-options">
+        <!-- Learn Filter Group -->
+        <label>
+          <input type="radio" name="filter-learn" value="learned" /> Learned
+        </label>
+        <label>
+          <input type="radio" name="filter-learn" value="not-learned" />
+          Not Learned
+        </label>
       </div>
     </div>
   </div>
 
   <div class="word-boxes-container">
     <div id="quiz-content">
-      {% if letter_words|length == 0 %}
+      {% if syllable_data|length == 0 %}
       <div class="no-data-message">
         <p>No data available.</p>
       </div>
-      {% else %} {% for letter, words in letter_words.items() %}
+      {% else %} {% for syllable, words in syllable_data.items() %}
       <div class="letter-section">
-        <div class="letter-heading">{{ letter }}</div>
+        <div class="letter-heading">{{ syllable }}</div>
         <div class="word-boxes">
           {% for word in words %}
           <div
-            class="word-box {% if word.text in completed_words[letter] %}completed{% else %}incomplete{% endif %}"
+            class="word-box {% if word.completed %}completed{% else %}incomplete{% endif %}"
             style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}{{ word.extension }}?alt=media');"
           >
             <div class="spinner"></div>
-            <!-- Spinner added here -->
             <span class="word-text">{{ word.text }}</span>
+
+            <!-- Bookmark Container for learned and completed statuses -->
+            <div class="bookmark-container">
+              <!-- First bookmark for learned words -->
+              {% if word.learned %}
+              <div
+                class="bookmark learned"
+                data-toggle="popover"
+                data-bs-content="This word has been learned."
+                data-bs-placement="top"
+              >
+                <i class="fas fa-book" aria-hidden="true"></i>
+              </div>
+              {% endif %}
+
+              <!-- Second bookmark for completed words -->
+              {% if word.completed %}
+              <div
+                class="bookmark completed"
+                data-toggle="popover"
+                data-bs-content="This word has been completed in quiz."
+                data-bs-placement="top"
+              >
+                <i class="fas fa-check" aria-hidden="true"></i>
+              </div>
+              {% endif %}
+            </div>
+
             <div class="icon-container">
               <i class="fa-solid fa-lock"></i>
             </div>
@@ -230,6 +319,134 @@ content %}
 </div>
 
 <script>
+  // Get the filter groups
+  const filterMain = document.querySelectorAll('input[name="filter-main"]');
+  const filterComplete = document.querySelectorAll(
+    'input[name="filter-complete"]'
+  );
+  const filterLearn = document.querySelectorAll('input[name="filter-learn"]');
+
+  // Add event listeners to handle interaction
+  filterMain.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      if (radio.checked) {
+        // Deselect 'filter-complete' and 'filter-learn' when 'filter-main' is selected
+        filterComplete.forEach(
+          (completeRadio) => (completeRadio.checked = false)
+        );
+        filterLearn.forEach((learnRadio) => (learnRadio.checked = false));
+      }
+    });
+  });
+
+  const handleSubFilter = (subFilterGroup) => {
+    subFilterGroup.forEach((radio) => {
+      radio.addEventListener("change", () => {
+        if (radio.checked) {
+          // Deselect 'filter-main' when any 'filter-complete' or 'filter-learn' is selected
+          filterMain.forEach((mainRadio) => (mainRadio.checked = false));
+        }
+      });
+    });
+  };
+
+  // Apply the same logic for 'filter-complete' and 'filter-learn'
+  handleSubFilter(filterComplete);
+  handleSubFilter(filterLearn);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const filterMain = document.querySelectorAll('input[name="filter-main"]');
+    const filterComplete = document.querySelectorAll(
+      'input[name="filter-complete"]'
+    );
+    const filterLearn = document.querySelectorAll('input[name="filter-learn"]');
+    const wordBoxes = document.querySelectorAll(".word-box");
+    const letterSections = document.querySelectorAll(".letter-section");
+
+    // Helper function to get the checked filter value
+    const getCheckedValue = (filters) => {
+      let value = null;
+      filters.forEach((radio) => {
+        if (radio.checked) {
+          value = radio.value;
+        }
+      });
+      return value;
+    };
+
+    // Function to apply filters to word boxes and letter sections
+    const applyFilters = () => {
+      const filterMainValue = getCheckedValue(filterMain);
+      const filterCompleteValue = getCheckedValue(filterComplete);
+      const filterLearnValue = getCheckedValue(filterLearn);
+
+      // Iterate over each letter section
+      letterSections.forEach((section) => {
+        const boxes = section.querySelectorAll(".word-box");
+        let visibleCount = 0;
+
+        boxes.forEach((box) => {
+          const isCompleted = box.classList.contains("completed");
+          const isLearned = box.querySelector(".bookmark.learned") !== null;
+
+          // Show or hide the word box based on the filters
+          let showBox = true;
+
+          // Apply 'completed' filter
+          if (filterCompleteValue === "completed" && !isCompleted) {
+            showBox = false;
+          } else if (filterCompleteValue === "not-complete" && isCompleted) {
+            showBox = false;
+          }
+
+          // Apply 'learned' filter
+          if (filterLearnValue === "learned" && !isLearned) {
+            showBox = false;
+          } else if (filterLearnValue === "not-learned" && isLearned) {
+            showBox = false;
+          }
+
+          // Apply 'main' filter (optional: you can extend this logic for the "all" case)
+          if (filterMainValue === "all") {
+            showBox = true;
+          }
+
+          // Show or hide the box
+          if (showBox) {
+            box.style.display = "flex"; // Show the box
+            visibleCount++;
+          } else {
+            box.style.display = "none"; // Hide the box
+          }
+        });
+
+        // If no boxes are visible in this section, hide the section and its letter heading
+        const letterHeading = section.querySelector(".letter-heading");
+        if (visibleCount === 0) {
+          section.style.display = "none";
+        } else {
+          section.style.display = "block"; // Show the section if any word box is visible
+        }
+      });
+    };
+
+    // Attach change event listeners to filters
+    filterMain.forEach((radio) => {
+      radio.addEventListener("change", applyFilters);
+    });
+
+    filterComplete.forEach((radio) => {
+      radio.addEventListener("change", applyFilters);
+    });
+
+    filterLearn.forEach((radio) => {
+      radio.addEventListener("change", applyFilters);
+    });
+
+    // Initial filter application
+    applyFilters();
+  });
+
   document.querySelectorAll(".word-box").forEach(function (box) {
     const spinner = box.querySelector(".spinner");
     const imageUrl = box.style.backgroundImage.slice(5, -2); // Extract the URL from the style
@@ -246,39 +463,6 @@ content %}
     img.onerror = function () {
       spinner.style.display = "none"; // Hide spinner if image fails to load
     };
-  });
-
-  // Existing filter functionality...
-  document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
-    radio.addEventListener("change", function () {
-      var filter = this.value;
-      var hasVisibleLetter = false;
-
-      document.querySelectorAll(".letter-section").forEach(function (section) {
-        var anyVisible = false;
-
-        section.querySelectorAll(".word-box").forEach(function (box) {
-          var isCompleted = box.classList.contains("completed");
-          var shouldDisplay =
-            filter === "all" ||
-            (filter === "completed" && isCompleted) ||
-            (filter === "incomplete" && !isCompleted);
-
-          box.style.display = shouldDisplay ? "block" : "none";
-          anyVisible = anyVisible || shouldDisplay;
-        });
-
-        section.style.display = anyVisible ? "block" : "none";
-        hasVisibleLetter = hasVisibleLetter || anyVisible;
-      });
-
-      document.querySelector(".no-data-message").style.display =
-        hasVisibleLetter ? "none" : "flex";
-    });
-
-    document
-      .querySelector('input[name="filter"]:checked')
-      .dispatchEvent(new Event("change"));
   });
 </script>
 

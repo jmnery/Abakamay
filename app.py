@@ -9,7 +9,7 @@ from firebase_admin.exceptions import FirebaseError
 import os
 import json
 import random
-from databaseServices import get_all_words, get_user_data, get_user_progress, get_words_by_letter, initialize_firebase, add_user_to_db, get_all_users,   get_letter_words_and_completed, get_letter_words_and_completed_with_images, upload_file_to_storage, add_learned_word
+from databaseServices import get_all_words, get_user_data, get_user_progress, get_words_by_letter, initialize_firebase, add_user_to_db, get_all_users, upload_file_to_storage, add_learned_word
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -204,6 +204,7 @@ def m_learn(letter):
 
     if user_doc.exists:
         learned_data = user_doc.to_dict()
+        completed_data = user_doc.to_dict()
 
         # Check if learned words for the specific letter exist
         learned_letter_data = learned_data.get('learned', {}).get(letter, {})
@@ -213,12 +214,12 @@ def m_learn(letter):
             if isinstance(words, list):  # Ensure that it's a list
                 learned_words.update(words)  # Add learned words to the set
 
-        # Check for completed words for the specific letter
-        completed_letter_data = learned_data.get(
-            'completed', {}).get(letter, [])
-        if isinstance(completed_letter_data, list):  # Ensure it's a list
-            # Add completed words to the set
-            completed_words.update(completed_letter_data)
+        completed_letter_data = completed_data.get(
+            'complete', {}).get(letter, {})
+
+        for syllable, words in completed_letter_data.items():
+            if isinstance(words, list):
+                completed_words.update(words)
 
     sorted_syllables = dict(sorted(syllables.items()))
     syllable_data = {}
@@ -327,6 +328,7 @@ def randomizeAll():
     session['currentIndex'] = 0  # Reset current index to the first word
 
     print("Hehe: ", quiz_words)
+    print("Completed: ", completed_words)
     # Redirect to m_quiz with index 0
     return redirect(url_for('m_quiz', index=0))
 
@@ -385,6 +387,9 @@ def picker():
     custom_order = ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L',
                     'M', 'N', 'Ng', 'O', 'P', 'R', 'S', 'T', 'U', 'W', 'Y']
 
+    print("letters: ", all_letters)
+    print("vowels: ", vowels)
+    print("consonants: ", consonants)
     # Sort all_letters based on the custom order
     all_letters.sort(key=lambda letter: custom_order.index(letter))
     return render_template('tabs/picker.html', letters=all_letters, vowels=vowels, consonants=consonants)
@@ -397,11 +402,59 @@ def collection():
     if not user_id:
         return redirect(url_for('login'))
 
-    # Fetch the letter words and completed words (assume you have a helper function for this)
-    letter_words, completed_words = get_letter_words_and_completed_with_images(
-        user_id)
+    # Fetch all the letters from the 'words' collection
+    words_ref = db.collection('words')
+    words_docs = words_ref.stream()
 
-    return render_template('tabs/collection.html', letter_words=letter_words, completed_words=completed_words)
+    # Fetch the current user's learned and completed words
+    user_ref = db.collection('users').document(user_id)
+    user_doc = user_ref.get()
+
+    learned_words = set()
+    completed_words = set()
+
+    if user_doc.exists:
+        user_data = user_doc.to_dict()
+
+        # Fetch learned words
+        learned_data = user_data.get('learned', {})
+        for letter, syllables in learned_data.items():
+            for syllable, words in syllables.items():
+                if isinstance(words, list):
+                    learned_words.update(words)
+
+        # Fetch completed words
+        completed_data = user_data.get('complete', {})
+        for letter, syllables in completed_data.items():
+            for syllable, words in syllables.items():
+                if isinstance(words, list):
+                    completed_words.update(words)
+
+    # Structure the data for all letters and their syllables
+    syllable_data = {}
+    for letter_doc in words_docs:
+        letter_data = letter_doc.to_dict()
+        syllables = letter_data.get('syllables', {})
+
+        # Organize the words in each syllable and check if they're learned or completed
+        for syllable, words_list in syllables.items():
+            words = [
+                {
+                    'text': word.get('text', ''),
+                    'extension': word.get('extension', ''),
+                    'value': word.get('value', ''),
+                    'learned': word.get('text') in learned_words,
+                    'completed': word.get('text') in completed_words
+                }
+                for word in words_list if word
+            ]
+            if syllable not in syllable_data:
+                syllable_data[syllable] = words
+            else:
+                syllable_data[syllable].extend(words)
+
+    # Pass the data to the template
+    return render_template('tabs/collection.html', syllable_data=syllable_data)
 
 
 # Initialize Firestore if not already initialized

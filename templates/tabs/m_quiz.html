@@ -12,7 +12,6 @@ content %}
     body {
       height: 100%;
       margin: 0;
-      overflow: hidden;
     }
 
     .navbar-nav {
@@ -28,24 +27,13 @@ content %}
     }
 
     .row {
-      margin: 0px;
+      margin-inline: 15px !important;
       padding: 0px;
       height: 100%;
       align-items: center;
       justify-content: center; /* Distributes space between left and right sections */
       display: flex;
       gap: 0px;
-    }
-
-    .arrow-button {
-      font-size: 3rem;
-      color: #333;
-      font-weight: bold;
-      margin: 0;
-    }
-
-    .arrow-button:hover {
-      color: #0056b3;
     }
 
     .left,
@@ -55,7 +43,13 @@ content %}
       align-items: center;
     }
 
-    .col-md-4.right {
+    .col-md-7.left {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .col-md-5.right {
       max-width: 100%;
       height: 100%;
       display: flex;
@@ -65,6 +59,7 @@ content %}
       padding-left: 0px;
       padding-right: 15px;
       flex-direction: column; /* Stacks pagination and image vertically */
+      padding-bottom: 15px;
     }
 
     .image {
@@ -112,6 +107,52 @@ content %}
       font-weight: bold;
       margin: 0;
     }
+
+    .text-center {
+      margin-top: 0px !important;
+    }
+
+    .pagination .page-item .page-link {
+      padding: 5px 20px; /* Adjust the padding values here */
+      margin: 0 5px; /* Optional: Adds space between pagination items */
+      border-radius: 5px; /* Optional: Gives a rounded effect to the buttons */
+      transition: background-color 0.3s; /* Optional: Smooth background transition */
+    }
+
+    .pagination .page-item.active .page-link {
+      background-color: #0056b3; /* Change to your desired active color */
+      color: white; /* Change text color for active item */
+    }
+
+    .pagination .page-item:not(.active) .page-link:hover {
+      background-color: #e0e0e0; /* Change to your desired hover color */
+    }
+
+    .input-container {
+      width: 100%;
+      padding: 10px 0;
+      box-sizing: border-box;
+    }
+
+    .input-group {
+      display: flex;
+      width: 100%; /* Make input field and button full width */
+    }
+
+    .input-group .form-control {
+      flex: 1; /* Input field takes up remaining space */
+      margin-right: 10px; /* Space between input field and button */
+    }
+
+    .button {
+      border-radius: 5px;
+      padding: 0 30px 0 30px; /* Make button height match input field */
+    }
+
+    .pagination .page-item.answered .page-link {
+      background-color: green; /* Change this to your desired color */
+      color: white; /* Change text color */
+    }
   </style>
 
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
@@ -150,17 +191,11 @@ content %}
 
   <div class="container-mquiz">
     <div class="row">
-      <div class="text-center">
-        <div class="option-box" id="left-arrow">
-          <i class="bi bi-arrow-left arrow-button"></i>
-        </div>
-      </div>
-
-      <div class="col-md-6 left">
+      <div class="col-md-7 left">
         {% include 'components/cameraQuiz.html' %}
       </div>
 
-      <div class="col-md-4 right">
+      <div class="col-md-5 right">
         {% if quizWords %}
         <div class="image" id="word-image">
           <div id="spinner" class="spinner-border" role="status">
@@ -170,31 +205,49 @@ content %}
         {% else %}
         <p>No words available for the quiz.</p>
         {% endif %}
-        <div class="text-center" style="margin-top: 10px">
-          <!-- Add Pagination Here -->
-          <nav>
-            <ul class="pagination justify-content-center">
-              {% for i in range(1, 11) %}
-              <li
-                class="page-item {% if currentIndex == i-1 %}active{% endif %}"
-              >
-                <a
-                  class="page-link"
-                  href="javascript:void(0)"
-                  data-index="{{ i-1 }}"
-                  >{{ i }}</a
-                >
-              </li>
-              {% endfor %}
-            </ul>
-          </nav>
-        </div>
       </div>
+    </div>
 
-      <div class="text-center">
-        <div class="option-box" id="right-arrow">
-          <i class="bi bi-arrow-right arrow-button"></i>
-        </div>
+    <div class="text-center" style="margin-top: 10px">
+      <!-- Add Pagination Here -->
+      <nav>
+        <ul class="pagination justify-content-center">
+          <li class="page-item {% if currentIndex == 0 %}disabled{% endif %}">
+            <a class="page-link" href="javascript:void(0)" id="prev-btn"
+              >Previous</a
+            >
+          </li>
+          {% for i in range(1, totalWords + 1) %}
+          <li class="page-item {% if currentIndex == i - 1 %}active{% endif %}">
+            <a
+              class="page-link"
+              href="javascript:void(0)"
+              data-index="{{ i - 1 }}"
+              >{{ i }}</a
+            >
+          </li>
+          {% endfor %}
+          <li
+            class="page-item {% if currentIndex == totalWords - 1 %}disabled{% endif %}"
+          >
+            <a class="page-link" href="javascript:void(0)" id="next-btn"
+              >Next</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="input-container" id="inputContainer">
+      <div class="input-group input-group-lg">
+        <span class="input-group-text" id="inputGroup-sizing-lg">Input:</span>
+        <input
+          type="text"
+          class="form-control"
+          aria-label="Sizing example input"
+          aria-describedby="inputGroup-sizing-lg"
+        />
+        <button class="button btn-primary" type="button">Submit</button>
       </div>
     </div>
   </div>
@@ -210,6 +263,7 @@ content %}
         10
       );
       let quizWords = JSON.parse(document.body.getAttribute("data-quiz-words"));
+      let userAnswers = new Array(totalWords).fill(""); // Array to hold user answers
 
       // Check if quizWords is defined and is an array
       if (!quizWords || !Array.isArray(quizWords) || quizWords.length === 0) {
@@ -217,6 +271,10 @@ content %}
         return; // Exit if quizWords is not available
       }
 
+      // Define pageItems outside of functions for global access
+      const pageItems = document.querySelectorAll(".page-item");
+      const inputField = document.querySelector(".input-group input"); // Ensure this matches your input field selector
+      const submitButton = document.querySelector(".input-group .button");
       updateWordDisplay(currentIndex);
 
       function updateWordDisplay(index) {
@@ -243,49 +301,78 @@ content %}
           console.error("Element with id 'word-image' not found.");
         }
 
+        // Populate the input field with the user's answer if it exists
+        inputField.value = userAnswers[index] || ""; // Fill input with the answer or clear it if none exists
+
         updatePagination(index);
       }
 
       function updatePagination(index) {
-        const pageItems = document.querySelectorAll(".page-item");
         pageItems.forEach(function (item, i) {
-          if (i === index) {
+          item.classList.remove("active");
+          if (i === index + 1) {
+            // +1 to account for the previous button
             item.classList.add("active");
-          } else {
-            item.classList.remove("active");
           }
         });
+
+        // Disable/enable Previous and Next buttons based on current index
+        document
+          .getElementById("prev-btn")
+          .parentElement.classList.toggle("disabled", index <= 0);
+        document
+          .getElementById("next-btn")
+          .parentElement.classList.toggle("disabled", index >= totalWords - 1);
       }
 
+      // Pagination click handlers
       document.querySelectorAll(".page-link").forEach(function (link) {
         link.addEventListener("click", function () {
           const index = parseInt(this.getAttribute("data-index"), 10);
-          currentIndex = index;
-          updateWordDisplay(currentIndex);
+          if (index >= 0 && index < totalWords) {
+            currentIndex = index; // Set the current index
+            updateWordDisplay(currentIndex); // Update the display to show the word
+          }
         });
       });
 
       document
-        .getElementById("left-arrow")
+        .getElementById("prev-btn")
         .addEventListener("click", function () {
           if (currentIndex > 0) {
             currentIndex--;
-          } else {
-            currentIndex = totalWords - 1;
+            updateWordDisplay(currentIndex);
           }
-          updateWordDisplay(currentIndex);
         });
 
       document
-        .getElementById("right-arrow")
+        .getElementById("next-btn")
         .addEventListener("click", function () {
           if (currentIndex < totalWords - 1) {
             currentIndex++;
-          } else {
-            currentIndex = 0;
+            updateWordDisplay(currentIndex);
           }
-          updateWordDisplay(currentIndex);
         });
+
+      // Handle answer submission
+      submitButton.addEventListener("click", function () {
+        const userAnswer = inputField.value.trim();
+        if (userAnswer) {
+          userAnswers[currentIndex] = userAnswer; // Store the answer
+          inputField.value = ""; // Clear the input field
+
+          // Update the pagination to show that an answer has been given
+          const currentPageItem = pageItems[currentIndex + 1]; // +1 to account for the previous button
+          currentPageItem.classList.add("answered"); // Add answered class
+          console.log("User answers: ", userAnswers);
+
+          // Move to the next question
+          if (currentIndex < totalWords - 1) {
+            currentIndex++; // Increment the index
+            updateWordDisplay(currentIndex); // Update the display to show the next word
+          }
+        }
+      });
     });
   </script>
 
