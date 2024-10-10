@@ -1,3 +1,4 @@
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from flask import request
 from flask import render_template, session
 from datetime import datetime
@@ -10,7 +11,7 @@ from firebase_admin.exceptions import FirebaseError
 import os
 import json
 import random
-from databaseServices import get_all_letters, get_all_words, get_user_data, get_user_progress, get_words_by_letter, initialize_firebase, add_user_to_db, get_all_users, upload_file_to_storage, add_learned_word
+from databaseServices import addToHistory, get_all_letters, get_all_words, get_user_data, get_user_progress, get_words_by_letter, initialize_firebase, add_user_to_db, get_all_users, markAsComplete, upload_file_to_storage, add_learned_word
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -379,6 +380,7 @@ def randomizeCategory(letter):
     session['quiz_words'] = quiz_words
     session['currentIndex'] = 0  # Reset current index to the first word
 
+    print("Quiz: ", quiz_words)
     # Redirect to m_quiz with index 0
     return redirect(url_for('m_quiz', index=0))
 
@@ -488,10 +490,95 @@ def collection():
     # Pass the data to the template
     return render_template('tabs/collection.html', syllable_data=syllable_data)
 
+# POST route to handle quiz submission
 
-# Initialize Firestore if not already initialized
-# firebase_admin.initialize_app()
-db = firestore.client()
+
+@app.route('/results', methods=['POST', 'GET'])
+def results():
+    if request.method == 'POST':
+        # Get the user answers, quiz words, quizId, and timestamp from the request body
+        data = request.get_json()
+        print("data: ", data)
+        user_answers = data.get('userAnswers', [])
+        quiz_words = data.get('quizWords', [])
+        user_id = session.get('user_id')
+        quiz_id = data.get('quizId', None)
+        timestamp = data.get('timestamp', None)
+
+        # Process the results (e.g., grade the quiz)
+        correct_answers = 0
+        results_with_correctness = []  # List to hold user answers with correctness
+        completed_data = {}  # To track completed words by letter
+
+        for i, word in enumerate(quiz_words):
+            correct_answer = word['value'].lower().replace(" ", "")
+            user_answer = user_answers[i].lower().replace(" ", "")
+            is_correct = correct_answer == user_answer
+
+            # Increment the correct answer count if the answer is correct
+            if is_correct:
+                correct_answers += 1
+
+                # Prepare completed data
+                letter = word['letter']  # Get the letter for the current word
+                # Get the syllable for the current word
+                syllable = word['syllable']
+                word_text = word['text']  # The word itself
+
+                # Initialize completed_data for this letter if it doesn't exist
+                if letter not in completed_data:
+                    completed_data[letter] = {
+                        'wordCount': 0,  # Initialize word count
+                    }
+
+                # Initialize syllable data for this letter if it doesn't exist
+                if syllable not in completed_data[letter]:
+                    # Initialize as a list for syllables
+                    completed_data[letter][syllable] = []
+
+                # Append the word to the syllable's list and increment the word count
+                completed_data[letter][syllable].append(word_text)
+                # Increment total word count for the letter
+                completed_data[letter]['wordCount'] += 1
+
+            # Append the user answer and correctness to the results list
+            results_with_correctness.append({
+                "user_answer": user_answers[i],
+                "correct": is_correct,
+                "word": word  # Include the word object for rendering
+            })
+
+        total_questions = len(quiz_words)
+        score = (correct_answers / total_questions) * 100
+
+        # Prepare data to pass to the results page
+        result_data = {
+            "correct_answers": correct_answers,
+            "total_questions": total_questions,
+            "score": score,
+            "user_answers": results_with_correctness,
+            "quiz_words": quiz_words,
+        }
+
+        # Store the result data in the session
+        session['result_data'] = result_data
+
+        print("Completed_data :", completed_data)
+        # Mark correct words as complete and add to history
+        if user_id:
+            markAsComplete(user_id, completed_data)
+            addToHistory(user_id, quiz_id, timestamp, score,
+                         correct_answers, total_questions, results_with_correctness)
+
+        # Redirect to the GET route to display the results
+        return redirect(url_for('results'))
+
+    elif request.method == 'GET':
+        # Retrieve the result data from the session
+        result_data = session.get('result_data', {})
+
+        # Render the results page with the result data
+        return render_template('results.html', result_data=result_data)
 
 
 @app.route('/profile')

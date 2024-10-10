@@ -121,7 +121,9 @@ content %}
     }
 
     .pagination .page-item.active .page-link {
-      background-color: #0056b3; /* Change to your desired active color */
+      background-color: var(
+        --primary-color
+      ); /* Change to your desired active color */
       color: white; /* Change text color for active item */
     }
 
@@ -151,7 +153,7 @@ content %}
     }
 
     .pagination .page-item.answered .page-link {
-      background-color: green; /* Change this to your desired color */
+      background-color: var(--green); /* Change this to your desired color */
       color: white; /* Change text color */
     }
   </style>
@@ -164,8 +166,8 @@ content %}
     <button
       class="navbar-toggler"
       type="button"
-      data-toggle="collapse"
-      data-target="#navbarNav"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
       aria-controls="navbarNav"
       aria-expanded="false"
       aria-label="Toggle navigation"
@@ -235,8 +237,65 @@ content %}
               >Next</a
             >
           </li>
+          <li class="page-item">
+            <button
+              class="btn"
+              id="submit-all-btn"
+              disabled
+              style="background-color: var(--green); color: white"
+            >
+              Submit Answer
+            </button>
+          </li>
         </ul>
       </nav>
+    </div>
+  </div>
+
+  <!-- Submit Confirmation Modal -->
+  <div
+    class="modal fade"
+    id="submitConfirmModal"
+    tabindex="-1"
+    aria-labelledby="submitConfirmModalLabel"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div
+          class="modal-header"
+          style="background-color: var(--black); color: white"
+        >
+          <h5 class="modal-title" id="submitConfirmModalLabel">
+            Confirm Submission
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to submit all your answers?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn"
+            id="confirm-submit"
+            style="background-color: var(--green); color: white"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -262,8 +321,11 @@ content %}
       // Define pageItems outside of functions for global access
       const pageItems = document.querySelectorAll(".page-item");
       const inputField = document.querySelector(".input-group input"); // Ensure this matches your input field selector
-      const submitButton = document.querySelector(".input-group .button");
+      const submitButton = document.getElementById("submit-btn"); // Get the submit button
+      const submitAllButton = document.getElementById("submit-all-btn"); // Submit all answers button
+
       updateWordDisplay(currentIndex);
+      updateSubmitAllButton(); // Update the "Submit All Answers" button on page load
 
       function updateWordDisplay(index) {
         if (!quizWords || quizWords.length === 0) return;
@@ -313,6 +375,13 @@ content %}
           .parentElement.classList.toggle("disabled", index >= totalWords - 1);
       }
 
+      // Update the state of the Submit All button
+      function updateSubmitAllButton() {
+        // Check if all words have been answered (no empty strings in the userAnswers array)
+        const allAnswered = userAnswers.every((answer) => answer.trim() !== "");
+        submitAllButton.disabled = !allAnswered; // Enable only if all words are answered
+      }
+
       // Pagination click handlers
       document.querySelectorAll(".page-link").forEach(function (link) {
         link.addEventListener("click", function () {
@@ -344,7 +413,10 @@ content %}
 
       // Handle answer submission
       submitButton.addEventListener("click", function () {
-        const userAnswer = inputField.value.trim();
+        const userAnswer = inputField.value
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, " ");
         if (userAnswer) {
           userAnswers[currentIndex] = userAnswer; // Store the answer
           inputField.value = ""; // Clear the input field
@@ -353,14 +425,91 @@ content %}
           const currentPageItem = pageItems[currentIndex + 1]; // +1 to account for the previous button
           currentPageItem.classList.add("answered"); // Add answered class
           console.log("User answers: ", userAnswers);
+          console.log("Quiz words: ", quizWords);
 
           // Move to the next question
           if (currentIndex < totalWords - 1) {
             currentIndex++; // Increment the index
             updateWordDisplay(currentIndex); // Update the display to show the next word
           }
+
+          // Update the Submit All button state after answering
+          updateSubmitAllButton();
         }
       });
+
+      // Input field event listener to update submit button state
+      inputField.addEventListener("input", function () {
+        updateSubmitAllButton(); // Check after each input if all questions are answered
+      });
+
+      // Handle submit all answers action (this should submit all answers to the backend or proceed to next step)
+      submitAllButton.addEventListener("click", function () {
+        // Show the modal instead of directly submitting
+        $("#submitConfirmModal").modal("show");
+      });
+
+      // Handle the confirmation of the submission in the modal
+      document
+        .getElementById("confirm-submit")
+        .addEventListener("click", function () {
+          // Show "Loading..." text in the modal body
+          document.querySelector(".modal-body").textContent = "Loading...";
+
+          // Disable the submit button
+          const submitButton = document.getElementById("confirm-submit");
+          submitButton.disabled = true; // Disable the button
+
+          // Generate a random quiz ID
+          const quizId = "quiz-" + Math.random().toString(36).substr(2, 9); // Generates a random string
+          // Get the current timestamp
+          const timestamp = Date.now();
+          // Prepare the data to send
+          const dataToSubmit = {
+            userAnswers: userAnswers,
+            quizWords: quizWords,
+            quizId: quizId, // Add the randomly generated quizId
+            timestamp: timestamp, // Add the current timestamp
+          };
+          console.log("data to submit: ", dataToSubmit);
+
+          // Send the data to the /results route using fetch API
+          fetch("/results", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dataToSubmit), // Send data as JSON
+          })
+            .then((response) => {
+              if (response.redirected) {
+                // Redirect to the results page
+                window.location.href = response.url;
+                return response.json(); // Parse the response as JSON
+              } else {
+                return response.json();
+              }
+            })
+            .then((data) => {
+              console.log("Quiz results submitted successfully:", data);
+              // Optionally redirect to a results page with the data
+              window.location.href = "/results";
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            })
+            .finally(() => {
+              // Hide the modal and re-enable the button
+              submitButton.disabled = false; // Re-enable the button
+
+              // Hide the modal after submission
+              $("#submitConfirmModal").modal("hide");
+
+              // Optionally reset the modal body text back to original after hiding the modal
+              document.querySelector(".modal-body").textContent =
+                "Are you sure you want to submit your quiz?";
+            });
+        });
     });
   </script>
 

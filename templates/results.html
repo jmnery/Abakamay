@@ -1,0 +1,185 @@
+{% extends 'base.html' %} {% block title %}Results{% endblock %} {% block
+content %}
+<style>
+  .container-results {
+    height: 100vh; /* Full viewport height */
+    padding: 30px;
+    padding-top: 80px;
+    padding-bottom: 10px; /* Corrected to include 'px' */
+    box-sizing: border-box;
+    overflow: hidden; /* Prevents scrolling on the entire page */
+    display: flex; /* Use flexbox for layout */
+    flex-direction: column; /* Arrange children in a column */
+  }
+
+  .score-card {
+    height: auto; /* Allow the score card to adjust based on content */
+  }
+
+  .results-card {
+    height: auto; /* Allow the results card to adjust based on content */
+  }
+
+  .table {
+    border: 2px solid var(--black); /* Set table border color */
+    color: white; /* Set text color to white */
+    width: 100%; /* Ensure the table takes full width */
+  }
+
+  .table th,
+  .table td {
+    border: 2px solid var(--black); /* Set border color for table cells */
+    vertical-align: middle; /* Vertically center cell content */
+    text-align: center; /* Center text in cells */
+  }
+
+  .table thead {
+    background-color: var(
+      --black
+    ); /* Optional: Set a different background for the header */
+  }
+
+  .table-responsive {
+    height: calc(
+      100vh - 150px
+    ); /* Adjust height as needed based on other elements */
+    overflow-y: auto; /* Allow vertical scrolling for the table */
+  }
+
+  .result-image {
+    width: 40px; /* Fixed width */
+    height: 40px; /* Fixed height to match width for circular shape */
+    border-radius: 50%; /* Make the image circular */
+    object-fit: cover; /* Ensures the image covers the entire area */
+  }
+
+  /* Add custom colors for correct and incorrect answers */
+  .correct-answer {
+    background-color: var(--light-green); /* Use green for correct answers */
+  }
+
+  .correct-answer:hover {
+    background-color: var(--green); /* Darker green on hover */
+  }
+
+  .incorrect-answer {
+    background-color: var(--light-red); /* Use red for incorrect answers */
+  }
+
+  .incorrect-answer:hover {
+    background-color: var(--red); /* Darker red on hover */
+  }
+
+  /* New styles for score text */
+  .score-text {
+    font-size: 1.5rem; /* Adjust font size */
+    font-weight: bold; /* Make text bold */
+  }
+
+  .correct-answers-text {
+    font-size: 1.5rem; /* Adjust font size */
+    font-weight: bold; /* Make text bold */
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <a class="navbar-brand" href="#">Results</a>
+  <button
+    class="navbar-toggler"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#navbarNav"
+    aria-controls="navbarNav"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="{{ url_for('quiz') }}">Quiz</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container-results">
+  <div class="row flex-grow-1">
+    <!-- Left Card -->
+    <div class="col-md-4">
+      <div class="card score-card mb-4">
+        <h5 class="card-header">Quiz Scores</h5>
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2 text-muted score-text">
+            Your Score: {{ result_data.score }}%
+          </h6>
+          <p class="card-text correct-answers-text">
+            Correct Answers: {{ result_data.correct_answers }} / {{
+            result_data.total_questions }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Card -->
+    <div class="col-md-8">
+      <div class="card results-card mb-4 h-100">
+        <h5 class="card-header">Quiz Results</h5>
+        <div class="card-body">
+          <div class="table-responsive">
+            {% if result_data.user_answers and result_data.quiz_words %}
+            <table class="table table-bordered">
+              <thead class="thead-dark">
+                <tr>
+                  <th>Image</th>
+                  <th>Letter</th>
+                  <th>Syllable</th>
+                  <th style="flex-grow: 1">Word</th>
+                  <th style="flex-grow: 1">Your Answer</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for result in result_data.user_answers %}
+                <tr
+                  class="{% if result.correct %}correct-answer{% else %}incorrect-answer{% endif %}"
+                >
+                  <td>
+                    {% if result.word.extension %}
+                    <img
+                      src="https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ result.word.text }}{{ result.word.extension }}?alt=media"
+                      class="result-image"
+                      alt="{{ result.word.text }}"
+                    />
+                    {% endif %}
+                  </td>
+                  <td>{{ result.word.letter }}</td>
+                  <td>{{ result.word.syllable }}</td>
+                  <td>{{ result.word.text }}</td>
+                  <td>{{ result.user_answer.replace(' ', '-') }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <div class="alert alert-warning" role="alert">
+              No results to display.
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

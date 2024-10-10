@@ -1,4 +1,5 @@
 # databaseServices.py
+from google.cloud import firestore
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
 import os
@@ -166,6 +167,7 @@ def get_all_words():
     # Fetch only the necessary fields from each document to avoid excessive loading time
     docs = words_ref.stream()
     for doc in docs:
+        letter = doc.id
         word_data = doc.to_dict()
         for syllable, syllable_data in word_data.get('syllables', {}).items():
             for word_info in syllable_data:
@@ -173,7 +175,10 @@ def get_all_words():
                 word = {
                     'text': word_info.get('text', ''),         # Word text
                     # Word extension (e.g., .jpg, .png)
-                    'extension': word_info.get('extension', '')
+                    'extension': word_info.get('extension', ''),
+                    'value': word_info.get('value', ''),
+                    'syllable': syllable,
+                    'letter': letter
                 }
                 words.append(word)
 
@@ -195,7 +200,10 @@ def get_words_by_letter(letter):
                 word = {
                     'text': word_info.get('text', ''),        # Word text
                     # Word extension
-                    'extension': word_info.get('extension', '')
+                    'extension': word_info.get('extension', ''),
+                    'value': word_info.get('value', ''),
+                    'syllable': syllable,
+                    'letter': letter
                 }
                 words.append(word)
 
@@ -240,6 +248,69 @@ def get_user_data(user_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+
+
+def markAsComplete(user_id, completed_data):
+    """
+    Mark words as complete for the user and update the syllable map in Firestore.
+
+    Args:
+        user_id (str): The ID of the user.
+        completed_data (dict): A dictionary containing completed words by letter and syllable.
+    """
+    db = get_firestore_client()
+    user_ref = db.collection('users').document(user_id)
+
+    for letter, syllable_data in completed_data.items():
+        # Create a field path for the specific letter
+        letter_path = f'complete.{letter}'
+
+        # Update the completed words in Firestore
+        for syllable, words in syllable_data.items():
+            if syllable != 'wordCount':  # Avoid processing wordCount here
+                # Update the learned field with the syllable
+                user_ref.set({
+                    'complete': {
+                        letter: {
+                            # Use ArrayUnion to add words
+                            syllable: firestore.ArrayUnion(words)
+                        }
+                    }
+                }, merge=True)
+
+        # Increment the wordCount for the letter
+        user_ref.update({
+            # Increment count by wordCount
+            f'complete.{letter}.wordCount': firestore.Increment(syllable_data['wordCount'])
+        })
+
+
+def addToHistory(user_id, quiz_id, timestamp, score, correct_answers, total_questions, user_answers):
+    """
+    Add quiz results to the user's history collection in Firestore.
+
+    Args:
+        user_id (str): The ID of the user.
+        quiz_id (str): The ID of the quiz.
+        timestamp (datetime): The timestamp of the quiz submission.
+        score (float): The user's score for the quiz.
+        correct_answers (int): The number of correct answers.
+        total_questions (int): The total number of questions in the quiz.
+        user_answers (list): The user's answers with correctness.
+    """
+    db = get_firestore_client()
+    history_ref = db.collection('users').document(
+        user_id).collection('history')
+
+    history_ref.add({
+        "quiz_id": quiz_id,  # Use the quiz_id from the request
+        "timestamp": timestamp,  # Use the timestamp from the request
+        "score": score,
+        "correct_answers": correct_answers,
+        "total_questions": total_questions,
+        "user_answers": user_answers,
+    })
+
 
 # # Function to get the total number of words for a given letter
 
