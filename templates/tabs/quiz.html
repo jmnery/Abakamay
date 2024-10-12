@@ -5,11 +5,11 @@
   .container-fluid {
     height: calc(100vh - 56px); /* Adjusted for the fixed navbar height */
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column; /* Stack rows vertically */
     padding: 0;
     margin-top: 56px;
     overflow: hidden;
+    padding-block: 25px;
   }
 
   .row {
@@ -17,13 +17,25 @@
     display: flex;
     justify-content: center; /* Center content horizontally */
     align-items: center; /* Center content vertically */
+    padding-left: 25px;
   }
 
+  .row:first-child {
+    height: 20%; /* Set height for the first row */
+    margin-bottom: 10px; /* Add margin for gap to the second row */
+  }
+
+  .row:last-child {
+    height: 80%; /* Set height for the second row */
+  }
+
+  .col-md-12,
   .col-md-6 {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 0; /* Remove default padding */
+    height: 100%; /* Make column take full height of row */
   }
 
   .quiz-option {
@@ -31,6 +43,7 @@
     justify-content: center;
     align-items: center;
     width: 100%;
+    height: 100%; /* Make quiz option take full height of column */
   }
 
   .option-box {
@@ -41,16 +54,30 @@
     flex-direction: column; /* Stack icon and text vertically */
     justify-content: center; /* Center text horizontally */
     align-items: center; /* Center text vertically */
-    height: 400px; /* Set height */
-    width: 100vh; /* Set width to match height for perfect square */
+    height: 100%; /* Full height of the parent */
+    width: 100%; /* Full width of the parent */
     cursor: pointer;
-    margin: 50px;
+    margin: 5px; /* Add margin for gaps between boxes */
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative; /* Needed for absolute positioning of the icon */
   }
 
   .option-box:hover {
     background-color: #eaeaea;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .option-box .help-icon {
+    position: absolute;
+    top: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+    font-size: 1.5rem; /* Increase the size as needed */
+    color: var(
+      --black
+    ) !important; /* Change to desired color (e.g., white, blue, etc.) */
+    cursor: pointer; /* Change cursor on hover */
+    opacity: 1; /* Ensure the icon is fully opaque */
+    z-index: 10; /* Ensure it appears above other elements */
   }
 
   h2 {
@@ -63,6 +90,16 @@
   .icon-container {
     font-size: 48px; /* Size of the icon */
     margin-bottom: 10px; /* Space between icon and text */
+  }
+
+  .option-box-row {
+    flex-direction: row; /* Align icon and text horizontally */
+  }
+
+  .icon-container-row {
+    font-size: 48px;
+    margin-right: 10px; /* Add space between the icon and text */
+    margin-bottom: 0; /* Remove bottom margin */
   }
 </style>
 
@@ -100,12 +137,33 @@
 
 <div class="container-fluid">
   <div class="row">
+    <div class="col-md-12 d-flex justify-content-center align-items-center">
+      <div class="quiz-option">
+        <div
+          class="option-box option-box-row"
+          onclick="window.location.href=`{{ url_for('history') }}`"
+        >
+          <div class="help-icon">
+            <i class="fa-solid fa-question-circle"></i>
+          </div>
+          <div class="icon-container icon-container-row">
+            <i class="fa-solid fa-history"></i>
+          </div>
+          <h2>History</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
     <div class="col-md-6 d-flex justify-content-center align-items-center">
-      <div
-        class="quiz-option"
-        onclick="window.location.href=`{{ url_for('randomizeAll') }}`"
-      >
-        <div class="option-box">
+      <div class="quiz-option">
+        <div
+          class="option-box"
+          onclick="window.location.href=`{{ url_for('randomizeAll') }}`"
+        >
+          <div class="help-icon">
+            <i class="fa-solid fa-question-circle"></i>
+          </div>
           <div class="icon-container">
             <i class="fa-solid fa-dice"></i>
           </div>
@@ -114,15 +172,17 @@
       </div>
     </div>
     <div class="col-md-6 d-flex justify-content-center align-items-center">
-      <div
-        class="quiz-option"
-        onclick="window.location.href=`{{ url_for('picker') }}`"
-      >
-        <div class="option-box">
+      <div class="quiz-option">
+        <div
+          class="option-box"
+          onclick="window.location.href=`{{ url_for('picker') }}`"
+        >
+          <div class="help-icon">
+            <i class="fa-solid fa-question-circle"></i>
+          </div>
           <div class="icon-container">
             <i class="fa-solid fa-hand-point-up"></i>
           </div>
-
           <h2>Pick a Category</h2>
         </div>
       </div>

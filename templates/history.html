@@ -1,0 +1,110 @@
+{% extends 'base.html' %} {% block title %}History{% endblock %} {% block
+content %}
+<style>
+  .container-history {
+    height: 100vh;
+    padding: 30px;
+    padding-top: 80px;
+    padding-bottom: 10px;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .table {
+    width: 100%;
+    color: black;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    border-collapse: collapse;
+  }
+
+  .table thead {
+    background-color: #343a40;
+    color: white;
+    position: sticky; /* Make the header sticky */
+    top: 0; /* Stick it to the top */
+    z-index: 10; /* Ensure it stays above the body when scrolling */
+    border-top-left-radius: 20px;
+  }
+
+  .table th,
+  .table td {
+    padding: 12px;
+    border: 1px solid #dee2e6;
+  }
+
+  .table-responsive {
+    height: 100%;
+    overflow-y: auto;
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <a class="navbar-brand" href="#">History</a>
+  <button
+    class="navbar-toggler"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#navbarNav"
+    aria-controls="navbarNav"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="{{ url_for('quiz') }}">Quiz</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container-history">
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>Quiz ID</th>
+          <th>Score (%)</th>
+          <th>Correct Answers</th>
+          <th>Date</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if history_data %} {% for history in history_data %}
+        <tr>
+          <td>{{ history.quiz_id }}</td>
+          <td>{{ history.score }}%</td>
+          <td>{{ history.correct_answers }}/{{ history.total_questions }}</td>
+          <td>{{ history.timestamp.date }}</td>
+          <td>{{ history.timestamp.time }}</td>
+        </tr>
+        {% endfor %} {% else %}
+        <tr>
+          <td colspan="5">No history available</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const historyData = {{ history_data | tojson }};
+  console.log("User History:", historyData);
+</script>
+{% endblock %}

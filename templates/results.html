@@ -2,83 +2,84 @@
 content %}
 <style>
   .container-results {
-    height: 100vh; /* Full viewport height */
+    height: 100vh;
     padding: 30px;
     padding-top: 80px;
-    padding-bottom: 10px; /* Corrected to include 'px' */
+    padding-bottom: 10px;
     box-sizing: border-box;
-    overflow: hidden; /* Prevents scrolling on the entire page */
-    display: flex; /* Use flexbox for layout */
-    flex-direction: column; /* Arrange children in a column */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
-  .score-card {
-    height: auto; /* Allow the score card to adjust based on content */
+  .score-card,
+  .details-card {
+    height: auto;
   }
 
   .results-card {
-    height: auto; /* Allow the results card to adjust based on content */
+    height: auto;
   }
 
   .table {
-    border: 2px solid var(--black); /* Set table border color */
-    color: white; /* Set text color to white */
-    width: 100%; /* Ensure the table takes full width */
+    border: 2px solid var(--black);
+    color: white;
+    width: 100%;
   }
 
   .table th,
   .table td {
-    border: 2px solid var(--black); /* Set border color for table cells */
-    vertical-align: middle; /* Vertically center cell content */
-    text-align: center; /* Center text in cells */
+    border: 2px solid var(--black);
+    vertical-align: middle;
+    text-align: center;
   }
 
   .table thead {
-    background-color: var(
-      --black
-    ); /* Optional: Set a different background for the header */
+    background-color: var(--black);
   }
 
   .table-responsive {
-    height: calc(
-      100vh - 150px
-    ); /* Adjust height as needed based on other elements */
-    overflow-y: auto; /* Allow vertical scrolling for the table */
+    height: calc(100vh - 150px);
+    overflow-y: auto;
   }
 
   .result-image {
-    width: 40px; /* Fixed width */
-    height: 40px; /* Fixed height to match width for circular shape */
-    border-radius: 50%; /* Make the image circular */
-    object-fit: cover; /* Ensures the image covers the entire area */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
   }
 
-  /* Add custom colors for correct and incorrect answers */
   .correct-answer {
-    background-color: var(--light-green); /* Use green for correct answers */
+    background-color: var(--light-green);
   }
 
   .correct-answer:hover {
-    background-color: var(--green); /* Darker green on hover */
+    background-color: var(--green);
   }
 
   .incorrect-answer {
-    background-color: var(--light-red); /* Use red for incorrect answers */
+    background-color: var(--light-red);
   }
 
   .incorrect-answer:hover {
-    background-color: var(--red); /* Darker red on hover */
+    background-color: var(--red);
   }
 
-  /* New styles for score text */
-  .score-text {
-    font-size: 1.5rem; /* Adjust font size */
-    font-weight: bold; /* Make text bold */
+  /* Flex styling for left side titles and right side values */
+  .data-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
   }
 
-  .correct-answers-text {
-    font-size: 1.5rem; /* Adjust font size */
-    font-weight: bold; /* Make text bold */
+  .data-title {
+    font-weight: bold; /* Bold for titles */
+  }
+
+  .divider {
+    border-top: 1px solid #ccc;
+    margin: 10px 0;
   }
 </style>
 
@@ -115,23 +116,50 @@ content %}
 
 <div class="container-results">
   <div class="row flex-grow-1">
-    <!-- Left Card -->
+    <!-- Left Column -->
     <div class="col-md-4">
+      <!-- Quiz Results Card -->
       <div class="card score-card mb-4">
-        <h5 class="card-header">Quiz Scores</h5>
+        <h5 class="card-header">Quiz Results</h5>
         <div class="card-body">
-          <h6 class="card-subtitle mb-2 text-muted score-text">
-            Your Score: {{ result_data.score }}%
-          </h6>
-          <p class="card-text correct-answers-text">
-            Correct Answers: {{ result_data.correct_answers }} / {{
-            result_data.total_questions }}
-          </p>
+          <div class="data-row">
+            <span class="data-title">Your Score:</span>
+            <span>{{ result_data.score }}%</span>
+          </div>
+          <div class="divider"></div>
+          <div class="data-row">
+            <span class="data-title">Correct Answers:</span>
+            <span
+              >{{ result_data.correct_answers }} / {{
+              result_data.total_questions }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Details Card -->
+      <div class="card details-card mb-4">
+        <h5 class="card-header">Quiz Details</h5>
+        <div class="card-body">
+          <div class="data-row">
+            <span class="data-title">Quiz ID:</span>
+            <span>{{ result_data.quiz_ID }}</span>
+          </div>
+          <div class="divider"></div>
+          <div class="data-row">
+            <span class="data-title">Quiz Date:</span>
+            <span>{{ result_data.timestamp.date }}</span>
+          </div>
+          <div class="divider"></div>
+          <div class="data-row">
+            <span class="data-title">Quiz Time:</span>
+            <span>{{ result_data.timestamp.time }}</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Right Card -->
+    <!-- Right Column -->
     <div class="col-md-8">
       <div class="card results-card mb-4 h-100">
         <h5 class="card-header">Quiz Results</h5>
@@ -144,8 +172,8 @@ content %}
                   <th>Image</th>
                   <th>Letter</th>
                   <th>Syllable</th>
-                  <th style="flex-grow: 1">Word</th>
-                  <th style="flex-grow: 1">Your Answer</th>
+                  <th>Word</th>
+                  <th>Your Answer</th>
                 </tr>
               </thead>
               <tbody>
@@ -181,5 +209,9 @@ content %}
     </div>
   </div>
 </div>
-
+<script>
+  const data = {{ result_data | tojson }};
+  console.log("Quiz Date:", data.timestamp.date);
+  console.log("Quiz Time:", data.timestamp.time);
+</script>
 {% endblock %}

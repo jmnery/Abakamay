@@ -31,7 +31,7 @@ def get_firestore_client():
 # Function to add a user to Firestore
 
 
-def add_user_to_db(user_id, first_name, last_name, email, age):
+def add_user_to_db(user_id, first_name, last_name, email, age, birthday):
     db = get_firestore_client()
     db.collection('users').document(user_id).set({
         'userId': user_id,
@@ -39,8 +39,8 @@ def add_user_to_db(user_id, first_name, last_name, email, age):
         'lastName': last_name,
         'email': email,
         'age': age,
-        "completedWords": 0,
-        "completed": {}
+        "complete": {},
+        'birthday': birthday
     })
 
 # Function to get all users from Firestore
@@ -235,13 +235,15 @@ def get_user_progress(user_id):
     return completed_words
 
 
-def get_user_data(user_id):
+def get_user_data_by_id(user_id):
     db = get_firestore_client()
     try:
         user_ref = db.collection('users').document(user_id)
         user_doc = user_ref.get()
         if user_doc.exists:
-            return user_doc.to_dict()
+            user_data = user_doc.to_dict()
+            print("user data: ", user_data)
+            return user_data
         else:
             print("No such user!")
             return None
@@ -300,9 +302,9 @@ def addToHistory(user_id, quiz_id, timestamp, score, correct_answers, total_ques
     """
     db = get_firestore_client()
     history_ref = db.collection('users').document(
-        user_id).collection('history')
+        user_id).collection('history').document(quiz_id)
 
-    history_ref.add({
+    history_ref.set({
         "quiz_id": quiz_id,  # Use the quiz_id from the request
         "timestamp": timestamp,  # Use the timestamp from the request
         "score": score,
@@ -312,34 +314,36 @@ def addToHistory(user_id, quiz_id, timestamp, score, correct_answers, total_ques
     })
 
 
-# # Function to get the total number of words for a given letter
+def getHistory(user_id):
+    """
+    Fetches the quiz history for a given user from Firestore.
 
+    Args:
+        user_id (str): The user's ID.
 
-# def getTotalWordNum(letter):
-#     db = get_firestore_client()
-#     words_ref = db.collection('words').document(letter)
-#     words_doc = words_ref.get()
+    Returns:
+        list: A list of quiz history records, each containing quiz_id, score, 
+              correct_answers, total_questions, and timestamp.
+    """
+    history_data = []
 
-#     if words_doc.exists:
-#         return words_doc.to_dict().get('wordCount', 0)
-#     return 0
+    try:
+        # Reference to user's history in Firestore
+        db = get_firestore_client()
+        user_history_ref = db.collection('users').document(
+            user_id).collection('history')
 
+        # Fetch history documents
+        docs = user_history_ref.stream()
 
-# # Function to get the total number of learned words for a given user and letter
+        # Loop through documents and format data
+        for doc in docs:
+            history_record = doc.to_dict()
+            history_data.append(history_record)
 
+        print("records: ", history_record)
 
-# def getTotalLearnedNum(user_id, letter):
-#     db = get_firestore_client()
-#     user_ref = db.collection('users').document(user_id)
-#     user_doc = user_ref.get()
+    except Exception as e:
+        print(f"Error fetching quiz history for user {user_id}: {e}")
 
-#     if user_doc.exists:
-#         learned_data = user_doc.to_dict().get('learned', {})
-#         letter_data = learned_data.get(letter, {})
-
-#         # Use wordCount directly if it exists, else calculate learned_word_count
-#         learned_word_count = letter_data.get('wordCount', 0)
-
-#         return learned_word_count
-
-#     return 0
+    return history_data

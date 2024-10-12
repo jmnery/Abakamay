@@ -11,7 +11,7 @@ from firebase_admin.exceptions import FirebaseError
 import os
 import json
 import random
-from databaseServices import addToHistory, get_all_letters, get_all_words, get_user_data, get_user_progress, get_words_by_letter, initialize_firebase, add_user_to_db, get_all_users, markAsComplete, upload_file_to_storage, add_learned_word
+from databaseServices import addToHistory, get_all_letters, get_all_words, get_user_data_by_id, get_user_progress, get_words_by_letter, getHistory, initialize_firebase, add_user_to_db, get_all_users, markAsComplete, upload_file_to_storage, add_learned_word
 from camera import generate_frames
 
 app = Flask(__name__)  # Only this instance should exist
@@ -61,6 +61,12 @@ def login():
         try:
             user = auth.get_user_by_email(email)
             session['user_id'] = user.uid
+            # Adjust this based on your login system
+            user_id = session.get('user_id')
+            # Fetch user data (including firstName) from your database
+            user_data = get_user_data_by_id(user_id)
+            # Store firstName in the session
+            session['first_name'] = user_data.get('firstName', '')
             return redirect(url_for('learn'))
         except FirebaseError as e:
             flash(f'Invalid login credentials: {e}')
@@ -75,6 +81,7 @@ def signup():
         email = request.form['email']
         age = request.form['age']
         password = request.form['password']
+        birthday = request.form['birthday']
 
         try:
             if len(password) < 6:
@@ -86,7 +93,8 @@ def signup():
                 password=password,
                 display_name=f"{first_name} {last_name}",
             )
-            add_user_to_db(user.uid, first_name, last_name, email, age)
+            add_user_to_db(user.uid, first_name,
+                           last_name, email, age, birthday)
             session['user_id'] = user.uid
             return redirect(url_for('learn'))
         except ValueError as ve:
@@ -130,7 +138,8 @@ def main():
 @app.route('/learn')
 def learn():
     # Fetch the user_id from session or however you store the user's login information
-    user_id = session.get('user_id')  # Adjust this based on your login system
+    user_id = session.get('user_id')
+    user_fName = session.get('first_name')
 
     letters_ref = db.collection('words')
     docs = letters_ref.stream()
@@ -179,7 +188,7 @@ def learn():
 
     # Sort all_letters based on the custom order
     all_letters.sort(key=lambda letter: custom_order.index(letter))
-    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data)
+    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data, firstName=user_fName)
 
 
 @app.route('/m_learn/<letter>')
@@ -503,8 +512,21 @@ def results():
         quiz_words = data.get('quizWords', [])
         user_id = session.get('user_id')
         quiz_id = data.get('quizId', None)
-        timestamp = data.get('timestamp', None)
-
+        timestamp = data.get('timestamp', "")
+        if timestamp:
+            try:
+                date_time = datetime.fromtimestamp(timestamp / 1000)
+                formatted_timestamp = {
+                    # Format just the date
+                    "date": date_time.strftime('%B %d, %Y'),
+                    # Format just the time
+                    "time": date_time.strftime('%I:%M %p')
+                }
+            except Exception as e:
+                print(f"Error in timestamp conversion: {e}")
+                formatted_timestamp = {"date": "Invalid", "time": "Invalid"}
+        else:
+            formatted_timestamp = {"date": "No date", "time": "No time"}
         # Process the results (e.g., grade the quiz)
         correct_answers = 0
         results_with_correctness = []  # List to hold user answers with correctness
@@ -558,6 +580,8 @@ def results():
             "score": score,
             "user_answers": results_with_correctness,
             "quiz_words": quiz_words,
+            "timestamp": formatted_timestamp,
+            "quiz_ID": quiz_id
         }
 
         # Store the result data in the session
@@ -581,6 +605,34 @@ def results():
         return render_template('results.html', result_data=result_data)
 
 
+@app.route('/history')
+def history():
+    user_id = session.get('user_id')  # Replace with actual user ID logic
+    history_records = getHistory(user_id)
+
+    # Format the timestamps for each record
+    for record in history_records:
+        if 'timestamp' in record:
+            timestamp = record['timestamp']
+            formatted_date = datetime.fromtimestamp(
+                timestamp / 1000).strftime('%B %d, %Y')
+            formatted_time = datetime.fromtimestamp(
+                timestamp / 1000).strftime('%I:%M %p')
+            record['timestamp'] = {
+                'date': formatted_date,
+                'time': formatted_time,
+                'original': timestamp  # Keep the original timestamp for sorting
+            }
+
+    # Sort history records by the original timestamp in descending order
+    sorted_history_records = sorted(
+        history_records, key=lambda x: x['timestamp']['original'], reverse=True)
+
+    print("Sorted history records:", sorted_history_records)
+
+    return render_template('history.html', history_data=sorted_history_records)
+
+
 @app.route('/profile')
 def profile():
     # Fetch the user document (replace 'user_id' with the actual user ID or retrieve dynamically)
@@ -592,21 +644,25 @@ def profile():
         # Combine first and last name
         full_name = f"{user_data.get('firstName', '')} {user_data.get('lastName', '')}"
 
-        # Format the birthday
+        # Assuming user_data is your dictionary containing the user's data
         raw_birthday = user_data.get('birthday', '')
+
+        # Initialize formatted_birthday with a default value
+        formatted_birthday = "Unknown Date"
         try:
-            # Convert Firestore timestamp to a Python datetime object
-            if isinstance(raw_birthday, datetime):
-                formatted_birthday = raw_birthday.strftime("%B %d, %Y")
-            else:
-                formatted_birthday = "Unknown Date"
+            # Check if raw_birthday is a non-empty string
+            if isinstance(raw_birthday, str) and raw_birthday:
+                # Parse the string into a datetime object
+                birthday_datetime = datetime.strptime(raw_birthday, "%Y-%m-%d")
+                # Format the datetime object to the desired string format
+                formatted_birthday = birthday_datetime.strftime("%B %d, %Y")
         except ValueError:
             formatted_birthday = "Unknown Date"  # Handle the case where parsing fails
 
         # Pass the formatted data to the template
         return render_template('tabs/profile.html', full_name=full_name,
                                email=user_data.get('email', ''),
-                               user_id=user_data.get('userID', ''),
+                               user_id=user_id,
                                age=user_data.get('age', ''),
                                birthday=formatted_birthday)
     else:
