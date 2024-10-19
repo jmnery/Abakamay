@@ -477,6 +477,7 @@ def collection():
     syllable_data = {}
     for letter_doc in words_docs:
         letter_data = letter_doc.to_dict()
+        letter = letter_doc.id
         syllables = letter_data.get('syllables', {})
 
         # Organize the words in each syllable and check if they're learned or completed
@@ -487,7 +488,8 @@ def collection():
                     'extension': word.get('extension', ''),
                     'value': word.get('value', ''),
                     'learned': word.get('text') in learned_words,
-                    'completed': word.get('text') in completed_words
+                    'completed': word.get('text') in completed_words,
+                    'letter': letter
                 }
                 for word in words_list if word
             ]
@@ -496,7 +498,7 @@ def collection():
             else:
                 syllable_data[syllable].extend(words)
 
-    # Pass the data to the template
+    print("syllable data: ", syllable_data)
     return render_template('tabs/collection.html', syllable_data=syllable_data)
 
 # POST route to handle quiz submission
