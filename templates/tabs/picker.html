@@ -32,22 +32,11 @@
     height: 100%;
     overflow: hidden;
   }
-  .button_container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    overflow: hidden;
-  }
-
   .row {
     width: 100%;
     height: 100%;
     align-content: flex-start;
   }
-
   .option-box {
     display: flex;
     flex-direction: column;
@@ -62,12 +51,10 @@
     padding: 10px;
     flex: 1;
   }
-
   .option-box:hover {
     background-color: #eaeaea;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
-
   h2 {
     font-size: 32px;
     color: #333;
@@ -81,23 +68,19 @@
     align-items: center; /* Center vertically */
     min-height: 50px; /* Optional: adjust the minimum height as needed */
   }
-
   .col-md-3 {
     padding-left: 5px;
     padding-right: 5px;
     max-height: 20%;
   }
-
   .navbar-nav {
     margin-left: auto;
   }
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-  <!-- Back button -->
   <a class="navbar-brand" href="javascript:history.back()">
     <i class="bi bi-arrow-left"></i>
-    <!-- Bootstrap Icon for back arrow -->
   </a>
   <div class="navbar-brand" style="color: white">Quiz</div>
   <button
@@ -184,7 +167,12 @@
         class="modal-header"
         style="background-color: var(--black); color: white"
       >
-        <h5 class="modal-title" id="wordCountModalLabel">Not Enough Words</h5>
+        <i
+          class="fas fa-question-circle"
+          id="helpIcon"
+          style="cursor: pointer; margin-right: 10px; font-size: 1.5rem"
+          data-bs-toggle="tooltip"
+        ></i>
         <button
           type="button"
           class="btn-close"
@@ -194,16 +182,32 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <div class="modal-body">
-        You have only {{ count }} completed words for this category. Would you
-        like to proceed with the quiz anyway, or would you prefer to add a
-        random word from another letter?
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" id="addBtn">
+      <div class="modal-body"></div>
+      <div class="modal-footer justify-content-center">
+        <!-- Centering the buttons -->
+        <button
+          type="button"
+          class="btn"
+          id="addBtn"
+          style="
+            background-color: var(--black);
+            color: white;
+            font-size: 1.2rem;
+            margin-right: 10px;
+          "
+        >
           Add Random Word
         </button>
-        <button type="button" class="btn btn-primary" id="proceedBtn">
+        <button
+          type="button"
+          class="btn"
+          id="proceedBtn"
+          style="
+            background-color: var(--black);
+            color: white;
+            font-size: 1.2rem;
+          "
+        >
           Proceed with Quiz
         </button>
       </div>
@@ -253,11 +257,9 @@
         // Check if there are enough completed words
         if (totalWordCount - userWordCount < 10) {
           const remainingWords = totalWordCount - userWordCount;
-          document.getElementById("wordCountModalLabel").innerText =
-            "Not Enough Words";
           document.querySelector(
             ".modal-body"
-          ).innerHTML = `You only  have <span style='color: var(--red); font-weight: bold;'>${remainingWords}</span> remaining words for this category. Would you like to proceed with the quiz anyway, or would you prefer to add a random word from other letters?`;
+          ).innerHTML = `<p class="mt-3" style="text-align: center; font-size: 2rem; font-weight: bold">Available Words: ${remainingWords}</p>`;
           $("#wordCountModal").modal("show");
 
           // Attach event listeners for modal buttons
@@ -279,6 +281,19 @@
         alert("Error fetching data. Please try again later.");
       });
   }
+
+  // Initialize the popover on the help icon
+  $(document).ready(function () {
+    $("#helpIcon")
+      .popover({
+        trigger: "click", // Show popover on click
+        content:
+          "There's not enough words words for this category. Would you like to proceed with the quiz anyway, or would you prefer to add a random word from another letter?",
+        placement: "left",
+        html: true,
+      })
+      .tooltip(); // Initialize the tooltip
+  });
 </script>
 
 {% endblock %}

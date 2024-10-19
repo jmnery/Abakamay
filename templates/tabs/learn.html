@@ -160,9 +160,9 @@
               set progress_percent = (learned_words / total_words) * 100 if
               total_words > 0 else 0 %}
               <div
-                class="progress-bar progress-bar-striped progress-bar-animated bg-info"
+                class="progress-bar"
                 role="progressbar"
-                style="width: {{ progress_percent }}%"
+                style="width: {{ progress_percent }}%; background-color: var(--green);"
                 aria-valuenow="{{ learned_words }}"
                 aria-valuemin="0"
                 aria-valuemax="{{ total_words }}"

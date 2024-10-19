@@ -211,6 +211,30 @@
     left: 10px; /* Distance from the left */
     z-index: 10; /* Ensure it appears above other elements */
   }
+  #handSignsContainer {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Allow the items to wrap as needed */
+    gap: 10px; /* Spacing between items */
+  }
+
+  .letter-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the images and text */
+    flex: 1 1 10%; /* Allow the containers to grow and take equal space */
+    max-width: 10%; /* Each letter container can take a maximum of 10% of the modal width */
+  }
+
+  .letter-container img {
+    width: 100%; /* Make the image take full width of the container */
+    height: auto; /* Maintain aspect ratio */
+  }
+
+  .letter-container span {
+    font-size: 24px; /* Set the text size */
+    margin-top: 5px; /* Space between the image and text */
+  }
 </style>
 
 <!-- Top Navbar -->
@@ -362,9 +386,11 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header" style="background-color: var(--green)">
-        <h5 class="modal-title" id="wordModalLabelCorrect" style="color: white">
-          You are CORRECT!!! &#127881;
-        </h5>
+        <h5
+          class="modal-title"
+          id="wordModalLabelCorrect"
+          style="color: white"
+        ></h5>
         <button
           type="button"
           class="btn-close"
@@ -373,17 +399,22 @@
         ></button>
       </div>
       <div class="modal-body">
-        <p id="modalWordCorrect" class="mt-3"></p>
+        <p
+          id="modalWordCorrect"
+          class="mt-3"
+          style="text-align: center; font-size: 2rem; font-weight: bold"
+        ></p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Close
-        </button>
         <button
           type="button"
           id="markAsLearnedButton"
           class="btn"
-          style="background-color: var(--green); color: white"
+          style="
+            background-color: var(--green);
+            color: white;
+            border-radius: 50% !important;
+          "
           onclick="markAsLearned('{{ letter }}', syllable, selectedWord)"
         >
           <span
@@ -392,7 +423,17 @@
             role="status"
             aria-hidden="true"
           ></span>
-          Mark as Learned
+          <img
+            src="{{ url_for('static', filename='assets/letter_icon/thumbs_Up.png') }}"
+            alt="Mark as Learned"
+            style="
+              width: 50px;
+              height: 50px;
+              margin: 5px;
+              margin-bottom: 10px;
+              margin-right: 8px;
+            "
+          />
         </button>
       </div>
     </div>
@@ -496,9 +537,11 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header" style="background-color: var(--red)">
-        <h5 class="modal-title" id="wordModalLabelWrong" style="color: white">
-          You are incorrect &#128531;
-        </h5>
+        <h5
+          class="modal-title"
+          id="wordModalLabelWrong"
+          style="color: white"
+        ></h5>
         <button
           type="button"
           class="btn-close"
@@ -507,11 +550,34 @@
         ></button>
       </div>
       <div class="modal-body">
-        <p id="modalWordWrong" class="mt-3"></p>
+        <p
+          id="modalWordWrong"
+          class="mt-3"
+          style="text-align: center; font-size: 2rem; font-weight: bold"
+        ></p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Try Again
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+          style="
+            background-color: var(--red);
+            color: white;
+            border-radius: 50% !important;
+          "
+        >
+          <img
+            src="{{ url_for('static', filename='assets/letter_icon/thumbs_down.png') }}"
+            alt="Mark as Learned"
+            style="
+              width: 50px;
+              height: 50px;
+              margin: 5px;
+              margin-top: 10px;
+              margin-left: 8px;
+            "
+          />
         </button>
       </div>
     </div>
@@ -539,15 +605,11 @@
         ></button>
       </div>
       <div class="modal-body">
-        <iframe
-          id="videoFrame"
-          width="100%"
-          height="315"
-          src=""
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
-        ></iframe>
+        <div
+          id="handSignsContainer"
+          class="d-flex justify-content-center"
+        ></div>
+        <!-- New container for hand signs -->
       </div>
     </div>
   </div>
@@ -565,6 +627,8 @@
   let wordModalWrongEl = document.getElementById("wordModalWrong");
   let wordModalWrong = new bootstrap.Modal(wordModalWrongEl);
   const videoModalEl = document.getElementById("videoModal");
+  const videoModalLabel = document.getElementById("videoModalLabel");
+  const handSignsContainer = document.getElementById("handSignsContainer");
   const videoFrame = document.getElementById("videoFrame");
 
   // Enable input container on word box click
@@ -666,11 +730,12 @@
 
         // Update modal content
         document.getElementById("modalWordCorrect").innerHTML =
-          "Congratulations! You got it right! The syllabified version of <span style='color: var(--green); font-weight: bold;'>" +
-          selectedWord +
-          "</span> is <span style='color: var(--green); font-weight: bold;'>" +
-          formattedValue +
-          "</span>.";
+          "Good job &#128513 Tama ka!";
+        //"Congratulations! You got it right! The syllabified version of <span style='color: var(--green); font-weight: bold;'>" +
+        //selectedWord +
+        //"</span> is <span style='color: var(--green); font-weight: bold;'>" +
+        //formattedValue +
+        //"</span>.";
 
         // Show the modal
         wordModalCorrect.show();
@@ -681,12 +746,13 @@
       // Word is incorrect
       // Update modal content
       document.getElementById("modalWordWrong").innerHTML =
-        "Sorry, that's not correct. The correct syllabified version of <span style='color: var(--red); font-weight: bold;'>" +
-        selectedWord +
-        "</span> is not " +
-        "<span style='color: var(--red); font-weight: bold;'>" +
-        formattedValue +
-        "</span>.";
+        "Mali &#128557 Uliting muli";
+      //"Sorry, that's not correct. The correct syllabified version of <span style='color: var(--red); font-weight: bold;'>" +
+      //selectedWord +
+      //"</span> is not " +
+      //"<span style='color: var(--red); font-weight: bold;'>" +
+      //formattedValue +
+      //"</span>.";
 
       // Show the modal
       wordModalWrong.show();
@@ -809,12 +875,42 @@
   // Event listener for when the video modal is shown
   videoModalEl.addEventListener("show.bs.modal", function (event) {
     const button = event.relatedTarget; // Button that triggered the modal
-    const videoUrl = button.getAttribute("data-video-url"); // Extract video URL
-    const wordText = button.closest(".word-item").getAttribute("data-word"); // Get the word text
+    const wordText = button.closest(".word-item").getAttribute("data-value");
+    const trueText = button.closest(".word-item").getAttribute("data-word");
 
-    // Update the modal's content
-    videoFrame.src = videoUrl; // Set the video URL
-    videoModalLabel.textContent = `Video Tutorial - ${wordText}`; // Update modal title
+    // Clear previous images
+    handSignsContainer.innerHTML = "";
+
+    // Update modal title
+    videoModalLabel.innerHTML = `<strong>${trueText.toUpperCase()}</strong>`;
+
+    // Loop through each letter in wordText, generate the corresponding image path and letter
+    [...wordText].forEach((letter) => {
+      // Create a container div for each letter and image
+      const containerDiv = document.createElement("div");
+      containerDiv.classList.add("letter-container"); // Apply the CSS class for styling
+
+      // Create an image element for each letter or a space (dash.png)
+      const img = document.createElement("img");
+      if (letter === " ") {
+        img.src = `/static/assets/letter_icon/dash.png`; // Use dash.png for spaces
+        img.alt = "dash"; // Alt text as "dash"
+      } else {
+        img.src = `/static/assets/letter_icon/${letter.toUpperCase()}.png`; // Path to letter image
+        img.alt = letter; // Alt text as letter
+      }
+
+      // Create a span for the letter text (or dash for spaces)
+      const letterSpan = document.createElement("span");
+      letterSpan.textContent = letter === " " ? "-" : letter.toUpperCase(); // Display dash for spaces or letter
+
+      // Append the image and letter to the container
+      containerDiv.appendChild(img);
+      containerDiv.appendChild(letterSpan);
+
+      // Append the container to the main handSignsContainer
+      handSignsContainer.appendChild(containerDiv);
+    });
   });
 
   // Event listener for when the video modal is hidden
