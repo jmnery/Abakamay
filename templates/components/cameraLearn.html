@@ -64,7 +64,7 @@
     color: white;
     border: 2px rgb(77, 71, 71);
     border-radius: 5px;
-    padding: 0 20px; /* Adjust padding for consistent button sizes */
+    padding: 0 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -78,9 +78,9 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: calc(100vh - 56px); /* Adjust for the height of your navbar */
+    height: calc(100vh - 56px);
     overflow: hidden;
-    flex-direction: column; /* Stack children vertically */
+    flex-direction: column;
     padding: 20px;
   }
 
@@ -90,7 +90,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column; /* Stack children vertically */
+    flex-direction: column;
   }
 
   .camera-container {
@@ -98,9 +98,9 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: calc(100% - 60px); /* Adjust height for the input field space */
+    height: calc(100% - 60px);
     overflow: hidden;
-    position: relative; /* Needed for proper positioning of the input field */
+    position: relative;
     background-color: black;
     border-radius: 30px;
   }
@@ -118,7 +118,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10; /* Make sure it's on top */
+    z-index: 10;
     margin-top: 20px;
   }
 
@@ -130,26 +130,26 @@
 
   .input-group {
     display: flex;
-    width: 100%; /* Make input field and buttons full width */
-    gap: 10px; /* Add gaps between the input field and buttons */
+    width: 100%;
+    gap: 10px;
   }
   .btn {
-    border-radius: 10px !important; /* Adjust the border-radius as needed */
+    border-radius: 10px !important;
   }
 
   .input-group .form-control {
-    flex: 1; /* Input field takes up remaining space */
-    margin-right: 10px; /* Space between input field and buttons */
-    border-radius: 10px; /* Also applying to input field for consistency */
+    flex: 1;
+    margin-right: 10px;
+    border-radius: 10px;
   }
 
   .button {
     border-radius: 5px;
-    padding: 0 20px; /* Make button height match input field */
+    padding: 0 20px;
   }
 
   .card {
-    width: 100%; /* You can adjust this value */
+    width: 100%;
   }
 
   .card-body {
@@ -162,14 +162,14 @@
   }
 
   .spinner {
-    position: absolute; /* Position the spinner absolutely */
-    width: 60px; /* Size of the spinner */
+    position: absolute;
+    width: 60px;
     height: 60px;
-    top: 50%; /* Center vertically */
-    left: 50%; /* Center horizontally */
-    margin-top: -30px; /* Adjust to half the height */
-    margin-left: -30px; /* Adjust to half the width */
-    z-index: 20; /* Ensure it's above the camera feed */
+    top: 50%;
+    left: 50%;
+    margin-top: -30px;
+    margin-left: -30px;
+    z-index: 20;
   }
 
   .double-bounce1,
@@ -177,7 +177,7 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background-color: white; /* Spinner color */
+    background-color: white;
     opacity: 0.6;
     position: absolute;
     top: 0;
@@ -186,7 +186,7 @@
   }
 
   .double-bounce2 {
-    animation-delay: -1s; /* Delay for the second bounce */
+    animation-delay: -1s;
   }
 
   @keyframes double-bounce {
@@ -206,11 +206,25 @@
   const backspaceButton = document.getElementById("backspaceButton");
   const trashButton = document.getElementById("trashButton");
 
+  // Function to clean up spaces in real time while typing
+  function cleanInputRealTime(input) {
+    // Allow only one space between words
+    return input.replace(/\s{2,}/g, " "); // Replace two or more consecutive spaces with one space
+  }
+
+  // Handle real-time input cleaning
+  inputField.addEventListener("input", () => {
+    const cursorPosition = inputField.selectionStart; // Save cursor position
+    inputField.value = cleanInputRealTime(inputField.value); // Clean input on the fly
+    inputField.setSelectionRange(cursorPosition, cursorPosition); // Restore cursor position
+  });
+
   // Handle backspace button click: Remove last character
   backspaceButton.addEventListener("click", () => {
     if (inputField.value.length > 0) {
       inputField.value = inputField.value.slice(0, -1);
     }
+    inputField.value = cleanInputRealTime(inputField.value); // Clean input after backspace
   });
 
   // Handle trash button click: Clear the input field
