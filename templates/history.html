@@ -1,5 +1,6 @@
 {% extends 'base.html' %} {% block title %}History{% endblock %} {% block
 content %}
+
 <style>
   .container-history {
     height: 100vh;
@@ -23,9 +24,9 @@ content %}
   .table thead {
     background-color: #343a40;
     color: white;
-    position: sticky; /* Make the header sticky */
-    top: 0; /* Stick it to the top */
-    z-index: 10; /* Ensure it stays above the body when scrolling */
+    position: sticky;
+    top: 0;
+    z-index: 10;
     border-top-left-radius: 20px;
   }
 
@@ -39,10 +40,23 @@ content %}
     height: 100%;
     overflow-y: auto;
   }
+
+  .table-hover tbody tr:hover {
+    cursor: pointer;
+    background-color: #f5f5f5;
+  }
+
+  .spinner-border {
+    width: 30px;
+    height: 30px;
+  }
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-  <a class="navbar-brand" href="#">History</a>
+  <a class="navbar-brand" href="javascript:history.back()">
+    <i class="bi bi-arrow-left"></i>
+    History
+  </a>
   <button
     class="navbar-toggler"
     type="button"
@@ -108,7 +122,7 @@ content %}
       </thead>
       <tbody>
         {% if history_data %} {% for history in history_data %}
-        <tr>
+        <tr data-index="{{ loop.index0 }}">
           <td>{{ history.quiz_id }}</td>
           <td>{{ history.score }}%</td>
           <td>{{ history.correct_answers }}/{{ history.total_questions }}</td>
@@ -125,8 +139,77 @@ content %}
   </div>
 </div>
 
+<!-- Bootstrap Modal for Loading Spinner -->
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  id="loadingModal"
+  tabindex="-1"
+  aria-labelledby="loadingModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <!-- Header with increased height -->
+      <div class="modal-header" style="background-color: var(--black)">
+        <h5
+          class="modal-title"
+          id="alreadyLearnedModalLabel"
+          style="color: white"
+        >
+          Loading...
+        </h5>
+      </div>
+      <div
+        class="modal-body text-center d-flex align-items-center justify-content-center"
+        style="padding: 25px"
+      >
+        <div class="spinner-border text-primary me-2" role="status"></div>
+        <span>Fetching quiz data...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   const historyData = {{ history_data | tojson }};
   console.log("User History:", historyData);
+
+  // Add click event listeners to each row
+  document.querySelectorAll('tbody tr').forEach(row => {
+    row.addEventListener('click', function () {
+      const index = this.getAttribute('data-index');
+      const rowData = historyData[index];
+      console.log("Row Data:", rowData);
+
+      // Show the loading modal
+      const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'), {
+        backdrop: 'static',
+        keyboard: false
+      });
+      loadingModal.show();
+
+      // Send POST request to /results
+      fetch('/results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userAnswers: rowData.user_answers.map(ans => ans.user_answer),
+          quizWords: rowData.user_answers.map(ans => ans.word),
+          quizId: rowData.quiz_id,
+          timestamp: rowData.timestamp.original,
+        })
+      })
+      .then(response => {
+        if (response.redirected) {
+          window.location.href = response.url;
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+  });
 </script>
 {% endblock %}
