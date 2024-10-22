@@ -31,6 +31,7 @@ content %}
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 15px;
+    border: 3px solid var(--primary-color);
   }
 
   .divider {
@@ -114,14 +115,30 @@ content %}
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link active" href="{{ url_for('profile') }}">Profile</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+      <li class="nav-item dropdown">
+        <a
+          class="nav-link dropdown-toggle d-flex align-items-center"
+          id="avatarDropdown"
+          role="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <img
+            src="{{ avatar or 'https://via.placeholder.com/50' }}"
+            alt="Avatar"
+            class="rounded-circle"
+            style="width: 35px; height: 35px; margin-right: 5px"
+          />
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="avatarDropdown">
+          <li>
+            <a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a>
+          </li>
+          <li><hr class="dropdown-divider" /></li>
+          <li>
+            <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+          </li>
+        </ul>
       </li>
     </ul>
   </div>
@@ -131,7 +148,11 @@ content %}
   <div class="card">
     <div class="card-header">My Profile</div>
     <div class="card-body text-center">
-      <img src="https://via.placeholder.com/100" alt="Avatar" class="avatar" />
+      <img
+        src="{{ avatar or 'https://via.placeholder.com/100' }}"
+        alt="Avatar"
+        class="avatar"
+      />
 
       <div class="info-row">
         <h5>User ID:</h5>

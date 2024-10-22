@@ -38,12 +38,29 @@
         padding-left: 30px !important;
         padding-right: 30px !important;
         background-color: var(--black);
+        display: flex; /* Enable flexbox on navbar */
+        justify-content: space-between; /* Space between brand and nav items */
+        align-items: center; /* Center items vertically */
       }
       .navbar-brand {
         font-weight: bold;
+        margin-right: 0 !important;
+        min-width: 200px;
+        z-index: 99;
       }
       .navbar-nav {
-        margin-left: auto; /* Pushes navbar items to the right */
+        flex: 1; /* Allow the navbar items to grow and fill the space */
+        display: flex; /* Enable flexbox */
+        justify-content: center; /* Center the items horizontally */
+      }
+      @media (min-width: 992px) {
+        .navbar-nav {
+          margin-left: -200px !important; /* Apply negative margin on larger screens */
+        }
+      }
+      .navbar-nav .nav-item {
+        display: flex; /* Enables flexbox on nav items */
+        align-items: center; /* Centers items vertically */
       }
     </style>
 

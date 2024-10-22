@@ -1,3 +1,4 @@
+from requests.exceptions import HTTPError
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from flask import request
 from flask import render_template, session
@@ -6,6 +7,7 @@ from flask import jsonify
 from firebase_admin import firestore
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash, make_response, Response
 import firebase_admin
+import pyrebase
 from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
 import os
@@ -23,15 +25,26 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
 credentials_path = r'C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\services\credentials.json'
 firebase_url = 'https://abakada-flask-default-rtdb.firebaseio.com/'
 storage_bucket = 'abakada-flask.appspot.com'
+config = {
+    "apiKey": "AIzaSyBcZtR-dsbHDzcrjhGdIHzNh0ggFNvXPz0",
+    "authDomain": "abakada-flask.firebaseapp.com",
+    "databaseURL": "https://abakada-flask-default-rtdb.firebaseio.com",
+    "projectId": "abakada-flask",
+    "storageBucket": "abakada-flask.appspot.com",
+    "messagingSenderId": "456845640805",
+    "appId": "1:456845640805:web:1d85c1ac3826ce25d9728c"
+}
 initialize_firebase(credentials_path, firebase_url, storage_bucket)
 
 # Firestore client initialization
 db = firestore.client()
+firebase = pyrebase.initialize_app(config)
+firebaseAuth = firebase.auth()
 
 
 @app.before_request
 def check_authentication():
-    public_routes = ['login', 'signup']
+    public_routes = ['login', 'signup', 'forgotPassword']
     if request.endpoint in public_routes and 'user_id' in session:
         return redirect(url_for('main'))
 
@@ -59,17 +72,31 @@ def login():
         email = request.form['email']
         password = request.form['password']
         try:
-            user = auth.get_user_by_email(email)
-            session['user_id'] = user.uid
+            user = firebaseAuth.sign_in_with_email_and_password(
+                email, password)
+            session['user_id'] = user['localId']
             # Adjust this based on your login system
             user_id = session.get('user_id')
             # Fetch user data (including firstName) from your database
             user_data = get_user_data_by_id(user_id)
             # Store firstName in the session
             session['first_name'] = user_data.get('firstName', '')
+            session['avatar'] = user_data.get('avatar', '')
             return redirect(url_for('learn'))
-        except FirebaseError as e:
-            flash(f'Invalid login credentials: {e}')
+        except (HTTPError, FirebaseError) as e:
+            # Capture error messages from Firebase
+            if isinstance(e, HTTPError):
+                error_message = f'HTTP error occurred: {str(e)}'
+                print("HTTPError:", error_message)
+                flash('Invalid login credentials. Please check your email and password.')
+            elif isinstance(e, FirebaseError):
+                error_message = f'Firebase error occurred: {str(e)}'
+                print("FirebaseError:", error_message)
+                flash('Invalid login credentials. Please try again.')
+            else:
+                error_message = f'An unexpected error occurred: {str(e)}'
+                print("Unexpected error:", error_message)
+                flash('An error occurred. Please try again.')
     return render_template('login.html')
 
 
@@ -82,6 +109,7 @@ def signup():
         age = request.form['age']
         password = request.form['password']
         birthday = request.form['birthday']
+        avatar = request.form['avatar']
 
         try:
             if len(password) < 6:
@@ -94,8 +122,10 @@ def signup():
                 display_name=f"{first_name} {last_name}",
             )
             add_user_to_db(user.uid, first_name,
-                           last_name, email, age, birthday)
+                           last_name, email, age, birthday, avatar)
             session['user_id'] = user.uid
+            session['first_name'] = first_name
+            session['avatar'] = avatar
             return redirect(url_for('learn'))
         except ValueError as ve:
             flash(f'Error: {ve}')
@@ -119,12 +149,6 @@ def admin():
         result = upload_file_to_storage(
             file, letter,  syllable, letter_type, words, value)
 
-        if result['status'] == 'success':
-            flash(
-                ('success', f"File uploaded successfully! URL: {result['file_url']}"))
-        else:
-            flash(('error', result['message']))
-
         return redirect(url_for('admin'))
 
     return render_template('admin.html')
@@ -140,6 +164,7 @@ def learn():
     # Fetch the user_id from session or however you store the user's login information
     user_id = session.get('user_id')
     user_fName = session.get('first_name')
+    avatar = session.get('avatar')
 
     letters_ref = db.collection('words')
     docs = letters_ref.stream()
@@ -188,7 +213,7 @@ def learn():
 
     # Sort all_letters based on the custom order
     all_letters.sort(key=lambda letter: custom_order.index(letter))
-    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data, firstName=user_fName)
+    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data, firstName=user_fName, avatar=avatar)
 
 
 @app.route('/m_learn/<letter>')
@@ -207,6 +232,7 @@ def m_learn(letter):
     # Fetch the current user's learned words
     # Assuming you have user authentication and session management
     user_id = session.get('user_id')
+    avatar = session.get('avatar')
     user_ref = db.collection('users').document(user_id)
     user_doc = user_ref.get()
 
@@ -251,7 +277,7 @@ def m_learn(letter):
         syllable_data[syllable] = words
 
     print('syllable: ', syllable_data)
-    return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data)
+    return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data, avatar=avatar)
 
 
 @app.route('/mark_as_learned', methods=['POST'])
@@ -279,13 +305,15 @@ def mark_as_learned():
 
 @app.route('/quiz')
 def quiz():
-    return render_template('tabs/quiz.html')
+    avatar = session.get('avatar')
+    return render_template('tabs/quiz.html', avatar=avatar)
 
 
 @app.route('/m_quiz/<int:index>', methods=['GET'])
 @app.route('/m_quiz', methods=['GET'])
 def m_quiz(index=None):
     user_id = session.get('user_id')
+    avatar = session.get('avatar')
 
     if not user_id:
         return redirect(url_for('login'))
@@ -294,7 +322,7 @@ def m_quiz(index=None):
     quiz_words = session.get('quiz_words')
 
     if not quiz_words:
-        flash('No words available for the quiz. Please start a new quiz.')
+        print('No words available for the quiz. Please start a new quiz.')
         return redirect(url_for('quiz'))
 
     # Use session to store the current index if not provided
@@ -305,7 +333,7 @@ def m_quiz(index=None):
 
     # Ensure the index is valid
     if index < 0 or index >= len(quiz_words):
-        flash('Invalid word index selected.')
+        print('Invalid word index selected.')
         return redirect(url_for('quiz'))
 
     selected_word = quiz_words[index]
@@ -315,7 +343,8 @@ def m_quiz(index=None):
         currentIndex=index,
         totalWords=len(quiz_words),
         all_words=json.dumps(quiz_words),  # Pass all words as JSON
-        quizWords=json.dumps(quiz_words)
+        quizWords=json.dumps(quiz_words),
+        avatar=avatar
     )
 
 
@@ -398,6 +427,7 @@ def randomizeCategory(letter):
 def picker():
     # Fetch the user_id from session or however you store the user's login information
     user_id = session.get('user_id')  # Adjust this based on your login system
+    avatar = session.get('avatar')
 
     letters_ref = db.collection('words')
     docs = letters_ref.stream()
@@ -435,12 +465,13 @@ def picker():
 
     # Sort all_letters based on the custom order
     all_letters.sort(key=lambda x: custom_order.index(x['letter']))
-    return render_template('tabs/picker.html', all_letters=all_letters, vowels=vowels, consonants=consonants, userId=user_id)
+    return render_template('tabs/picker.html', all_letters=all_letters, vowels=vowels, consonants=consonants, userId=user_id, avatar=avatar)
 
 
 @app.route('/collection')
 def collection():
     user_id = session.get('user_id')  # Get the current user's ID
+    avatar = session.get('avatar')
 
     if not user_id:
         return redirect(url_for('login'))
@@ -499,13 +530,14 @@ def collection():
                 syllable_data[syllable].extend(words)
 
     print("syllable data: ", syllable_data)
-    return render_template('tabs/collection.html', syllable_data=syllable_data)
+    return render_template('tabs/collection.html', syllable_data=syllable_data, avatar=avatar)
 
 # POST route to handle quiz submission
 
 
 @app.route('/results', methods=['POST', 'GET'])
 def results():
+    avatar = session.get('avatar')
     if request.method == 'POST':
         # Get the user answers, quiz words, quizId, and timestamp from the request body
         data = request.get_json()
@@ -597,19 +629,20 @@ def results():
                          correct_answers, total_questions, results_with_correctness)
 
         # Redirect to the GET route to display the results
-        return redirect(url_for('results'))
+        return redirect(url_for('results', avatar=avatar))
 
     elif request.method == 'GET':
         # Retrieve the result data from the session
         result_data = session.get('result_data', {})
 
         # Render the results page with the result data
-        return render_template('results.html', result_data=result_data)
+        return render_template('results.html', result_data=result_data, avatar=avatar)
 
 
 @app.route('/history')
 def history():
     user_id = session.get('user_id')  # Replace with actual user ID logic
+    avatar = session.get('avatar')
     history_records = getHistory(user_id)
 
     # Format the timestamps for each record
@@ -632,7 +665,7 @@ def history():
 
     print("Sorted history records:", sorted_history_records)
 
-    return render_template('history.html', history_data=sorted_history_records)
+    return render_template('history.html', history_data=sorted_history_records, avatar=avatar)
 
 
 @app.route('/profile')
@@ -640,6 +673,7 @@ def profile():
     # Fetch the user document (replace 'user_id' with the actual user ID or retrieve dynamically)
     user_id = session.get('user_id')
     user_doc = db.collection('users').document(user_id).get()
+    avatar = session.get('avatar')
 
     if user_doc.exists:
         user_data = user_doc.to_dict()
@@ -666,7 +700,8 @@ def profile():
                                email=user_data.get('email', ''),
                                user_id=user_id,
                                age=user_data.get('age', ''),
-                               birthday=formatted_birthday)
+                               birthday=formatted_birthday,
+                               avatar=avatar)
     else:
         return "User not found", 404
 
@@ -696,6 +731,21 @@ def get_data():
 @app.route('/video_feed')
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/forgotPassword', methods=['GET', 'POST'])
+def forgotPassword():
+    if request.method == 'POST':
+        email = request.form['email']
+        try:
+            # Send password reset email
+            firebaseAuth.send_password_reset_email(email)
+            flash('Password reset email sent. Please check your inbox.', 'success')
+            # Redirect to login page after sending the email
+            return redirect(url_for('login'))
+        except Exception as e:
+            flash(f'Error sending password reset email: {str(e)}', 'danger')
+    return render_template('forgotPassword.html')
 
 
 if __name__ == '__main__':

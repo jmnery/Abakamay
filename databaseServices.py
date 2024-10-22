@@ -31,7 +31,7 @@ def get_firestore_client():
 # Function to add a user to Firestore
 
 
-def add_user_to_db(user_id, first_name, last_name, email, age, birthday):
+def add_user_to_db(user_id, first_name, last_name, email, age, birthday, avatar):
     db = get_firestore_client()
     db.collection('users').document(user_id).set({
         'userId': user_id,
@@ -40,7 +40,8 @@ def add_user_to_db(user_id, first_name, last_name, email, age, birthday):
         'email': email,
         'age': age,
         "complete": {},
-        'birthday': birthday
+        'birthday': birthday,
+        'avatar': avatar
     })
 
 # Function to get all users from Firestore
@@ -288,18 +289,6 @@ def markAsComplete(user_id, completed_data):
 
 
 def addToHistory(user_id, quiz_id, timestamp, score, correct_answers, total_questions, user_answers):
-    """
-    Add quiz results to the user's history collection in Firestore.
-
-    Args:
-        user_id (str): The ID of the user.
-        quiz_id (str): The ID of the quiz.
-        timestamp (datetime): The timestamp of the quiz submission.
-        score (float): The user's score for the quiz.
-        correct_answers (int): The number of correct answers.
-        total_questions (int): The total number of questions in the quiz.
-        user_answers (list): The user's answers with correctness.
-    """
     db = get_firestore_client()
     history_ref = db.collection('users').document(
         user_id).collection('history').document(quiz_id)
@@ -315,16 +304,6 @@ def addToHistory(user_id, quiz_id, timestamp, score, correct_answers, total_ques
 
 
 def getHistory(user_id):
-    """
-    Fetches the quiz history for a given user from Firestore.
-
-    Args:
-        user_id (str): The user's ID.
-
-    Returns:
-        list: A list of quiz history records, each containing quiz_id, score, 
-              correct_answers, total_questions, and timestamp.
-    """
     history_data = []
 
     try:
