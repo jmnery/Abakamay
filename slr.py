@@ -9,7 +9,7 @@ hands = mp_hands.Hands(static_image_mode=False,
 mp_drawing = mp.solutions.drawing_utils
 
 # Load the Keras model
-model_path = r"C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\assets\asl_recognition_model.h5"
+model_path = r"C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\assets\newModel.h5"
 model = tf.keras.models.load_model(model_path)
 
 # List of letters for ASL gestures

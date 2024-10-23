@@ -14,5 +14,9 @@
         "no-undef": "off" // Disable undefined variable errors in HTML files
       }
     }
-  ]
+  ],
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 8
+  }
 }

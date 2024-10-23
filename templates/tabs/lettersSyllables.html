@@ -8,7 +8,72 @@
     padding: 0;
     margin-top: 56px;
     overflow: hidden;
-    padding-block: 25px;
+    padding-top: 25px;
+    padding-bottom: 15px;
+  }
+
+  .row {
+    margin: 0; /* Removes default row margin */
+    flex-grow: 1;
+  }
+
+  .row-with-gap {
+    display: flex;
+    flex-direction: column; /* Stack rows vertically */
+    gap: 15px; /* Adjust gap here */
+    height: 100%; /* Allow the container to fill the column */
+  }
+
+  .card {
+    display: flex; /* Use flexbox for the card */
+    flex-grow: 1; /* Allow card to grow and fill available height */
+    flex-direction: column; /* Ensure content stacks vertically */
+    overflow: hidden; /* Prevent content overflow */
+  }
+
+  .syllables {
+    height: 100%; /* Full height */
+    display: flex;
+    flex-direction: column; /* Stack syllable boxes vertically */
+    justify-content: start; /* Space out the syllables evenly */
+    gap: 5px;
+  }
+
+  .syllable-box {
+    background-color: #f1f1f1;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    flex-direction: column; /* Stack icon and text vertically */
+    justify-content: center; /* Center text horizontally */
+    align-items: center; /* Center text vertically */
+    display: flex; /* Keeps the boxes close together */
+    margin-bottom: 5px;
+    height: 15%; /* Each syllable box takes 13% height */
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+    cursor: pointer; /* Indicate that the box is clickable */
+  }
+
+  .syllable-box:hover {
+    background-color: #eaeaea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05); /* Slightly enlarge on hover */
+  }
+
+  h2 {
+    font-size: 20px;
+    color: #333;
+    font-weight: bold;
+    margin: 0; /* Remove margin to align text properly */
+  }
+
+  .syllable-box.selected {
+    background-color: #a2a2a2; /* Change background for selected state */
+    color: white; /* Change text color for visibility */
+    border-color: #6d6d6d; /* Darker border for selected state */
+  }
+
+  .hidden {
+    display: none !important;
   }
 </style>
 
@@ -69,7 +134,270 @@
   </div>
 </nav>
 
-<div class="container-fluid"></div>
+<div class="container-fluid">
+  <div
+    id="loadingContainerDiv"
+    class="firstRow w-100 h-100 d-flex align-items-center justify-content-center"
+  >
+    <div class="col text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p>Loading, please wait...</p>
+    </div>
+  </div>
+
+  <div class="row w-100" id="mainContent" style="display: none">
+    <!-- First Column (10%) -->
+    <div class="col-12 col-md-2">
+      <div class="syllables" id="syllablesContainer">
+        <!-- Syllables will be dynamically added here -->
+      </div>
+    </div>
+
+    <!-- Second Column (45%) -->
+    <div class="col-12 col-md-5">
+      {% include 'components/cameraLetter.html' %}
+    </div>
+
+    <!-- Third Column (45%) -->
+    <div class="col-12 col-md-5">
+      <div class="row-with-gap h-100">
+        <!-- First Row (40% height) -->
+        <div class="row" style="height: 45%">
+          <div class="col-12 d-flex h-100">
+            <div class="card w-100 h-100">
+              <div class="card-header">{{letter}}</div>
+              <div
+                class="card-body d-flex align-items-center justify-content-center"
+              >
+                <!-- Center content -->
+                <!-- Optional: Add content here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Second Row (60% height) -->
+        <div class="row" style="height: 55%">
+          <div class="col-12 d-flex h-100">
+            <div class="card w-100 h-100">
+              <div
+                class="card-body d-flex align-items-center justify-content-center"
+              >
+                <!-- Center content -->
+                <!-- Optional: Add content here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Correct Answer -->
+<div
+  class="modal fade"
+  id="correctModal"
+  tabindex="-1"
+  aria-labelledby="wordModalLabel"
+  aria-hidden="true"
+  data-bs-backdrop="static"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: var(--green)">
+        <h5
+          class="modal-title"
+          id="correctModalLabel"
+          style="color: white"
+        ></h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p
+          id="modalWordCorrect"
+          class="mt-3"
+          style="text-align: center; font-size: 2rem; font-weight: bold"
+        >
+          Tama!
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          data-bs-dismiss="modal"
+          style="
+            background-color: var(--green);
+            color: white;
+            border-radius: 50% !important;
+            border: 5px solid var(--dark-green);
+          "
+        >
+          <img
+            src="{{ url_for('static', filename='assets/letter_icon/thumbs_Up.png') }}"
+            alt="Done"
+            style="
+              width: 50px;
+              height: 50px;
+              margin: 5px;
+              margin-bottom: 10px;
+              margin-right: 8px;
+            "
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { getLetterAndSyllables } from "../../static/js/databaseServices.js";
+
+  const currentLetter = "{{ letter }}"; // Ensure letter is treated as a string
+  // Reference to the input field and button
+  const userInput = document.getElementById("inputField");
+  const submitButton = document.getElementById("submitButton");
+  const containerLoading = document.getElementById("loadingContainerDiv");
+  const containerMain = document.getElementById("mainContent");
+
+  // Initialize loading state
+  let isLoading = true;
+  console.log("isLoading: ", isLoading);
+
+  // Call the function to get the letter and syllables
+  getLetterAndSyllables(currentLetter)
+    .then((data) => {
+      console.log("Letter and Syllables:", data);
+      displaySyllables(data);
+      loadingContainerDiv.style.setProperty("display", "none", "important");
+      containerMain.style.display = "flex"; // Show main content
+      console.log("isLoading Done: ", isLoading);
+    })
+    .catch((error) => {
+      console.error("Error fetching letter and syllables:", error);
+      containerLoading.innerHTML =
+        "<p>Error loading data. Please try again.</p>"; // Show error message
+      console.log("isLoading not Done: ", isLoading);
+    });
+
+  function displaySyllables(data) {
+    const syllablesContainer = document.getElementById("syllablesContainer");
+    const cardBody = document.querySelector(".card-body"); // Reference to the card body
+
+    // Clear previous content in the card body
+    cardBody.innerHTML = "";
+
+    // Define a set of vowels
+    const vowels = new Set(["A", "E", "I", "O", "U", "a", "e", "i", "o", "u"]);
+
+    // Create and display the letter syllable box as an h2
+    const letterSyllableBox = document.createElement("h2");
+    letterSyllableBox.className =
+      "syllable-box" + (vowels.has(data.letter) ? " vowel" : "");
+    letterSyllableBox.textContent = data.letter; // Display the syllable text
+    syllablesContainer.appendChild(letterSyllableBox);
+
+    // Highlight the letter syllable box as selected by default
+    letterSyllableBox.classList.add("selected"); // Highlight selected letter box
+    displayImages(data.letter); // Call function to display images for the letter
+
+    // Add click event listener to the letter syllable box
+    letterSyllableBox.addEventListener("click", function () {
+      clearSelectedSyllables(); // Clear previous selections
+      letterSyllableBox.classList.add("selected"); // Highlight selected letter box
+      displayImages(data.letter); // Call function to display images for the letter
+    });
+
+    // Only display syllables if the letter is not a vowel
+    if (!vowels.has(data.letter)) {
+      data.syllables.forEach((syllable) => {
+        const syllableBox = document.createElement("h2"); // Change to h2
+        syllableBox.className = "syllable-box";
+        syllableBox.textContent = syllable; // Display the syllable text
+
+        // Add click event listener to update the card body with the corresponding images
+        syllableBox.addEventListener("click", function () {
+          clearSelectedSyllables(); // Clear previous selections
+          syllableBox.classList.add("selected"); // Highlight selected syllable box
+          displayImages(syllable); // Call function to display images for the syllable
+        });
+
+        syllablesContainer.appendChild(syllableBox);
+      });
+    }
+  }
+
+  // Function to clear previous selections
+  function clearSelectedSyllables() {
+    const syllableBoxes = document.querySelectorAll(".syllable-box");
+    syllableBoxes.forEach((box) => {
+      box.classList.remove("selected"); // Remove selected class from all boxes
+    });
+  }
+
+  function displayImages(syllable) {
+    const cardBody = document.querySelector(".card-body");
+    cardBody.innerHTML = ""; // Clear previous content
+
+    // Create a span for the syllable text
+    const syllableText = document.createElement("span");
+    syllableText.textContent = syllable; // Set the text content to the syllable
+    syllableText.style.fontSize = "6rem"; // Make the font size bigger (adjust as needed)
+    syllableText.style.fontWeight = "bold"; // Make the text bold
+    syllableText.style.marginRight = "10px"; // Add some margin between text and arrow
+
+    // Append the syllable text to the card body
+    cardBody.appendChild(syllableText);
+
+    // Add an arrow icon (you can customize the icon as needed)
+    const arrowIcon = document.createElement("i");
+    arrowIcon.className = "bi bi-arrow-right"; // Use Bootstrap Icons (or any icon of your choice)
+    arrowIcon.style.marginLeft = "10px"; // Add some margin for spacing
+    arrowIcon.style.marginRight = "10px"; // Add some margin for spacing
+    arrowIcon.style.verticalAlign = "middle"; // Align vertically with the text and images
+    arrowIcon.style.fontSize = "4rem"; // Set the font size of the arrow icon (adjust as needed)
+    cardBody.appendChild(arrowIcon); // Append the arrow icon to the card body
+
+    // Split the syllable into individual letters
+    const letters = syllable.split("");
+
+    letters.forEach((letter) => {
+      const img = document.createElement("img");
+      img.src = `/static/assets/letter_icon/${letter.toUpperCase()}.png`; // Construct image path
+      img.alt = letter; // Set alt text for accessibility
+      img.style.width = "70px"; // Set width of the images (adjust as needed)
+      img.style.marginRight = "5px"; // Add some margin between images
+
+      cardBody.appendChild(img); // Append image to the card body
+    });
+  }
+
+  // Function to check user input
+  function checkInput() {
+    const inputValue = userInput.value.trim().toLowerCase(); // Get user input and trim whitespace
+    const currentSyllable = document
+      .querySelector(".card-body span")
+      .textContent.toLowerCase(); // Get the currently displayed syllable
+
+    if (inputValue === currentSyllable) {
+      // Show modal for correct answer
+      $("#correctModal").modal("show"); // Ensure you have a modal with this ID in your HTML
+    } else {
+      // Optionally handle incorrect answers
+      alert("Try again!"); // Or use a different method to inform the user
+    }
+  }
+
+  // Add event listener to submit button
+  submitButton.addEventListener("click", checkInput);
+</script>
 
 <!-- JavaScript to handle loading modal -->
 <script>

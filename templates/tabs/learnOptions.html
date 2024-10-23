@@ -132,7 +132,7 @@
   <div class="letter-circle">{{ letter }}</div>
   <div
     class="option-box"
-    onclick="redirectTo('Fetching Letter and Syllables...', '{{ url_for('lettersSyllables', letter=letter) }}')"
+    onclick="location.href=`{{ url_for('lettersSyllables', letter=letter) }}`"
   >
     <h2>Letter & Syllables</h2>
   </div>
