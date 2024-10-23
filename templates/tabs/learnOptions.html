@@ -1,0 +1,155 @@
+{% extends 'base.html' %} {% block title %}Quiz{% endblock %} {% block content
+%}
+
+<style>
+  .container-fluid {
+    height: calc(100vh - 56px); /* Adjusted for the fixed navbar height */
+    display: flex;
+    flex-direction: column; /* Stack rows vertically */
+    justify-content: center; /* Center children vertically */
+    align-items: center; /* Center children horizontally */
+    padding: 0;
+    margin-top: 56px;
+    overflow: hidden;
+    padding-block: 25px;
+  }
+
+  .letter-circle {
+    background-color: transparent; /* Make the background transparent */
+    border: 4px dashed #ccc; /* Dashed border for the circle */
+    border-radius: 50%; /* Makes the div circular */
+    width: 120px; /* Increased width */
+    height: 120px; /* Increased height */
+    display: flex; /* Flexbox to center content */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    margin-bottom: 20px; /* Space between the letter circle and the option boxes */
+    font-size: 48px; /* Increased font size for the letter */
+    color: #333; /* Text color for the letter */
+    font-weight: bold; /* Make the letter bold */
+    animation: bob 1s infinite; /* Added animation for bobbing effect */
+  }
+
+  /* Animation for bobbing effect */
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0); /* Start position */
+    }
+    50% {
+      transform: translateY(-10px); /* Move up */
+    }
+  }
+
+  .option-box {
+    background-color: #f1f1f1;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column; /* Stack icon and text vertically */
+    justify-content: center; /* Center text horizontally */
+    align-items: center; /* Center text vertically */
+    height: 100px; /* Fixed height for uniformity */
+    width: 80%; /* Set width to a percentage of the parent */
+    max-width: 400px; /* Maximum width to prevent boxes from being too large */
+    cursor: pointer;
+    margin: 10px 0; /* Add margin for gaps between boxes */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative; /* Needed for absolute positioning of the icon */
+  }
+
+  .option-box:hover {
+    background-color: #eaeaea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  h2 {
+    font-size: 24px;
+    color: #333;
+    font-weight: bold;
+    margin: 0; /* Remove margin to align text properly */
+  }
+</style>
+
+<!-- Top Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <a class="navbar-brand" href="{{ url_for('learn') }}">
+    <i class="bi bi-arrow-left"></i>
+    Learn
+  </a>
+  <button
+    class="navbar-toggler"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#navbarNav"
+    aria-controls="navbarNav"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link active" href="{{ url_for('learn') }}">Learn</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a
+          class="nav-link dropdown-toggle d-flex align-items-center"
+          id="avatarDropdown"
+          role="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <img
+            src="{{ avatar or 'https://via.placeholder.com/50' }}"
+            alt="Avatar"
+            class="rounded-circle"
+            style="width: 35px; height: 35px; margin-right: 5px"
+          />
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="avatarDropdown">
+          <li>
+            <a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a>
+          </li>
+          <li><hr class="dropdown-divider" /></li>
+          <li>
+            <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div class="letter-circle">{{ letter }}</div>
+  <div
+    class="option-box"
+    onclick="redirectTo('Fetching Letter and Syllables...', '{{ url_for('lettersSyllables', letter=letter) }}')"
+  >
+    <h2>Letter & Syllables</h2>
+  </div>
+  <div
+    class="option-box"
+    onclick="redirectTo('Fetching words...', '{{ url_for('m_learn', letter=letter) }}')"
+  >
+    <h2>Words</h2>
+  </div>
+</div>
+
+<!-- JavaScript to handle loading modal -->
+<script>
+  // Handle page show event
+  window.addEventListener("pageshow", function (event) {
+    $("#mainLoadingModal").modal("hide");
+  });
+</script>
+
+{% endblock %}

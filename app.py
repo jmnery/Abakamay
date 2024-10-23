@@ -216,6 +216,18 @@ def learn():
     return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data, firstName=user_fName, avatar=avatar)
 
 
+@app.route('/learnOptions/<letter>')
+def learnOptions(letter):
+    avatar = session.get('avatar')
+    return render_template('tabs/learnOptions.html', avatar=avatar, letter=letter)
+
+
+@app.route('/lettersSyllables/<letter>')
+def lettersSyllables(letter):
+    avatar = session.get('avatar')
+    return render_template('tabs/lettersSyllables.html', avatar=avatar, letter=letter)
+
+
 @app.route('/m_learn/<letter>')
 def m_learn(letter):
     # Fetch data from the 'words' collection

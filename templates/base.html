@@ -92,17 +92,65 @@
       integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
       crossorigin="anonymous"
     ></script>
-
-    <script>
-      $(document).ready(function () {
-        $('[data-toggle="popover"]').popover({
-          trigger: "hover", // You can change this to 'click' if preferred
-          html: true, // Allow HTML content
-        });
-      });
-    </script>
   </head>
   <body>
     <div class="content">{% block content %}{% endblock %}</div>
+    <!-- Loading Modal -->
+    <div
+      class="modal"
+      id="mainLoadingModal"
+      tabindex="-1"
+      aria-labelledby="mainLoadingModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+          <div class="modal-header" style="background-color: var(--black)">
+            <h5
+              class="modal-title"
+              id="mainLoadingModalLabel"
+              style="color: white"
+            >
+              Loading...
+            </h5>
+          </div>
+          <div
+            class="modal-body text-center d-flex align-items-center justify-content-center"
+            style="padding: 25px"
+          >
+            <div class="spinner-border text-primary me-2" role="status"></div>
+            <span id="loadingMessage">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
+  <script>
+    $(document).ready(function () {
+      $('[data-toggle="popover"]').popover({
+        trigger: "hover", // You can change this to 'click' if preferred
+        html: true, // Allow HTML content
+      });
+    });
+    function showLoadingModal(message) {
+      // Set custom title and message
+      document.getElementById("loadingMessage").innerText = message;
+
+      // Show the loading modal
+      $("#mainLoadingModal").modal("show");
+    }
+    function redirectTo(message, url) {
+      // Set custom title and message
+      document.getElementById("loadingMessage").innerText = message;
+
+      // Show the loading modal
+      $("#mainLoadingModal").modal("show");
+      location.href = url;
+    }
+
+    // Handle page show event
+    window.addEventListener("pageshow", function (event) {
+      $("#mainLoadingModal").modal("hide");
+    });
+  </script>
 </html>

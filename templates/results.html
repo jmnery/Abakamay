@@ -1,5 +1,6 @@
-{% extends 'base.html' %} {% block title %}Results{% endblock %} {% block
-content %}
+{% extends 'base.html' %}
+{% block title %}Results{% endblock %}
+{% block content %}
 <style>
   .container-results {
     height: 100vh;
@@ -12,12 +13,7 @@ content %}
     flex-direction: column;
   }
 
-  .score-card,
-  .details-card {
-    height: auto;
-  }
-
-  .results-card {
+  .score-card, .details-card, .results-card {
     height: auto;
   }
 
@@ -27,8 +23,7 @@ content %}
     width: 100%;
   }
 
-  .table th,
-  .table td {
+  .table th, .table td {
     border: 2px solid var(--black);
     vertical-align: middle;
     text-align: center;
@@ -81,19 +76,36 @@ content %}
     border-top: 1px solid #ccc;
     margin: 10px 0;
   }
+
+  #handSignsContainer {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Allow the items to wrap as needed */
+    gap: 10px; /* Spacing between items */
+  }
+
+  .letter-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the images and text */
+    flex: 1 1 10%; /* Allow the containers to grow and take equal space */
+    max-width: 10%; /* Each letter container can take a maximum of 10% of the modal width */
+  }
+
+  .letter-container img {
+    width: 100%; /* Make the image take full width of the container */
+    height: auto; /* Maintain aspect ratio */
+  }
+
+  .letter-container span {
+    font-size: 24px; /* Set the text size */
+    margin-top: 5px; /* Space between the image and text */
+  }
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
   <a class="navbar-brand" href="#">Results</a>
-  <button
-    class="navbar-toggler"
-    type="button"
-    data-bs-toggle="collapse"
-    data-bs-target="#navbarNav"
-    aria-controls="navbarNav"
-    aria-expanded="false"
-    aria-label="Toggle navigation"
-  >
+  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
@@ -108,19 +120,8 @@ content %}
         <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
       </li>
       <li class="nav-item dropdown">
-        <a
-          class="nav-link dropdown-toggle d-flex align-items-center"
-          id="avatarDropdown"
-          role="button"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          <img
-            src="{{ avatar or 'https://via.placeholder.com/50' }}"
-            alt="Avatar"
-            class="rounded-circle"
-            style="width: 35px; height: 35px; margin-right: 5px"
-          />
+        <a class="nav-link dropdown-toggle d-flex align-items-center" id="avatarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <img src="{{ avatar or 'https://via.placeholder.com/50' }}" alt="Avatar" class="rounded-circle" style="width: 35px; height: 35px; margin-right: 5px" />
         </a>
         <ul class="dropdown-menu" aria-labelledby="avatarDropdown">
           <li>
@@ -151,10 +152,7 @@ content %}
           <div class="divider"></div>
           <div class="data-row">
             <span class="data-title">Correct Answers:</span>
-            <span
-              >{{ result_data.correct_answers }} / {{
-              result_data.total_questions }}</span
-            >
+            <span>{{ result_data.correct_answers }} / {{ result_data.total_questions }}</span>
           </div>
         </div>
       </div>
@@ -200,16 +198,24 @@ content %}
               </thead>
               <tbody>
                 {% for result in result_data.user_answers %}
-                <tr
-                  class="{% if result.correct %}correct-answer{% else %}incorrect-answer{% endif %}"
-                >
+                <tr class="{% if result.correct %}correct-answer{% else %}incorrect-answer{% endif %}"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#wordModal"
+                    data-word='{
+                      "status": "{% if result.correct %}Correct{% else %}Incorrect{% endif %}",
+                      "value": "{{result.word.value}}",
+                      "isCorrect": "{{result.correct}}",
+                      "letter": "{{ result.word.letter }}",
+                      "syllable": "{{ result.word.syllable }}",
+                      "text": "{{ result.word.text }}",
+                      "image": "https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ result.word.text }}{{ result.word.extension }}?alt=media",
+                      "user_answer": "{{ result.user_answer.replace(' ', '-') }}"
+                    }'>
                   <td>
                     {% if result.word.extension %}
-                    <img
-                      src="https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ result.word.text }}{{ result.word.extension }}?alt=media"
-                      class="result-image"
-                      alt="{{ result.word.text }}"
-                    />
+                    <img src="https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ result.word.text }}{{ result.word.extension }}?alt=media"
+                         class="result-image"
+                         alt="{{ result.word.text }}" />
                     {% endif %}
                   </td>
                   <td>{{ result.word.letter }}</td>
@@ -231,9 +237,139 @@ content %}
     </div>
   </div>
 </div>
+
+<!-- Word Details Modal -->
+<div class="modal fade" id="wordModal" tabindex="-1" aria-labelledby="wordModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: var(--black); color: white">
+        <h5 class="modal-title" id="wordModalLabel">Word Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-word-details">
+          <!-- Word details will be populated here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+         <button type="button" class="btn" id="revealAnswerBtn" style="background-color: var(--green); color: white;">Reveal correct answer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="videoModal"
+  tabindex="-1"
+  aria-labelledby="videoModalLabel"
+  aria-hidden="true"
+  data-bs-backdrop="static"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div
+        class="modal-header"
+        style="background-color: var(--black); color: white"
+      >
+        <h5 class="modal-title" id="videoModalLabel">Video Tutorial</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div
+          id="handSignsContainer"
+          class="d-flex justify-content-center"
+        ></div>
+        <!-- New container for hand signs -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script>
-  const data = {{ result_data | tojson }};
-  console.log("Quiz Date:", data.timestamp.date);
-  console.log("Quiz Time:", data.timestamp.time);
+  // Define a variable to hold the wordData globally
+  let wordData;
+
+  document.querySelectorAll('tr[data-word]').forEach(row => {
+    row.addEventListener('click', function () {
+      wordData = JSON.parse(this.getAttribute('data-word'));
+
+      const isCorrect = wordData.isCorrect === 'True'; // true if 'True', false if 'False'
+
+      const borderColor = isCorrect ? 'var(--green)' : 'var(--red)';  
+      console.log("IsCorrect: ", wordData.isCorrect);
+      const modalContent = `
+        <div class="d-flex align-items-center justify-content-center">
+          <img src="${wordData.image}" alt="${wordData.text}" class="img-fluid rounded-circle" style="width: 150px; height: 150px; border: 3px solid ${borderColor}; margin-right: 15px; object-fit: cover;">
+          <div>
+            <p><strong>Word:</strong> ${wordData.text}</p>
+            <p><strong>Your Answer:</strong> ${wordData.user_answer}</p>
+            <p><strong>Status:</strong> ${wordData.status}</p>
+          </div>
+        </div>
+      `;
+      document.getElementById('modal-word-details').innerHTML = modalContent;
+
+      // Set the correct answer to be shown in the second modal
+      document.getElementById('revealAnswerBtn').onclick = function() {
+        // Hide the word details modal
+        const wordModal = bootstrap.Modal.getInstance(document.getElementById('wordModal'));
+        if (wordModal) {
+          wordModal.hide();
+        }
+        new bootstrap.Modal(document.getElementById('videoModal')).show();
+      };
+    });
+  });
+  const videoModalEl = document.getElementById("videoModal");
+  const videoModalLabel = document.getElementById("videoModalLabel");
+
+  videoModalEl.addEventListener("show.bs.modal", function (event) {
+    const wordText = wordData.value;
+    const trueText = wordData.text;
+
+    // Clear previous images
+    handSignsContainer.innerHTML = "";
+
+    // Update modal title
+    videoModalLabel.innerHTML = `<strong>${trueText.toUpperCase()}</strong>`;
+
+    // Loop through each letter in wordText, generate the corresponding image path and letter
+    [...wordText].forEach((letter) => {
+      // Create a container div for each letter and image
+      const containerDiv = document.createElement("div");
+      containerDiv.classList.add("letter-container"); // Apply the CSS class for styling
+
+      // Create an image element for each letter or a space (dash.png)
+      const img = document.createElement("img");
+      if (letter === " ") {
+        img.src = `/static/assets/letter_icon/dash.png`; // Use dash.png for spaces
+        img.alt = "dash"; // Alt text as "dash"
+      } else {
+        img.src = `/static/assets/letter_icon/${letter.toUpperCase()}.png`; // Path to letter image
+        img.alt = letter; // Alt text as letter
+      }
+
+      // Create a span for the letter text (or dash for spaces)
+      const letterSpan = document.createElement("span");
+      letterSpan.textContent = letter === " " ? "-" : letter.toUpperCase(); // Display dash for spaces or letter
+
+      // Append the image and letter to the container
+      containerDiv.appendChild(img);
+      containerDiv.appendChild(letterSpan);
+
+      // Append the container to the main handSignsContainer
+      handSignsContainer.appendChild(containerDiv);
+    });
+  });
 </script>
+
+
+
 {% endblock %}
