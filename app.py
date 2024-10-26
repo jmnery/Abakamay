@@ -1,3 +1,4 @@
+from flask_socketio import SocketIO
 from requests.exceptions import HTTPError
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from flask import request
@@ -13,11 +14,13 @@ from firebase_admin.exceptions import FirebaseError
 import os
 import json
 import random
+import slr
 from databaseServices import addToHistory, get_all_letters, get_all_words, get_user_data_by_id, get_user_progress, get_words_by_letter, getHistory, initialize_firebase, add_user_to_db, get_all_users, markAsComplete, upload_file_to_storage, add_learned_word
 from camera import generate_frames
+from socketioInstance import socketio
 
 app = Flask(__name__)  # Only this instance should exist
-
+socketio.init_app(app)
 # Set the secret key for session management
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
 
@@ -745,6 +748,13 @@ def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
+def process_frame(image):
+    global recognized_letter
+    recognized_letter = slr.process_frame(
+        image)  # Update the recognized letter
+    return recognized_letter
+
+
 @app.route('/forgotPassword', methods=['GET', 'POST'])
 def forgotPassword():
     if request.method == 'POST':
@@ -760,5 +770,10 @@ def forgotPassword():
     return render_template('forgotPassword.html')
 
 
+@socketio.on('connect')
+def handle_connect():
+    print("Client connected")
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)

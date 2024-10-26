@@ -181,8 +181,13 @@
         <button class="btn btn-danger" type="button" id="trashButton">
           <i class="fas fa-trash-alt"></i>
         </button>
-        <button class="btn btn-primary" type="button" id="submitButton">
-          Submit
+        <button
+          class="btn"
+          type="button"
+          id="submitButton"
+          style="background-color: var(--green); color: white"
+        >
+          Check
         </button>
       </div>
     </div>
@@ -190,6 +195,9 @@
 </div>
 
 <script>
+  // Establish a connection to the server using SocketIO
+  const socket = io.connect();
+
   // Get the input field and buttons
   const inputField = document.getElementById("inputField");
   const backspaceButton = document.getElementById("backspaceButton");
@@ -206,6 +214,15 @@
     const cursorPosition = inputField.selectionStart; // Save cursor position
     inputField.value = cleanInputRealTime(inputField.value); // Clean input on the fly
     inputField.setSelectionRange(cursorPosition, cursorPosition); // Restore cursor position
+  });
+
+  // Listen for 'recognized_letter' events and update the input field
+  socket.on("recognized_letter", function (data) {
+    if (data.letter) {
+      // Append the recognized letter to the input field's value
+      inputField.value += data.letter;
+      inputField.value = cleanInputRealTime(inputField.value); // Clean input on the fly
+    }
   });
 
   // Handle backspace button click: Remove last character
