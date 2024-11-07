@@ -1,0 +1,171 @@
+<!-- Carousel in learnHelp.html -->
+<div id="helpCarousel" class="carousel slide" data-bs-ride="false">
+  <div class="carousel-indicators">
+    <button
+      type="button"
+      data-bs-target="#helpCarousel"
+      data-bs-slide-to="0"
+      class="active"
+      aria-current="true"
+      aria-label="Slide 1"
+    ></button>
+    <button
+      type="button"
+      data-bs-target="#helpCarousel"
+      data-bs-slide-to="1"
+      aria-label="Slide 2"
+    ></button>
+    <button
+      type="button"
+      data-bs-target="#helpCarousel"
+      data-bs-slide-to="2"
+      aria-label="Slide 3"
+    ></button>
+    <!-- Additional buttons for more slides -->
+  </div>
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <div class="carousel-bg">
+        <video autoplay muted loop class="video-slide">
+          <source
+            src="https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/help%2Flearn01.mp4?alt=media"
+            type="video/mp4"
+          />
+          Your browser does not support the video tag.
+        </video>
+        <div class="overlay"></div>
+        <div class="carousel-caption d-none d-md-block">
+          <div class="caption-bg">
+            <h5 class="caption-text">
+              Start by clicking a letter to learn its syllables, hand spelling
+              and apply it in spelling words.
+            </h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <div class="carousel-bg">
+        <video autoplay muted loop class="video-slide">
+          <source
+            src="https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/help%2Flearn02.mp4?alt=media"
+            type="video/mp4"
+          />
+          Your browser does not support the video tag.
+        </video>
+        <div class="overlay"></div>
+        <div class="carousel-caption d-none d-md-block">
+          <div class="caption-bg">
+            <h5 class="caption-text">
+              Use the filter options to view letters based on your preference:
+              all, vowels, or consonants.
+            </h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <div class="carousel-bg">
+        <img
+          src="https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/help%2Flearn03.jpg?alt=media"
+          class="d-block w-100"
+          alt="Learning Image"
+        />
+        <div class="overlay"></div>
+        <div class="carousel-caption d-none d-md-block">
+          <div class="caption-bg">
+            <h5 class="caption-text">
+              Track your progress by looking at the progress bar.
+            </h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Additional slides as needed -->
+  </div>
+  <button
+    class="carousel-control-prev"
+    type="button"
+    data-bs-target="#helpCarousel"
+    data-bs-slide="prev"
+  >
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button
+    class="carousel-control-next"
+    type="button"
+    data-bs-target="#helpCarousel"
+    data-bs-slide="next"
+  >
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+  <style>
+    .carousel,
+    .carousel-inner {
+      height: 100%;
+    }
+
+    .carousel-bg {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2rem;
+      border-radius: 15px; /* Added border-radius here */
+      overflow: hidden; /* Ensure content doesn't overflow the rounded corners */
+      position: relative; /* Added for proper positioning of text */
+    }
+
+    .video-slide,
+    .carousel-bg img {
+      width: 100%;
+      height: 100%;
+      border-radius: 15px; /* Added border radius to video and image */
+      object-fit: cover; /* Ensure the video and image cover the area */
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* Dim effect with a black overlay */
+      border-radius: 15px; /* Match border-radius of video and image */
+    }
+
+    .carousel-caption {
+      position: absolute; /* Change to absolute for better positioning */
+      bottom: 20px; /* Adjust as necessary */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%; /* Ensure the caption takes full width */
+      text-align: center; /* Center align text */
+    }
+
+    .caption-bg {
+      background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+      padding: 10px; /* Padding around the text */
+      border-radius: 5px; /* Slight rounding for the background */
+      display: flex; /* Use flexbox for layout */
+      justify-content: center; /* Center the text horizontally */
+      width: 100%; /* Ensure the caption background takes full width */
+    }
+
+    .caption-text {
+      margin: 0; /* Remove default margin */
+      flex-grow: 1; /* Allow the text to stretch */
+      text-align: center; /* Center text within the container */
+    }
+
+    .carousel-item {
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+  </style>
+</div>

@@ -55,7 +55,6 @@
       <div>
         <label for="file">Upload Image:</label>
         <input type="file" name="file" accept="image/*" required />
-        <!-- File picker -->
       </div>
       <div>
         <label for="letter">Letter:</label>
@@ -67,7 +66,11 @@
       </div>
       <div>
         <label for="type">Type:</label>
-        <input type="text" name="type" required />
+        <select name="type">
+          <option value="" disabled selected>Select type</option>
+          <option value="consonant">Consonant</option>
+          <option value="vowel">Vowel</option>
+        </select>
       </div>
       <div>
         <label for="words">Words (comma-separated):</label>

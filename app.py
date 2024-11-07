@@ -1,4 +1,4 @@
-from flask_socketio import SocketIO
+
 from requests.exceptions import HTTPError
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from flask import request
@@ -103,7 +103,7 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/signup', methods=['GET', 'POST'])
+@ app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
         first_name = request.form['firstName']
@@ -129,7 +129,7 @@ def signup():
             session['user_id'] = user.uid
             session['first_name'] = first_name
             session['avatar'] = avatar
-            return redirect(url_for('learn'))
+            return redirect(url_for('learn', show_summary_modal=True))
         except ValueError as ve:
             flash(f'Error: {ve}')
         except FirebaseError as e:
@@ -164,6 +164,8 @@ def main():
 
 @app.route('/learn')
 def learn():
+    show_summary_modal = request.args.get(
+        'show_summary_modal', 'false').lower() == 'true'
     # Fetch the user_id from session or however you store the user's login information
     user_id = session.get('user_id')
     user_fName = session.get('first_name')
@@ -216,7 +218,7 @@ def learn():
 
     # Sort all_letters based on the custom order
     all_letters.sort(key=lambda letter: custom_order.index(letter))
-    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data, firstName=user_fName, avatar=avatar)
+    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data, firstName=user_fName, avatar=avatar, show_summary_modal=show_summary_modal)
 
 
 @app.route('/learnOptions/<letter>')
@@ -352,6 +354,7 @@ def m_quiz(index=None):
         return redirect(url_for('quiz'))
 
     selected_word = quiz_words[index]
+    print("quiz_words: ", quiz_words)
     return render_template(
         'tabs/m_quiz.html',
         word=selected_word,
@@ -361,6 +364,24 @@ def m_quiz(index=None):
         quizWords=json.dumps(quiz_words),
         avatar=avatar
     )
+
+
+@app.route('/retakeQuiz', methods=['POST'])
+def retakeQuiz():
+    # Retrieve quiz_words from the form data
+    quiz_words = request.form.get('quiz_words')
+
+    # Convert JSON string to a dictionary or list, if necessary
+    if quiz_words:
+        import json
+        quiz_words = json.loads(quiz_words)
+
+    # Store in session and reset currentIndex
+    session['quiz_words'] = quiz_words
+    session['currentIndex'] = 0
+
+    # Redirect to the quiz route
+    return redirect(url_for('m_quiz', index=0))
 
 
 @app.route('/randomizeAll')
@@ -735,6 +756,11 @@ def logout():
     resp.headers['Cache-Control'] = 'no-store'
     resp.headers['Pragma'] = 'no-cache'
     return resp
+
+
+@app.route('/help/learn')
+def learn_help():
+    return render_template('help/learnHelp.html')
 
 
 @app.route('/data')

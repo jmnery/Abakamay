@@ -137,7 +137,7 @@
   </div>
 </nav>
 
-<div class="container-results">
+<div class="container-results" data-quiz='{{ result_data.quiz_words | tojson }}'>
   <div class="row flex-grow-1">
     <!-- Left Column -->
     <div class="col-md-4">
@@ -177,7 +177,17 @@
           </div>
         </div>
       </div>
+      <!-- Retake Quiz Button -->
+      <div class="d-flex justify-content-end mb-4">
+        <form id="retakeQuizForm" action="/retakeQuiz" method="post">
+          <input type="hidden" name="quiz_words" id="quizWords" />
+          <button type="button" class="btn" style="background-color: var(--red); color: white" onclick="retakeQuiz()">
+            Retake Quiz
+          </button>
+        </form>
+      </div>
     </div>
+    
 
     <!-- Right Column -->
     <div class="col-md-8">
@@ -295,6 +305,16 @@
 <script>
   // Define a variable to hold the wordData globally
   let wordData;
+  function retakeQuiz() {
+    // Parse the data-quiz attribute
+  const quizData = JSON.parse(document.querySelector('.container-results').getAttribute('data-quiz'));
+
+    // Set the hidden input with quiz data as a JSON string
+    document.getElementById('quizWords').value = JSON.stringify(quizData);
+
+    // Submit the form
+    document.getElementById('retakeQuizForm').submit();
+  }
 
   document.querySelectorAll('tr[data-word]').forEach(row => {
     row.addEventListener('click', function () {

@@ -1,236 +1,339 @@
 {% extends 'base.html' %} {% block title %}Learn{% endblock %} {% block content
 %}
 
-<style>
-  .main_container {
-    display: flex;
-    height: 100vh;
-    width: 100%;
-    padding: 30px;
-    padding-top: 80px;
-    padding-bottom: 10;
-    box-sizing: border-box;
-  }
+<body data-show-summary="{{ 'true' if show_summary_modal else 'false' }}">
+  <style>
+    .main_container {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+      padding: 30px;
+      padding-top: 80px;
+      padding-bottom: 10;
+      box-sizing: border-box;
+    }
 
-  .card {
-    width: 200px;
-    max-height: 200px;
-    overflow: hidden;
-    box-sizing: border-box;
-    margin-right: 25px;
-  }
+    .card {
+      width: 200px;
+      max-height: 200px;
+      overflow: hidden;
+      box-sizing: border-box;
+      margin-right: 25px;
+    }
 
-  .button_container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    overflow: hidden;
-  }
+    .button_container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      overflow: hidden;
+    }
 
-  .row {
-    width: 100%;
-    height: 100%;
-    align-content: flex-start;
-  }
+    .row {
+      width: 100%;
+      height: 100%;
+      align-content: flex-start;
+    }
 
-  .option-box {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Ensures the letter is at the top and the progress bar at the bottom */
-    align-items: center;
-    min-height: 14vh;
-    background-color: #f1f1f1;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    padding: 10px;
-    flex: 1;
-  }
+    .option-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between; /* Ensures the letter is at the top and the progress bar at the bottom */
+      align-items: center;
+      min-height: 14vh;
+      background-color: #f1f1f1;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      padding: 10px;
+      flex: 1;
+    }
 
-  .option-box:hover {
-    background-color: #eaeaea;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
+    .option-box:hover {
+      background-color: #eaeaea;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
 
-  h2 {
-    font-size: 32px;
-    color: #333;
-    font-weight: bold;
-    margin: 0;
-  }
-  .letter-container {
-    flex: 1; /* Allow this div to take up available space */
-    display: flex; /* Enable flexbox for centering */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    min-height: 50px; /* Optional: adjust the minimum height as needed */
-  }
+    h2 {
+      font-size: 32px;
+      color: #333;
+      font-weight: bold;
+      margin: 0;
+    }
+    .letter-container {
+      flex: 1; /* Allow this div to take up available space */
+      display: flex; /* Enable flexbox for centering */
+      justify-content: center; /* Center horizontally */
+      align-items: center; /* Center vertically */
+      min-height: 50px; /* Optional: adjust the minimum height as needed */
+    }
 
-  .col-md-3 {
-    padding-left: 5px;
-    padding-right: 5px;
-    max-height: 20%;
-  }
+    .col-md-3 {
+      padding-left: 5px;
+      padding-right: 5px;
+      max-height: 20%;
+    }
 
-  .filter-options {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
+    .filter-options {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
 
-  /* Ensure the progress bar is at the bottom and takes full width */
-  .progress-container {
-    width: 100%;
-  }
-</style>
+    /* Ensure the progress bar is at the bottom and takes full width */
+    .progress-container {
+      width: 100%;
+    }
+  </style>
 
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-  <a class="navbar-brand" href="#">Abakada Flask</a>
-  <button
-    class="navbar-toggler"
-    type="button"
-    data-bs-toggle="collapse"
-    data-bs-target="#navbarNav"
-    aria-controls="navbarNav"
-    aria-expanded="false"
-    aria-label="Toggle navigation"
-  >
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link active" href="{{ url_for('learn') }}">Learn</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
-      </li>
-      <li class="nav-item dropdown">
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <a class="navbar-brand" href="#">Abakada Flask</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('learn') }}">Learn</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle d-flex align-items-center"
+            id="avatarDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <img
+              src="{{ avatar or 'https://via.placeholder.com/50' }}"
+              alt="Avatar"
+              class="rounded-circle"
+              style="width: 35px; height: 35px; margin-right: 5px"
+            />
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="avatarDropdown">
+            <li>
+              <a class="dropdown-item" href="{{ url_for('profile') }}"
+                >Profile</a
+              >
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
+      <!-- Help dropdown on the right side -->
+      <div class="nav-item dropdown ms-auto">
         <a
-          class="nav-link dropdown-toggle d-flex align-items-center"
-          id="avatarDropdown"
+          class="btn btn-outline-light dropdown-toggle"
+          id="helpDropdown"
           role="button"
           data-bs-toggle="dropdown"
           aria-expanded="false"
         >
-          <img
-            src="{{ avatar or 'https://via.placeholder.com/50' }}"
-            alt="Avatar"
-            class="rounded-circle"
-            style="width: 35px; height: 35px; margin-right: 5px"
-          />
+          Help
         </a>
-        <ul class="dropdown-menu" aria-labelledby="avatarDropdown">
+        <ul
+          class="dropdown-menu dropdown-menu-end"
+          aria-labelledby="helpDropdown"
+        >
           <li>
-            <a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a>
+            <a
+              class="dropdown-item"
+              data-bs-toggle="modal"
+              data-bs-target="#helpModal"
+              >Learn Page</a
+            >
           </li>
-          <li><hr class="dropdown-divider" /></li>
           <li>
-            <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+            <a
+              class="dropdown-item"
+              data-bs-toggle="modal"
+              data-bs-target="#summaryModal"
+              >App Summary</a
+            >
           </li>
         </ul>
-      </li>
-    </ul>
-  </div>
-</nav>
-
-<div class="main_container">
-  <div class="card">
-    <div class="card-header d-flex align-items-center">
-      <img
-        src="{{ avatar or 'https://via.placeholder.com/50' }}"
-        alt="Avatar"
-        class="rounded-circle me-2"
-        style="
-          width: 40px;
-          height: 40px;
-          border: 2px solid var(--primary-color);
-        "
-      />
-      <span>{{ firstName }}</span>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="filter-options">
-        <label
-          ><input type="radio" name="filter" value="all" checked /> All</label
-        >
-        <label
-          ><input type="radio" name="filter" value="vowels" /> Vowels</label
-        >
-        <label
-          ><input type="radio" name="filter" value="consonants" />
-          Consonants</label
-        >
+  </nav>
+
+  <!-- help Modal (Empty) -->
+  <div
+    class="modal fade"
+    id="helpModal"
+    tabindex="-1"
+    aria-labelledby="helpModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content" style="background-color: var(--white)">
+        <button
+          type="button"
+          class="btn-close btn-lg position-absolute"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+          style="
+            top: 2rem;
+            right: 2rem;
+            z-index: 2000;
+            background-color: white;
+            border: 1px solid white;
+            border-radius: 50%;
+          "
+        ></button>
+        <div class="modal-body" id="modalContent">
+          <!-- Content of tutorial will be loaded here -->
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="button_container">
-    <div class="row">
-      {% for letter in letters %}
-      <div
-        class="col-md-3 mb-3 letter-box all {{ 'vowel' if letter in vowels else 'consonant' }}"
-      >
-        <div
-          class="option-box"
-          onclick="window.location.href=`{{ url_for('learnOptions', letter=letter) }}`"
-        >
-          <div class="letter-container">
-            <h2>{{ letter }}</h2>
-          </div>
+  <div class="main_container">
+    <div class="card">
+      <div class="card-header d-flex align-items-center">
+        <img
+          src="{{ avatar or 'https://via.placeholder.com/50' }}"
+          alt="Avatar"
+          class="rounded-circle me-2"
+          style="
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--primary-color);
+          "
+        />
+        <span>{{ firstName }}</span>
+      </div>
+      <div class="card-body">
+        <div class="filter-options">
+          <label
+            ><input type="radio" name="filter" value="all" checked /> All</label
+          >
+          <label
+            ><input type="radio" name="filter" value="vowels" /> Vowels</label
+          >
+          <label
+            ><input type="radio" name="filter" value="consonants" />
+            Consonants</label
+          >
+        </div>
+      </div>
+    </div>
 
-          <!-- Progress bar at the bottom -->
-          <div class="progress-container">
-            <div class="progress" style="height: 8px; margin-inline: 12px">
-              {% set total_words = progress_data[letter]['total_words'] %} {%
-              set learned_words = progress_data[letter]['learned_words'] %} {%
-              set progress_percent = (learned_words / total_words) * 100 if
-              total_words > 0 else 0 %}
-              <div
-                class="progress-bar"
-                role="progressbar"
-                style="width: {{ progress_percent }}%; background-color: var(--green);"
-                aria-valuenow="{{ learned_words }}"
-                aria-valuemin="0"
-                aria-valuemax="{{ total_words }}"
-              ></div>
+    <div class="button_container">
+      <div class="row">
+        {% for letter in letters %}
+        <div
+          class="col-md-3 mb-3 letter-box all {{ 'vowel' if letter in vowels else 'consonant' }}"
+        >
+          <div
+            class="option-box"
+            onclick="window.location.href=`{{ url_for('learnOptions', letter=letter) }}`"
+          >
+            <div class="letter-container">
+              <h2>{{ letter }}</h2>
+            </div>
+
+            <!-- Progress bar at the bottom -->
+            <div class="progress-container">
+              <div class="progress" style="height: 8px; margin-inline: 12px">
+                {% set total_words = progress_data[letter]['total_words'] %} {%
+                set learned_words = progress_data[letter]['learned_words'] %} {%
+                set progress_percent = (learned_words / total_words) * 100 if
+                total_words > 0 else 0 %}
+                <div
+                  class="progress-bar"
+                  role="progressbar"
+                  style="width: {{ progress_percent }}%; background-color: var(--green);"
+                  aria-valuenow="{{ learned_words }}"
+                  aria-valuemin="0"
+                  aria-valuemax="{{ total_words }}"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
   </div>
-</div>
 
-<script>
-  document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
-    radio.addEventListener("change", function () {
-      var filter = this.value;
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      console.log(
+        "data show summary: ",
+        document.body.getAttribute("data-show-summary")
+      );
 
-      document.querySelectorAll(".letter-box").forEach(function (box) {
-        if (filter === "all") {
-          box.style.display = "block";
-        } else if (filter === "vowels" && box.classList.contains("vowel")) {
-          box.style.display = "block";
-        } else if (
-          filter === "consonants" &&
-          box.classList.contains("consonant")
-        ) {
-          box.style.display = "block";
-        } else {
-          box.style.display = "none";
+      const showModal =
+        document.body.getAttribute("data-show-summary") === "true";
+      console.log("modal status: ", showModal);
+      if (showModal) {
+        const summaryModalElement = document.getElementById("summaryModal");
+        if (summaryModalElement) {
+          const summaryModal = new bootstrap.Modal(summaryModalElement);
+          summaryModal.show();
         }
+      }
+      const learnPageLink = document.querySelector(
+        '[data-bs-target="#helpModal"]'
+      );
+      const modalContent = document.getElementById("modalContent");
+
+      learnPageLink.addEventListener("click", function () {
+        fetch("/help/learn")
+          .then((response) => response.text())
+          .then((data) => {
+            modalContent.innerHTML = data;
+          })
+          .catch((error) => {
+            console.error("Error loading learnHelp.html:", error);
+          });
       });
     });
-  });
-</script>
+
+    //Filter Options
+    document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
+      radio.addEventListener("change", function () {
+        var filter = this.value;
+
+        document.querySelectorAll(".letter-box").forEach(function (box) {
+          if (filter === "all") {
+            box.style.display = "block";
+          } else if (filter === "vowels" && box.classList.contains("vowel")) {
+            box.style.display = "block";
+          } else if (
+            filter === "consonants" &&
+            box.classList.contains("consonant")
+          ) {
+            box.style.display = "block";
+          } else {
+            box.style.display = "none";
+          }
+        });
+      });
+    });
+  </script>
+</body>
 
 {% endblock %}

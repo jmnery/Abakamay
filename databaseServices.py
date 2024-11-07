@@ -111,7 +111,7 @@ def upload_file_to_storage(file, letter, syllable, letterType, words, value):
             # Update the Firestore document, including the letterType
             letter_ref.update({
                 'syllables': syllables,
-                'type': letterType  # Use the existing or provided letterType
+                'wordCount': firestore.Increment(1)  # Increment the wordCount
             })
         else:
             # Create a new document if it doesn't exist
@@ -119,7 +119,8 @@ def upload_file_to_storage(file, letter, syllable, letterType, words, value):
             letter_ref.set({
                 'syllables': syllables,
                 # Add letterType or set as empty if not provided
-                'type': letterType if letterType else ''
+                'type': letterType if letterType else '',
+                'wordCount': 1
             })
 
         return {'status': 'success', 'file_url': file_url}
@@ -254,16 +255,9 @@ def get_user_data_by_id(user_id):
 
 
 def markAsComplete(user_id, completed_data):
-    """
-    Mark words as complete for the user and update the syllable map in Firestore.
-
-    Args:
-        user_id (str): The ID of the user.
-        completed_data (dict): A dictionary containing completed words by letter and syllable.
-    """
     db = get_firestore_client()
     user_ref = db.collection('users').document(user_id)
-
+    print("completed_data: ", completed_data)
     for letter, syllable_data in completed_data.items():
         # Create a field path for the specific letter
         letter_path = f'complete.{letter}'
@@ -280,12 +274,6 @@ def markAsComplete(user_id, completed_data):
                         }
                     }
                 }, merge=True)
-
-        # Increment the wordCount for the letter
-        user_ref.update({
-            # Increment count by wordCount
-            f'complete.{letter}.wordCount': firestore.Increment(syllable_data['wordCount'])
-        })
 
 
 def addToHistory(user_id, quiz_id, timestamp, score, correct_answers, total_questions, user_answers):
