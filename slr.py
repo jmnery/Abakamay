@@ -9,11 +9,11 @@ hands = mp_hands.Hands(static_image_mode=False,
 mp_drawing = mp.solutions.drawing_utils
 
 # Load the Keras model
-model_path = r"C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\assets\newModel.h5"
+model_path = r"C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\assets\SLR Model 11-14.h5"
 model = tf.keras.models.load_model(model_path)
 
 # List of letters for ASL gestures
-letters = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+letters = list("ABDEGHIKLMNOPRSTUWY")
 
 
 def process_frame(image):
@@ -22,6 +22,8 @@ def process_frame(image):
 
     if result.multi_hand_landmarks:
         for hand_landmarks in result.multi_hand_landmarks:
+            mp_drawing.draw_landmarks(
+                image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             # Extract hand landmarks
             hand_data = []
             for lm in hand_landmarks.landmark:
