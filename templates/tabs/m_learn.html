@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} {% block title %} Pag-aaral {% endblock %}{% block content %}  
 <style>
   html,
   body {
@@ -257,13 +257,13 @@
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a class="nav-link active" href="{{ url_for('learn') }}">Learn</a>
+        <a class="nav-link active" href="{{ url_for('learn') }}">Pag-aaral</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
+        <a class="nav-link" href="{{ url_for('quiz') }}">Pagsasanay</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+        <a class="nav-link" href="{{ url_for('collection') }}">Mga Salita</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
@@ -328,7 +328,7 @@
                   <div
                     class="bookmark learned"
                     data-toggle="popover"
-                    data-bs-content="This word has been learned."
+                    data-bs-content="Naaral na ang salitang ito."
                     data-bs-placement="top"
                   >
                     <i class="fas fa-book" aria-hidden="true"></i>
@@ -340,14 +340,14 @@
                   <div
                     class="bookmark completed"
                     data-toggle="popover"
-                    data-bs-content="This word has been completed in quiz."
+                    data-bs-content="Nasanay na ang salitang ito."
                     data-bs-placement="top"
                   >
                     <i class="fas fa-check" aria-hidden="true"></i>
                   </div>
                   {% endif %}
                 </div>
-                <span>{{ word.text }}</span>
+                <span>{{ word.text|capitalize }}</span>
 
                 <i
                   class="bi bi-question-circle-fill question-icon"
@@ -461,7 +461,7 @@
       style="background-color: var(--green)"
     >
       <div class="d-flex">
-        <div class="toast-body">Word marked as learned!</div>
+        <div class="toast-body">Ang salita ay namarkahan na</div>
         <button
           type="button"
           class="btn-close btn-close-white me-2 m-auto"
@@ -481,7 +481,7 @@
       style="background-color: var(--red)"
     >
       <div class="d-flex">
-        <div class="toast-body">Error marking as Learned</div>
+        <div class="toast-body">Error sa pagmamarka ng salita</div>
         <button
           type="button"
           class="btn-close btn-close-white me-2 m-auto"
@@ -509,7 +509,7 @@
           id="alreadyLearnedModalLabel"
           style="color: white"
         >
-          You are CORRECT!!! &#127881;
+          
         </h5>
         <button
           type="button"
@@ -519,7 +519,8 @@
         ></button>
       </div>
       <div class="modal-body">
-        <p id="alreadyLearnedModalBody" class="mt-3"></p>
+        <p id="alreadyLearnedModalBody" class="mt-3"
+          style="text-align: center; font-size: 2rem; font-weight: bold">Good job &#128513 Tama ka!</p>
       </div>
     </div>
   </div>
@@ -584,7 +585,7 @@
   </div>
 </div>
 
-<!-- Modal for Video -->
+<!-- Modal for Help -->
 <div
   class="modal fade"
   id="videoModal"
@@ -599,7 +600,7 @@
         class="modal-header"
         style="background-color: var(--black); color: white"
       >
-        <h5 class="modal-title" id="videoModalLabel">Video Tutorial</h5>
+        <h5 class="modal-title" id="videoModalLabel"></h5>
         <button
           type="button"
           class="btn-close"
@@ -716,11 +717,7 @@
       ) {
         // If the word is already learned, update modal content
         document.getElementById("alreadyLearnedModalBody").innerHTML =
-          "Congratulations! You got it right! The syllabified version of <span style='color: var(--green); font-weight: bold;'>" +
-          selectedWord +
-          "</span> is <span style='color: var(--green); font-weight: bold;'>" +
-          formattedValue +
-          "</span>. You also already marked this word as learned. Great Job!";
+          "Good job &#128513 Tama ka!;";
 
         // Show the already learned modal
         const alreadyLearnedModal = new bootstrap.Modal(
@@ -734,11 +731,6 @@
         // Update modal content
         document.getElementById("modalWordCorrect").innerHTML =
           "Good job &#128513 Tama ka!";
-        //"Congratulations! You got it right! The syllabified version of <span style='color: var(--green); font-weight: bold;'>" +
-        //selectedWord +
-        //"</span> is <span style='color: var(--green); font-weight: bold;'>" +
-        //formattedValue +
-        //"</span>.";
 
         // Show the modal
         wordModalCorrect.show();
@@ -750,12 +742,6 @@
       // Update modal content
       document.getElementById("modalWordWrong").innerHTML =
         "Mali &#128557 Uliting muli";
-      //"Sorry, that's not correct. The correct syllabified version of <span style='color: var(--red); font-weight: bold;'>" +
-      //selectedWord +
-      //"</span> is not " +
-      //"<span style='color: var(--red); font-weight: bold;'>" +
-      //formattedValue +
-      //"</span>.";
 
       // Show the modal
       wordModalWrong.show();

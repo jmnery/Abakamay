@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block title %}Collection{% endblock %} {% block
+{% extends 'base.html' %} {% block title %}Mga salita{% endblock %} {% block
 content %}
 <style>
   .container-picker {
@@ -191,7 +191,7 @@ content %}
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-  <div class="navbar-brand" style="color: white">Collection</div>
+  <div class="navbar-brand" style="color: white">Mga Salita</div>
   <button
     class="navbar-toggler"
     type="button"
@@ -206,14 +206,14 @@ content %}
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+        <a class="nav-link" href="{{ url_for('learn') }}">Pag-aaral</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
+        <a class="nav-link" href="{{ url_for('quiz') }}">Pagsasanay</a>
       </li>
       <li class="nav-item">
         <a class="nav-link active" href="{{ url_for('collection') }}"
-          >Collection</a
+          >Mga Salita</a
         >
       </li>
       <li class="nav-item dropdown">
@@ -247,7 +247,7 @@ content %}
 
 <div class="container-picker">
   <div class="filter-card card">
-    <h5 class="card-header">Filter Options</h5>
+    <h5 class="card-header">Pagsasala</h5>
     <div class="card-body">
       <div class="filter-options">
         <!-- Search Input and Button -->
@@ -258,7 +258,7 @@ content %}
           <input
             type="text"
             id="search-input"
-            placeholder="Enter a letter"
+            placeholder="Maglagay ng letra"
             maxlength="1"
             class="form-control mb-2"
             style="width: 100%"
@@ -293,7 +293,8 @@ content %}
         <hr />
         <!-- Main Filter Group -->
         <label>
-          <input type="radio" name="filter-main" value="all" checked /> All
+          <input type="radio" name="filter-main" value="all" checked /> Lahat ng
+          mga salita
         </label>
       </div>
       <hr />
@@ -302,11 +303,11 @@ content %}
         <!-- Complete Filter Group -->
         <label>
           <input type="radio" name="filter-complete" value="completed" />
-          Completed
+          Nasanay na
         </label>
         <label>
           <input type="radio" name="filter-complete" value="not-complete" />
-          Incomplete
+          Hindi pa nasanay
         </label>
       </div>
       <hr />
@@ -314,11 +315,11 @@ content %}
       <div class="filter-options">
         <!-- Learn Filter Group -->
         <label>
-          <input type="radio" name="filter-learn" value="learned" /> Learned
+          <input type="radio" name="filter-learn" value="learned" /> Naaral na
         </label>
         <label>
           <input type="radio" name="filter-learn" value="not-learned" />
-          Not Learned
+          Hindi pa naaaral
         </label>
       </div>
     </div>
@@ -340,7 +341,7 @@ content %}
             style="background-image: url('https://firebasestorage.googleapis.com/v0/b/abakada-flask.appspot.com/o/{{ word.text }}{{ word.extension }}?alt=media');"
           >
             <div class="spinner"></div>
-            <span class="word-text">{{ word.text }}</span>
+            <span class="word-text">{{ word.text|capitalize }}</span>
 
             <!-- Bookmark Container for learned and completed statuses -->
             <div class="bookmark-container">
@@ -349,7 +350,7 @@ content %}
               <div
                 class="bookmark learned"
                 data-toggle="popover"
-                data-bs-content="This word has been learned."
+                data-bs-content="Naaral na ang salitang ito."
                 data-bs-placement="top"
               >
                 <i class="fas fa-book" aria-hidden="true"></i>
@@ -361,7 +362,7 @@ content %}
               <div
                 class="bookmark completed"
                 data-toggle="popover"
-                data-bs-content="This word has been completed in quiz."
+                data-bs-content="Nasanay na ang salitang ito."
                 data-bs-placement="top"
               >
                 <i class="fas fa-check" aria-hidden="true"></i>

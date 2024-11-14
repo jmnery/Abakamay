@@ -107,13 +107,13 @@ content %}
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+        <a class="nav-link" href="{{ url_for('learn') }}">Pag-aaral</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
+        <a class="nav-link" href="{{ url_for('quiz') }}">Pagsasanay</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+        <a class="nav-link" href="{{ url_for('collection') }}">Mga Salita</a>
       </li>
       <li class="nav-item dropdown">
         <a
@@ -146,7 +146,7 @@ content %}
 
 <div class="container-profile">
   <div class="card">
-    <div class="card-header">My Profile</div>
+    <div class="card-header">Aking profile</div>
     <div class="card-body text-center">
       <img
         src="{{ avatar or 'https://via.placeholder.com/100' }}"
@@ -161,19 +161,19 @@ content %}
       <div class="divider"></div>
 
       <div class="info-row">
-        <h5>Full Name:</h5>
+        <h5>Buong Pangalan:</h5>
         <span id="fullName">{{ full_name }}</span>
       </div>
       <div class="divider"></div>
 
       <div class="info-row">
-        <h5>Age:</h5>
+        <h5>Edad:</h5>
         <span id="age">{{ age }}</span>
       </div>
       <div class="divider"></div>
 
       <div class="info-row">
-        <h5>Birthday:</h5>
+        <h5>Kaarawan:</h5>
         <span id="birthday">{{ birthday }}</span>
       </div>
       <div class="divider"></div>

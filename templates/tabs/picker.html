@@ -1,5 +1,5 @@
-{% extends 'base.html' %} {% block title %}Quiz{% endblock %} {% block content
-%}
+{% extends 'base.html' %} {% block title %}Pagsasanay{% endblock %} {% block
+content %}
 
 <style>
   .main_container {
@@ -12,7 +12,7 @@
     box-sizing: border-box;
   }
   .card {
-    width: 200px;
+    width: 250px;
     max-height: 200px;
     overflow: hidden;
     box-sizing: border-box;
@@ -81,7 +81,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
   <a class="navbar-brand" href="javascript:history.back()">
     <i class="bi bi-arrow-left"></i>
-    Quiz
+    Pagsasanay
   </a>
   <button
     class="navbar-toggler"
@@ -97,13 +97,13 @@
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+        <a class="nav-link" href="{{ url_for('learn') }}">Pag-aaral</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link active" href="{{ url_for('quiz') }}">Quiz</a>
+        <a class="nav-link active" href="{{ url_for('quiz') }}">Pagsasanay</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+        <a class="nav-link" href="{{ url_for('collection') }}">Mga salita</a>
       </li>
       <li class="nav-item dropdown">
         <a
@@ -136,18 +136,19 @@
 
 <div class="main_container">
   <div class="card">
-    <h5 class="card-header">Filter options</h5>
+    <h5 class="card-header">Pagsasala</h5>
     <div class="card-body">
       <div class="filter-options">
         <label
-          ><input type="radio" name="filter" value="all" checked /> All</label
+          ><input type="radio" name="filter" value="all" checked /> Lahat</label
         >
         <label
-          ><input type="radio" name="filter" value="vowels" /> Vowels</label
+          ><input type="radio" name="filter" value="vowels" /> Pantig
+          (Vowels)</label
         >
         <label
-          ><input type="radio" name="filter" value="consonants" />
-          Consonants</label
+          ><input type="radio" name="filter" value="consonants" /> Katinig
+          (Consonants)</label
         >
       </div>
     </div>
@@ -218,7 +219,7 @@
             margin-right: 10px;
           "
         >
-          Add Random Word
+          Magdagdag ng random na salita
         </button>
         <button
           type="button"
@@ -230,7 +231,7 @@
             font-size: 1.2rem;
           "
         >
-          Proceed with Quiz
+          Magpatuloy sa pagsasanay
         </button>
       </div>
     </div>
@@ -281,7 +282,7 @@
           const remainingWords = totalWordCount - userWordCount;
           document.querySelector(
             ".modal-body"
-          ).innerHTML = `<p class="mt-3" style="text-align: center; font-size: 2rem; font-weight: bold">Available Words: ${remainingWords}</p>`;
+          ).innerHTML = `<p class="mt-3" style="text-align: center; font-size: 2rem; font-weight: bold">Natitirang mga salita: ${remainingWords}</p>`;
           $("#wordCountModal").modal("show");
 
           // Attach event listeners for modal buttons
@@ -310,7 +311,7 @@
       .popover({
         trigger: "click", // Show popover on click
         content:
-          "There's not enough words words for this category. Would you like to proceed with the quiz anyway, or would you prefer to add a random word from another letter?",
+          "Walang sapat na mga salita para sa letrang ito. Gusto mo bang magpatuloy sa pagsusulit, o nais mo bang magdagdag ng random na salita mula sa ibang letra?",
         placement: "left",
         html: true,
       })

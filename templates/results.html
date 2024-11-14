@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Results{% endblock %}
+{% block title %}Resulta{% endblock %}
 {% block content %}
 <style>
   .container-results {
@@ -104,20 +104,20 @@
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-  <a class="navbar-brand" href="#">Results</a>
+  <a class="navbar-brand" href="#">Resulta</a>
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+        <a class="nav-link" href="{{ url_for('learn') }}">Pag-aaral</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link active" href="{{ url_for('quiz') }}">Quiz</a>
+        <a class="nav-link active" href="{{ url_for('quiz') }}">Pagsasanay</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+        <a class="nav-link" href="{{ url_for('collection') }}">Mga Salita</a>
       </li>
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle d-flex align-items-center" id="avatarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -143,15 +143,15 @@
     <div class="col-md-4">
       <!-- Quiz Results Card -->
       <div class="card score-card mb-4">
-        <h5 class="card-header">Quiz Results</h5>
+        <h5 class="card-header">Resulta ng pagsasanay</h5>
         <div class="card-body">
           <div class="data-row">
-            <span class="data-title">Your Score:</span>
+            <span class="data-title">Ang iyong marka:</span>
             <span>{{ result_data.score }}%</span>
           </div>
           <div class="divider"></div>
           <div class="data-row">
-            <span class="data-title">Correct Answers:</span>
+            <span class="data-title">Mga naitamang sagot:</span>
             <span>{{ result_data.correct_answers }} / {{ result_data.total_questions }}</span>
           </div>
         </div>
@@ -159,7 +159,7 @@
 
       <!-- Quiz Details Card -->
       <div class="card details-card mb-4">
-        <h5 class="card-header">Quiz Details</h5>
+        <h5 class="card-header">Detalye ng pagsasanay</h5>
         <div class="card-body">
           <div class="data-row">
             <span class="data-title">Quiz ID:</span>
@@ -167,12 +167,12 @@
           </div>
           <div class="divider"></div>
           <div class="data-row">
-            <span class="data-title">Quiz Date:</span>
+            <span class="data-title">Petsa:</span>
             <span>{{ result_data.timestamp.date }}</span>
           </div>
           <div class="divider"></div>
           <div class="data-row">
-            <span class="data-title">Quiz Time:</span>
+            <span class="data-title">Oras:</span>
             <span>{{ result_data.timestamp.time }}</span>
           </div>
         </div>
@@ -182,7 +182,7 @@
         <form id="retakeQuizForm" action="/retakeQuiz" method="post">
           <input type="hidden" name="quiz_words" id="quizWords" />
           <button type="button" class="btn" style="background-color: var(--red); color: white" onclick="retakeQuiz()">
-            Retake Quiz
+            Ulitin ang pagsasanay
           </button>
         </form>
       </div>
@@ -192,18 +192,18 @@
     <!-- Right Column -->
     <div class="col-md-8">
       <div class="card results-card">
-        <h5 class="card-header">Quiz Results</h5>
+        <h5 class="card-header">Detalyadong resulta</h5>
         <div class="card-body">
           <div class="table-responsive">
             {% if result_data.user_answers and result_data.quiz_words %}
             <table class="table table-bordered">
               <thead class="thead-dark">
                 <tr>
-                  <th>Image</th>
-                  <th>Letter</th>
-                  <th>Syllable</th>
-                  <th>Word</th>
-                  <th>Your Answer</th>
+                  <th>Imahe</th>
+                  <th>Letra</th>
+                  <th>Sillaba</th>
+                  <th>Salita</th>
+                  <th>Iyong sagot</th>
                 </tr>
               </thead>
               <tbody>
@@ -212,7 +212,7 @@
                     data-bs-toggle="modal" 
                     data-bs-target="#wordModal"
                     data-word='{
-                      "status": "{% if result.correct %}Correct{% else %}Incorrect{% endif %}",
+                      "status": "{% if result.correct %}Tama{% else %}Mali{% endif %}",
                       "value": "{{result.word.value}}",
                       "isCorrect": "{{result.correct}}",
                       "letter": "{{ result.word.letter }}",
@@ -253,7 +253,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header" style="background-color: var(--black); color: white">
-        <h5 class="modal-title" id="wordModalLabel">Word Details</h5>
+        <h5 class="modal-title" id="wordModalLabel">Detalye ng alita</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -262,7 +262,7 @@
         </div>
       </div>
       <div class="modal-footer">
-         <button type="button" class="btn" id="revealAnswerBtn" style="background-color: var(--green); color: white;">Reveal correct answer</button>
+         <button type="button" class="btn" id="revealAnswerBtn" style="background-color: var(--green); color: white;">Ipakita ang tamang sagot</button>
       </div>
     </div>
   </div>
@@ -328,8 +328,8 @@
         <div class="d-flex align-items-center justify-content-center">
           <img src="${wordData.image}" alt="${wordData.text}" class="img-fluid rounded-circle" style="width: 150px; height: 150px; border: 3px solid ${borderColor}; margin-right: 15px; object-fit: cover;">
           <div>
-            <p><strong>Word:</strong> ${wordData.text}</p>
-            <p><strong>Your Answer:</strong> ${wordData.user_answer}</p>
+            <p><strong>Salita:</strong> ${wordData.text}</p>
+            <p><strong>Iyong sagot:</strong> ${wordData.user_answer}</p>
             <p><strong>Status:</strong> ${wordData.status}</p>
           </div>
         </div>
