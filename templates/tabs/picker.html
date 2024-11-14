@@ -296,7 +296,8 @@ content %}
             window.location.href = redirectUrl;
           };
         } else {
-          alert("No completed words for this category.");
+          const redirectUrl = `/randomizeCategory/${letter}?action=proceed`;
+          window.location.href = redirectUrl;
         }
       })
       .catch((error) => {

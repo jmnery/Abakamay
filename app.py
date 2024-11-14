@@ -230,7 +230,20 @@ def learnOptions(letter):
 @app.route('/lettersSyllables/<letter>')
 def lettersSyllables(letter):
     avatar = session.get('avatar')
-    return render_template('tabs/lettersSyllables.html', avatar=avatar, letter=letter)
+    # List of available letters
+    letters = ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L',
+               'M', 'N', 'Ng', 'O', 'P', 'R', 'S', 'T', 'U', 'W', 'Y']
+
+    # Find the index of the current letter
+    letter_index = letters.index(letter)
+
+    # Get the previous and next letters
+    previous_letter = letters[letter_index -
+                              1] if letter_index > 0 else letters[-1]
+    next_letter = letters[letter_index +
+                          1] if letter_index < len(letters) - 1 else letters[0]
+    return render_template('tabs/lettersSyllables.html', avatar=avatar, letter=letter,  previous_letter=previous_letter, next_letter=next_letter,
+                           letter_options=letters)
 
 
 @app.route('/m_learn/<letter>')
@@ -731,13 +744,15 @@ def profile():
         except ValueError:
             formatted_birthday = "Unknown Date"  # Handle the case where parsing fails
 
+        badges = user_data.get('badges', {})
+
         # Pass the formatted data to the template
         return render_template('tabs/profile.html', full_name=full_name,
                                email=user_data.get('email', ''),
                                user_id=user_id,
                                age=user_data.get('age', ''),
                                birthday=formatted_birthday,
-                               avatar=avatar)
+                               avatar=avatar, badges=badges)
     else:
         return "User not found", 404
 

@@ -130,8 +130,8 @@ content %}
           <td>{{ history.timestamp.time }}</td>
         </tr>
         {% endfor %} {% else %}
-        <tr>
-          <td colspan="5">No history available</td>
+        <tr class="no-data">
+          <td colspan="5">Walang data na maipapakita</td>
         </tr>
         {% endif %}
       </tbody>
@@ -173,11 +173,16 @@ content %}
 </div>
 
 <script>
-  const historyData = {{ history_data | tojson }};
-  console.log("User History:", historyData);
+    const historyData = {{ history_data | tojson }};
+    console.log("User History:", historyData);
 
-  // Add click event listeners to each row
+    // Add click event listeners to each row
   document.querySelectorAll('tbody tr').forEach(row => {
+    // Check if the row is the "no data" row by checking if it has the "no-data" class
+    if (row.classList.contains('no-data')) {
+      return; // Skip the click event for the "no data" row
+    }
+
     row.addEventListener('click', function () {
       const index = this.getAttribute('data-index');
       const rowData = historyData[index];

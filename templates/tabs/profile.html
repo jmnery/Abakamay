@@ -57,7 +57,7 @@ content %}
     gap: 10px;
     justify-items: center;
     align-items: center;
-    display: none; /* Initially hidden until images are loaded */
+    /* display: none; Initially hidden until images are loaded */
   }
 
   .achievement-icon {
@@ -74,6 +74,30 @@ content %}
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+
+  /* Faded effect for False icons */
+  .faded-icon {
+    opacity: 0.5; /* Make it slightly faded */
+    transition: opacity 0.3s ease; /* Smooth transition on hover */
+  }
+
+  /* Animation for True icons */
+  .completed-icon {
+    animation: bounce 1s ease-in-out infinite; /* Apply bounce animation */
+  }
+
+  /* Keyframes for bouncing animation */
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: translateY(0); /* Start and end at the normal position */
+    }
+    50% {
+      transform: translateY(
+        -5px
+      ); /* Move slightly up at the middle of the animation */
+    }
   }
 
   @media (max-width: 768px) {
@@ -189,72 +213,36 @@ content %}
     <div class="card-header">Achievements</div>
 
     <!-- Spinner -->
-    <div class="spinner-container" id="spinner">
+    <!-- <div class="spinner-container" id="spinner">
       <div class="spinner-border" role="status">
         <span class="sr-only">Loading...</span>
       </div>
-    </div>
+    </div> -->
 
     <!-- Achievements Grid -->
     <div class="card-body achievements-grid" id="achievementsGrid">
-      {% for letter in 'ABKDEGHILMNOPRSTUWY' %}
+      {% for letter in 'ABKDEGHILMNOPRSTUWY' %} {% if badges.get(letter, False)
+      %}
+      <!-- If badge is True, display the regular image -->
       <img
-        src="{{ url_for('static', filename='assets/letter_icon/' + letter + '.png') }}"
+        src="{{ url_for('static', filename='assets/svg_icon/' + letter + '.svg') }}"
         alt="{{ letter }}"
-        class="achievement-icon"
+        class="achievement-icon animate__animated animate__tada infinite-loop"
       />
-      {% endfor %}
+      {% else %}
+      <!-- If badge is False, display the outline image -->
+      <img
+        src="{{ url_for('static', filename='assets/svg_icon/' + letter + '_outline.svg') }}"
+        alt="{{ letter }} outline"
+        class="achievement-icon faded-icon"
+      />
+      {% endif %} {% endfor %}
     </div>
   </div>
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const achievementsGrid = document.getElementById("achievementsGrid");
-    const spinner = document.getElementById("spinner");
-    const images = achievementsGrid.getElementsByTagName("img");
-    const totalImages = images.length;
-    let loadedImagesCount = 0;
-
-    // Timeout duration in milliseconds
-    const timeoutDuration = 10000; // 10 seconds
-    let timeoutId;
-
-    // Function to check if all images are loaded
-    const checkAllImagesLoaded = () => {
-      if (loadedImagesCount === totalImages) {
-        clearTimeout(timeoutId); // Clear the timeout
-        spinner.style.display = "none"; // Hide the spinner
-        achievementsGrid.style.display = "grid"; // Show the images grid
-      }
-    };
-
-    // Set up event listeners for each image
-    if (totalImages === 0) {
-      // If no images, hide the spinner and show the empty grid immediately
-      clearTimeout(timeoutId); // Clear the timeout
-      spinner.style.display = "none";
-      achievementsGrid.style.display = "grid"; // Show empty grid
-    } else {
-      Array.from(images).forEach((image) => {
-        image.onload = () => {
-          loadedImagesCount++;
-          checkAllImagesLoaded();
-        };
-
-        image.onerror = () => {
-          loadedImagesCount++; // Count failed loads too
-          checkAllImagesLoaded();
-        };
-      });
-
-      // Timeout function to hide the spinner after a set duration
-      timeoutId = setTimeout(() => {
-        spinner.style.display = "none"; // Hide the spinner
-        achievementsGrid.style.display = "grid"; // Show the images grid even if they are not fully loaded
-      }, timeoutDuration);
-    }
-  });
+  document.addEventListener("DOMContentLoaded", function () {});
 </script>
 
 {% endblock %}

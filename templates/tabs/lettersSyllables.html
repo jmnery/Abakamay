@@ -218,6 +218,50 @@
           </li>
         </ul>
       </li>
+      <!-- Add buttons for previous letter, letter dropdown, and next letter -->
+      <li class="nav-item">
+        <div class="btn-group" role="group" aria-label="Letter navigation">
+          <!-- Previous Letter Button -->
+          <a
+            class="btn btn-outline-light"
+            href="{{ url_for('lettersSyllables', letter=previous_letter) }}"
+          >
+            {{ previous_letter }}
+          </a>
+
+          <!-- Current Letter Dropdown -->
+
+          <a
+            class="btn btn-outline-light dropdown-toggle"
+            id="letterDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            {{ letter }}
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="letterDropdown">
+            {% for letter_option in letter_options %}
+            <li>
+              <a
+                class="dropdown-item"
+                href="{{ url_for('lettersSyllables', letter=letter_option) }}"
+              >
+                {{ letter_option }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <!-- Next Letter Button -->
+          <a
+            class="btn btn-outline-light"
+            href="{{ url_for('lettersSyllables', letter=next_letter) }}"
+          >
+            {{ next_letter }}
+          </a>
+        </div>
+      </li>
     </ul>
   </div>
 </nav>
@@ -253,13 +297,13 @@
     <div class="col-md-5 h-100">
       <div class="d-flex h-100 align-items-center justify-content-center">
         <!-- Original div (centered-box) -->
-        <div class="centered-box w-100 d-none">
+        <div class="centered-box w-100">
           <p class="display-text">Show your hand</p>
           <i class="bi bi-hand-index hand-icon"></i>
         </div>
 
         <!-- New divs (initially hidden) -->
-        <div class="assess-div w-100 flex-column">
+        <div class="assess-div w-100 flex-column d-none">
           <div class="guide-div"></div>
           <div class="input-div"></div>
         </div>
@@ -349,10 +393,12 @@
 
   socket.on("correct_detection", function (data) {
     const centeredBox = document.querySelector(".centered-box"); // Target the original centered-box div
+    const newContent = document.querySelector(".assess-div");
 
     if (data.correct) {
       // Hide the original box
       centeredBox.classList.add("d-none");
+      newContent.classList.remove("d-none"); // Show new content
 
       const inputDiv = document.querySelector(".input-div");
       const recognizedLetter = data.recognized_letter;
@@ -391,7 +437,8 @@
       }
     } else {
       // Handle incorrect recognition or other logic here
-      // centeredBox.classList.remove('d-none');  // Show original box
+      centeredBox.classList.remove("d-none"); // Show original box
+      newContent.classList.add("d-none");
     }
   });
 
