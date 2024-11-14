@@ -17,20 +17,6 @@
     flex-grow: 1;
   }
 
-  .row-with-gap {
-    display: flex;
-    flex-direction: column; /* Stack rows vertically */
-    gap: 15px; /* Adjust gap here */
-    height: 100%; /* Allow the container to fill the column */
-  }
-
-  .card {
-    display: flex; /* Use flexbox for the card */
-    flex-grow: 1; /* Allow card to grow and fill available height */
-    flex-direction: column; /* Ensure content stacks vertically */
-    overflow: hidden; /* Prevent content overflow */
-  }
-
   .syllables {
     height: 100%; /* Full height */
     display: flex;
@@ -74,6 +60,108 @@
 
   .hidden {
     display: none !important;
+  }
+
+  .centered-box {
+    height: 100%;
+    border: 6px dashed #6c757d;
+    border-radius: 10%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .display-text {
+    font-size: 2rem;
+    font-weight: 500;
+    position: absolute;
+    top: 10%;
+    width: 100%;
+    text-align: center;
+  }
+
+  .hand-icon {
+    font-size: 12rem;
+    animation: float 2s ease-in-out infinite; /* Animation for floating */
+  }
+
+  /* Keyframes for the floating effect */
+  @keyframes float {
+    0% {
+      transform: translateY(0); /* Start at normal position */
+    }
+    50% {
+      transform: translateY(-20px); /* Move up */
+    }
+    100% {
+      transform: translateY(0); /* Return to the normal position */
+    }
+  }
+
+  .assess-div {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Adjust the gap size as needed */
+    height: 100%; /* Take up available vertical space */
+  }
+
+  .guide-div,
+  .input-div {
+    flex-grow: 1; /* Make each box take up equal space */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 1.2em; /* Adjust text size as needed */
+    color: #333;
+  }
+
+  .guide-div {
+    border: 6px dashed #6c757d;
+    border-radius: 20px;
+    height: 100px; /* Fixed height */
+    width: 100%; /* Make it take up full width */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Prevent overflow */
+  }
+
+  .letter-icon {
+    width: 2em; /* Relative to the font size */
+    height: 2em; /* Relative to the font size */
+  }
+
+  .input-div {
+    border: 6px solid #6c757d; /* Same border as guide-div */
+    border-radius: 20px;
+    display: flex;
+    justify-content: center; /* Center letters horizontally */
+    gap: 10px; /* Space between the letters */
+  }
+
+  .letter-wrapper {
+    display: inline-block;
+    width: 40px; /* Set a fixed width for the underline */
+    margin-right: 10px; /* Adjust the space between underlines */
+    position: relative; /* Make sure positioning works as intended */
+  }
+
+  .underline {
+    display: block;
+    width: 100%; /* Make the underline fill the width of the letter-wrapper */
+    height: 5px; /* Underline thickness */
+    background-color: var(--black); /* Underline color */
+    position: absolute;
+    bottom: 0;
+  }
+
+  .letter {
+    font-size: 3rem; /* Adjust the size of the letter */
+    font-weight: bold;
+    padding-bottom: 5px;
   }
 </style>
 
@@ -135,6 +223,7 @@
 </nav>
 
 <div class="container-fluid">
+  {# Loading Div #}
   <div
     id="loadingContainerDiv"
     class="firstRow w-100 h-100 d-flex align-items-center justify-content-center"
@@ -160,108 +249,81 @@
       {% include 'components/cameraLetter.html' %}
     </div>
 
-    <!-- Third Column (45%) -->
-    <div class="col-12 col-md-5">
-      <div class="row-with-gap h-100">
-        <!-- First Row (40% height) -->
-        <div class="row" style="height: 45%">
-          <div class="col-12 d-flex h-100">
-            <div class="card w-100 h-100">
-              <div class="card-header">{{letter}}</div>
-              <div
-                class="card-body d-flex align-items-center justify-content-center"
-              >
-                <!-- Center content -->
-                <!-- Optional: Add content here -->
-              </div>
-            </div>
-          </div>
+    <!-- Third Column -->
+    <div class="col-md-5 h-100">
+      <div class="d-flex h-100 align-items-center justify-content-center">
+        <!-- Original div (centered-box) -->
+        <div class="centered-box w-100 d-none">
+          <p class="display-text">Show your hand</p>
+          <i class="bi bi-hand-index hand-icon"></i>
         </div>
 
-        <!-- Second Row (60% height) -->
-        <div class="row" style="height: 55%">
-          <div class="col-12 d-flex h-100">
-            <div class="card w-100 h-100">
-              <div
-                class="card-body d-flex align-items-center justify-content-center p-0"
-              >
-                <div style="width: 100%; height: 100%">
-                  <iframe
-                    style="width: 100%; height: 100%"
-                    src="https://www.youtube.com/embed/UwMaUSQYFUQ?rel=0?"
-                    title="YouTube video player"
-                    frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerpolicy="strict-origin-when-cross-origin"
-                    allowfullscreen
-                  >
-                  </iframe>
-                </div>
-              </div>
-            </div>
-          </div>
+        <!-- New divs (initially hidden) -->
+        <div class="assess-div w-100 flex-column">
+          <div class="guide-div"></div>
+          <div class="input-div"></div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Modal for Correct Answer -->
-<div
-  class="modal fade"
-  id="correctModal"
-  tabindex="-1"
-  aria-labelledby="wordModalLabel"
-  aria-hidden="true"
-  data-bs-backdrop="static"
->
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: var(--green)">
-        <h5
-          class="modal-title"
-          id="correctModalLabel"
-          style="color: white"
-        ></h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <p
-          id="modalWordCorrect"
-          class="mt-3"
-          style="text-align: center; font-size: 2rem; font-weight: bold"
-        >
-          Tama!
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button
-          type="button"
-          data-bs-dismiss="modal"
-          style="
-            background-color: var(--green);
-            color: white;
-            border-radius: 50% !important;
-            border: 5px solid var(--dark-green);
-          "
-        >
-          <img
-            src="{{ url_for('static', filename='assets/letter_icon/thumbs_Up.png') }}"
-            alt="Done"
+  <!-- Modal for Correct Answer -->
+  <div
+    class="modal fade"
+    id="correctModal"
+    tabindex="-1"
+    aria-labelledby="wordModalLabel"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--green)">
+          <h5
+            class="modal-title"
+            id="correctModalLabel"
+            style="color: white"
+          ></h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p
+            id="modalWordCorrect"
+            class="mt-3"
+            style="text-align: center; font-size: 2rem; font-weight: bold"
+          >
+            Tama!
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            data-bs-dismiss="modal"
             style="
-              width: 50px;
-              height: 50px;
-              margin: 5px;
-              margin-bottom: 10px;
-              margin-right: 8px;
+              background-color: var(--green);
+              color: white;
+              border-radius: 50% !important;
+              border: 5px solid var(--dark-green);
             "
-          />
-        </button>
+          >
+            <img
+              src="{{ url_for('static', filename='assets/letter_icon/thumbs_Up.png') }}"
+              alt="Done"
+              style="
+                width: 50px;
+                height: 50px;
+                margin: 5px;
+                margin-bottom: 10px;
+                margin-right: 8px;
+              "
+            />
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -276,10 +338,62 @@
   const submitButton = document.getElementById("submitButton");
   const containerLoading = document.getElementById("loadingContainerDiv");
   const containerMain = document.getElementById("mainContent");
+  let currentSyllable = ""; // To track the current syllable selected
+  // Establish a connection to the server using SocketIO
+  const socket = io.connect();
+  let currentIndex = 0;
 
   // Initialize loading state
   let isLoading = true;
   console.log("isLoading: ", isLoading);
+
+  socket.on("correct_detection", function (data) {
+    const centeredBox = document.querySelector(".centered-box"); // Target the original centered-box div
+
+    if (data.correct) {
+      // Hide the original box
+      centeredBox.classList.add("d-none");
+
+      const inputDiv = document.querySelector(".input-div");
+      const recognizedLetter = data.recognized_letter;
+
+      // Get the target word (dynamically set based on selected syllable or letter)
+      const targetWord = currentSyllable; // The syllable or letter clicked by the user
+
+      // Find the first available letter wrapper (the first underline)
+      const letterWrappers = inputDiv.querySelectorAll(".letter-wrapper");
+
+      // Only update the first underline (letter wrapper) with the recognized letter
+      const firstLetterWrapper = letterWrappers[0];
+
+      // Find the existing letter, if any, and update it
+      const existingLetter = firstLetterWrapper.querySelector(".letter");
+
+      if (existingLetter) {
+        // If there's an existing letter, update its content
+        existingLetter.textContent = recognizedLetter;
+      } else {
+        // If no letter is present yet, create the letter element
+        const letterElement = document.createElement("span");
+        letterElement.className = "letter";
+        letterElement.textContent = recognizedLetter;
+
+        // Check if the recognized letter matches the target letter at this position
+        const targetLetter = targetWord[0]; // Assuming we're only focusing on the first letter
+        if (recognizedLetter === targetLetter) {
+          letterElement.style.color = "green"; // Match (green)
+        } else {
+          letterElement.style.color = "var(--red)"; // Mismatch (red)
+        }
+
+        // Append the letter element to the first letter wrapper
+        firstLetterWrapper.appendChild(letterElement);
+      }
+    } else {
+      // Handle incorrect recognition or other logic here
+      // centeredBox.classList.remove('d-none');  // Show original box
+    }
+  });
 
   // Call the function to get the letter and syllables
   getLetterAndSyllables(currentLetter)
@@ -299,48 +413,60 @@
 
   function displaySyllables(data) {
     const syllablesContainer = document.getElementById("syllablesContainer");
-    const cardBody = document.querySelector(".card-body"); // Reference to the card body
 
-    // Clear previous content in the card body
-    cardBody.innerHTML = "";
-
-    // Define a set of vowels
     const vowels = new Set(["A", "E", "I", "O", "U", "a", "e", "i", "o", "u"]);
 
-    // Create and display the letter syllable box as an h2
     const letterSyllableBox = document.createElement("h2");
     letterSyllableBox.className =
       "syllable-box" + (vowels.has(data.letter) ? " vowel" : "");
-    letterSyllableBox.textContent = data.letter; // Display the syllable text
+    letterSyllableBox.textContent = data.letter;
     syllablesContainer.appendChild(letterSyllableBox);
 
-    // Highlight the letter syllable box as selected by default
-    letterSyllableBox.classList.add("selected"); // Highlight selected letter box
-    displayImages(data.letter); // Call function to display images for the letter
+    letterSyllableBox.classList.add("selected");
+    populateGuideDiv(data.letter);
+    populateInputDiv(data.letter); // Populate input div for the letter
 
-    // Add click event listener to the letter syllable box
     letterSyllableBox.addEventListener("click", function () {
-      clearSelectedSyllables(); // Clear previous selections
-      letterSyllableBox.classList.add("selected"); // Highlight selected letter box
-      displayImages(data.letter); // Call function to display images for the letter
+      clearSelectedSyllables();
+      letterSyllableBox.classList.add("selected");
+      populateGuideDiv(data.letter);
+      populateInputDiv(data.letter);
     });
 
-    // Only display syllables if the letter is not a vowel
     if (!vowels.has(data.letter)) {
       data.syllables.forEach((syllable) => {
-        const syllableBox = document.createElement("h2"); // Change to h2
+        const syllableBox = document.createElement("h2");
         syllableBox.className = "syllable-box";
-        syllableBox.textContent = syllable; // Display the syllable text
-
-        // Add click event listener to update the card body with the corresponding images
-        syllableBox.addEventListener("click", function () {
-          clearSelectedSyllables(); // Clear previous selections
-          syllableBox.classList.add("selected"); // Highlight selected syllable box
-          displayImages(syllable); // Call function to display images for the syllable
-        });
-
+        syllableBox.textContent = syllable;
         syllablesContainer.appendChild(syllableBox);
+
+        syllableBox.addEventListener("click", function () {
+          clearSelectedSyllables();
+          syllableBox.classList.add("selected");
+          populateGuideDiv(syllable);
+          populateInputDiv(syllable); // Populate input div based on selected syllable
+
+          // Set current syllable dynamically when a syllable is clicked
+          currentSyllable = syllable;
+        });
       });
+    }
+  }
+
+  function populateInputDiv(syllable) {
+    const inputDiv = document.querySelector(".input-div");
+    inputDiv.innerHTML = ""; // Clear previous content
+
+    for (const char of syllable) {
+      const letterWrapper = document.createElement("span");
+      letterWrapper.className = "letter-wrapper";
+
+      // Only create the underline for each character
+      const underline = document.createElement("span");
+      underline.className = "underline";
+
+      letterWrapper.appendChild(underline); // Append underline without the letter
+      inputDiv.appendChild(letterWrapper); // Append the wrapper to the input div
     }
   }
 
@@ -352,41 +478,42 @@
     });
   }
 
-  function displayImages(syllable) {
-    const cardBody = document.querySelector(".card-body");
-    cardBody.innerHTML = ""; // Clear previous content
+  // Function to populate the guide-div with letters and SVGs
+  function populateGuideDiv(syllable) {
+    const guideDiv = document.querySelector(".guide-div");
+    guideDiv.innerHTML = ""; // Clear existing content
 
-    // Create a span for the syllable text
-    const syllableText = document.createElement("span");
-    syllableText.textContent = syllable; // Set the text content to the syllable
-    syllableText.style.fontSize = "6rem"; // Make the font size bigger (adjust as needed)
-    syllableText.style.fontWeight = "bold"; // Make the text bold
-    syllableText.style.marginRight = "10px"; // Add some margin between text and arrow
+    for (let i = 0; i < syllable.length; i++) {
+      const letter = syllable[i];
 
-    // Append the syllable text to the card body
-    cardBody.appendChild(syllableText);
+      // Create letter container
+      const letterWrapper = document.createElement("div");
+      letterWrapper.classList.add("letter-wrapper");
 
-    // Add an arrow icon (you can customize the icon as needed)
-    const arrowIcon = document.createElement("i");
-    arrowIcon.className = "bi bi-arrow-right"; // Use Bootstrap Icons (or any icon of your choice)
-    arrowIcon.style.marginLeft = "10px"; // Add some margin for spacing
-    arrowIcon.style.marginRight = "10px"; // Add some margin for spacing
-    arrowIcon.style.verticalAlign = "middle"; // Align vertically with the text and images
-    arrowIcon.style.fontSize = "4rem"; // Set the font size of the arrow icon (adjust as needed)
-    cardBody.appendChild(arrowIcon); // Append the arrow icon to the card body
+      // Add letter display
+      const letterDisplay = document.createElement("span");
+      letterDisplay.textContent = letter;
 
-    // Split the syllable into individual letters
-    const letters = syllable.split("");
+      // Add SVG icon
+      const letterIcon = document.createElement("img");
+      letterIcon.src = `/static/assets/svg_icon/${letter.toUpperCase()}.svg`; // Update path to SVGs
+      letterIcon.classList.add("letter-icon");
+      letterIcon.dataset.letter = letter;
 
-    letters.forEach((letter) => {
-      const img = document.createElement("img");
-      img.src = `/static/assets/letter_icon/${letter.toUpperCase()}.png`; // Construct image path
-      img.alt = letter; // Set alt text for accessibility
-      img.style.width = "70px"; // Set width of the images (adjust as needed)
-      img.style.marginRight = "5px"; // Add some margin between images
+      // Add everything to the wrapper
+      letterWrapper.appendChild(letterDisplay);
+      letterWrapper.appendChild(letterIcon);
 
-      cardBody.appendChild(img); // Append image to the card body
-    });
+      // Add arrow if it’s not the last letter
+      if (i < syllable.length - 1) {
+        const arrowIcon = document.createElement("span");
+        arrowIcon.classList.add("arrow-icon");
+        arrowIcon.textContent = "→";
+        letterWrapper.appendChild(arrowIcon);
+      }
+
+      guideDiv.appendChild(letterWrapper);
+    }
   }
 
   // Function to check user input

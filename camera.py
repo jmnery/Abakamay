@@ -39,6 +39,8 @@ def generate_frames():
                 last_recognized_letter = recognized_letter
                 cv2.putText(image, f"Predicted Letter: {recognized_letter}", (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                socketio.emit('correct_detection', {
+                              'correct': True, 'recognized_letter': recognized_letter})
             else:
                 # If hand is not detected and a letter was previously recognized
                 if hand_present and last_recognized_letter:
@@ -48,6 +50,7 @@ def generate_frames():
                     print("letter:", last_recognized_letter)
                     hand_present = False  # Reset hand presence tracking
                     last_recognized_letter = None  # Reset last recognized letter
+                socketio.emit('correct_detection', {'correct': False})
 
         # Encode the frame
         ret, buffer = cv2.imencode('.jpg', image)
