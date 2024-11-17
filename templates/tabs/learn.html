@@ -90,7 +90,7 @@ content %}
   </style>
 
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <a class="navbar-brand" href="#">Abakada</a>
+    <a class="navbar-brand">Abakada</a>
     <button
       class="navbar-toggler"
       type="button"
@@ -151,7 +151,7 @@ content %}
           data-bs-toggle="dropdown"
           aria-expanded="false"
         >
-          Help
+          Gabay
         </a>
         <ul
           class="dropdown-menu dropdown-menu-end"
@@ -162,7 +162,7 @@ content %}
               class="dropdown-item"
               href="javascript:void(0);"
               onclick="startIntro()"
-              >Learn Page</a
+              >Gabay sa pahina ng pag-aaral</a
             >
           </li>
           <li>
@@ -170,7 +170,7 @@ content %}
               class="dropdown-item"
               data-bs-toggle="modal"
               data-bs-target="#summaryModal"
-              >App Summary</a
+              >Pangkalahatang gabay</a
             >
           </li>
         </ul>
@@ -297,22 +297,26 @@ content %}
           steps: [
             {
               element: document.querySelector(".button_container"),
+              title: "Kahon ng letra",
               intro:
                 "Pumindot ng letra para aralin ito at i-aplay sa pagbabaybay ng mga salita",
               position: "left",
             },
             {
               element: document.querySelector(".card"),
+              title: "Pangsala",
               intro:
                 "Isala ang mga letra sa iyong pagpili (Lahat, Patinig, Katinig)",
             },
             {
               element: document.querySelector(".navbar-nav"),
+              title: "Menu",
               intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
               position: "bottom",
             },
             {
               element: document.querySelector(".help-button"),
+              title: "Gabay",
               intro:
                 "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
               position: "bottom",

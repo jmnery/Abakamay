@@ -67,19 +67,6 @@ content %}
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
-  .option-box .help-icon {
-    position: absolute;
-    top: 10px; /* Adjust as needed */
-    right: 10px; /* Adjust as needed */
-    font-size: 1.5rem; /* Increase the size as needed */
-    color: var(
-      --black
-    ) !important; /* Change to desired color (e.g., white, blue, etc.) */
-    cursor: pointer; /* Change cursor on hover */
-    opacity: 1; /* Ensure the icon is fully opaque */
-    z-index: 10; /* Ensure it appears above other elements */
-  }
-
   h2 {
     font-size: 32px;
     color: #333;
@@ -105,7 +92,7 @@ content %}
 
 <!-- Top Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-  <div class="navbar-brand" style="color: white">Pagsasanay</div>
+  <div class="navbar-brand">Pagsasanay</div>
   <button
     class="navbar-toggler"
     type="button"
@@ -118,7 +105,7 @@ content %}
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav ml-auto">
+    <ul class="navbar-nav">
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('learn') }}">Pag-aaral</a>
       </li>
@@ -154,13 +141,47 @@ content %}
         </ul>
       </li>
     </ul>
+
+    <!-- Help dropdown on the right side -->
+    <div class="nav-item dropdown ms-auto help-button">
+      <a
+        class="btn btn-outline-light dropdown-toggle"
+        id="helpDropdown"
+        role="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        Gabay
+      </a>
+      <ul
+        class="dropdown-menu dropdown-menu-end"
+        aria-labelledby="helpDropdown"
+      >
+        <li>
+          <a
+            class="dropdown-item"
+            href="javascript:void(0);"
+            onclick="startIntro()"
+            >Gabay sa pahina ng pagsasanay</a
+          >
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            data-bs-toggle="modal"
+            data-bs-target="#summaryModal"
+            >Pangkalahatang gabay</a
+          >
+        </li>
+      </ul>
+    </div>
   </div>
 </nav>
 
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-12 d-flex justify-content-center align-items-center">
-      <div class="quiz-option">
+      <div class="quiz-option history">
         <div
           class="option-box option-box-row"
           onclick="window.location.href=`{{ url_for('history') }}`"
@@ -175,14 +196,11 @@ content %}
   </div>
   <div class="row">
     <div class="col-md-6 d-flex justify-content-center align-items-center">
-      <div class="quiz-option">
+      <div class="quiz-option random">
         <div
           class="option-box"
           onclick="window.location.href=`{{ url_for('randomizeAll') }}`"
         >
-          <div class="help-icon">
-            <i class="fa-solid fa-question-circle"></i>
-          </div>
           <div class="icon-container">
             <i class="fa-solid fa-dice"></i>
           </div>
@@ -191,14 +209,11 @@ content %}
       </div>
     </div>
     <div class="col-md-6 d-flex justify-content-center align-items-center">
-      <div class="quiz-option">
+      <div class="quiz-option category">
         <div
           class="option-box"
           onclick="window.location.href=`{{ url_for('picker') }}`"
         >
-          <div class="help-icon">
-            <i class="fa-solid fa-question-circle"></i>
-          </div>
           <div class="icon-container">
             <i class="fa-solid fa-hand-point-up"></i>
           </div>
@@ -208,5 +223,48 @@ content %}
     </div>
   </div>
 </div>
-
+<script>
+  function startIntro() {
+    // Start the intro tour
+    introJs()
+      .setOptions({
+        disableInteraction: true,
+        steps: [
+          {
+            element: document.querySelector(".history"),
+            title: "History",
+            intro:
+              "Pumindot ng letra para aralin ito at i-aplay sa pagbabaybay ng mga salita",
+            position: "left",
+          },
+          {
+            element: document.querySelector(".random"),
+            title: "Random na mga salita",
+            intro:
+              "Isala ang mga letra sa iyong pagpili (Lahat, Patinig, Katinig)",
+          },
+          {
+            element: document.querySelector(".category"),
+            title: "Pumili sa mga letra",
+            intro:
+              "Isala ang mga letra sa iyong pagpili (Lahat, Patinig, Katinig)",
+          },
+          {
+            element: document.querySelector(".navbar-nav"),
+            title: "Menu",
+            intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
+            position: "bottom",
+          },
+          {
+            element: document.querySelector(".help-button"),
+            title: "Gabay",
+            intro:
+              "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
+            position: "bottom",
+          },
+        ],
+      })
+      .start();
+  }
+</script>
 {% endblock %}

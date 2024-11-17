@@ -99,6 +99,46 @@
     }
   }
 
+  /* Shake animation */
+  @keyframes shake {
+    0% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    50% {
+      transform: translateX(5px);
+    }
+    75% {
+      transform: translateX(-5px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  .shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  /* Enlarge animation */
+  @keyframes enlarge {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .enlarge {
+    animation: enlarge 0.5s ease-in-out;
+  }
+
   .assess-div {
     display: flex;
     flex-direction: column;
@@ -149,19 +189,56 @@
     position: relative; /* Make sure positioning works as intended */
   }
 
-  .underline {
-    display: block;
-    width: 100%; /* Make the underline fill the width of the letter-wrapper */
-    height: 5px; /* Underline thickness */
-    background-color: var(--black); /* Underline color */
-    position: absolute;
-    bottom: 0;
-  }
-
   .letter {
     font-size: 3rem; /* Adjust the size of the letter */
     font-weight: bold;
     padding-bottom: 5px;
+  }
+
+  /* Wrapper for each character */
+  .char-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Text above the box */
+  .char-text {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #020202;
+    text-align: center;
+  }
+
+  .char-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #6c757d;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 5px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    width: 100px;
+    height: 100px;
+    text-align: center;
+    background-color: #f8f9fa;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .guide-box {
+    background-color: #e9ecef;
+  }
+
+  .input-box {
+    background-color: #fff;
+  }
+
+  .char-icon {
+    width: 60px;
+    height: 60px;
+    margin-left: 5px; /* Space between character and icon */
   }
 </style>
 
@@ -183,7 +260,7 @@
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav ml-auto">
+    <ul class="navbar-nav">
       <li class="nav-item">
         <a class="nav-link active" href="{{ url_for('learn') }}">Learn</a>
       </li>
@@ -220,7 +297,11 @@
       </li>
       <!-- Add buttons for previous letter, letter dropdown, and next letter -->
       <li class="nav-item">
-        <div class="btn-group" role="group" aria-label="Letter navigation">
+        <div
+          class="btn-group ms-auto"
+          role="group"
+          aria-label="Letter navigation"
+        >
           <!-- Previous Letter Button -->
           <a
             class="btn btn-outline-light"
@@ -297,13 +378,13 @@
     <div class="col-md-5 h-100">
       <div class="d-flex h-100 align-items-center justify-content-center">
         <!-- Original div (centered-box) -->
-        <div class="centered-box w-100">
+        <div class="centered-box w-100 d-none">
           <p class="display-text">Show your hand</p>
           <i class="bi bi-hand-index hand-icon"></i>
         </div>
 
         <!-- New divs (initially hidden) -->
-        <div class="assess-div w-100 flex-column d-none">
+        <div class="assess-div w-100 flex-column">
           <div class="guide-div"></div>
           <div class="input-div"></div>
         </div>
@@ -382,7 +463,8 @@
   const submitButton = document.getElementById("submitButton");
   const containerLoading = document.getElementById("loadingContainerDiv");
   const containerMain = document.getElementById("mainContent");
-  let currentSyllable = ""; // To track the current syllable selected
+  let currentSyllable = ""; // Tracks the currently selected syllable
+  let currentInputIndex = 0; // Tracks the current input box
   // Establish a connection to the server using SocketIO
   const socket = io.connect();
   let currentIndex = 0;
@@ -394,51 +476,76 @@
   socket.on("correct_detection", function (data) {
     const centeredBox = document.querySelector(".centered-box"); // Target the original centered-box div
     const newContent = document.querySelector(".assess-div");
+    const inputBoxes = document.querySelectorAll(".input-div .input-box"); // Select all input boxes
 
     if (data.correct) {
       // Hide the original box
       centeredBox.classList.add("d-none");
       newContent.classList.remove("d-none"); // Show new content
 
-      const inputDiv = document.querySelector(".input-div");
-      const recognizedLetter = data.recognized_letter;
+      // Loop through all input boxes
+      for (let i = 0; i < inputBoxes.length; i++) {
+        const currentInputBox = inputBoxes[i]; // Get the current input box
+        const targetLetter = currentSyllable[i]; // Get the current target letter
 
-      // Get the target word (dynamically set based on selected syllable or letter)
-      const targetWord = currentSyllable; // The syllable or letter clicked by the user
+        // Only check the box if it's not already filled
+        if (currentInputBox.textContent === "_") {
+          // Determine the letter's casing
+          let letterToDisplay = data.recognized_letter;
 
-      // Find the first available letter wrapper (the first underline)
-      const letterWrappers = inputDiv.querySelectorAll(".letter-wrapper");
+          // Capitalize the first letter, lowercase the rest
+          if (i === 0) {
+            letterToDisplay = letterToDisplay.toUpperCase(); // First letter should be uppercase
+          } else {
+            letterToDisplay = letterToDisplay.toLowerCase(); // Subsequent letters should be lowercase
+          }
 
-      // Only update the first underline (letter wrapper) with the recognized letter
-      const firstLetterWrapper = letterWrappers[0];
+          // Display the recognized letter (even if it's wrong)
+          currentInputBox.textContent = letterToDisplay || "_"; // Set the recognized letter
 
-      // Find the existing letter, if any, and update it
-      const existingLetter = firstLetterWrapper.querySelector(".letter");
+          // If the letter is correct, turn it green, otherwise, turn it red
+          if (letterToDisplay === targetLetter) {
+            currentInputBox.style.color = "green"; // Correct letter, turn green
 
-      if (existingLetter) {
-        // If there's an existing letter, update its content
-        existingLetter.textContent = recognizedLetter;
-      } else {
-        // If no letter is present yet, create the letter element
-        const letterElement = document.createElement("span");
-        letterElement.className = "letter";
-        letterElement.textContent = recognizedLetter;
+            // Add shake animation for feedback
+            currentInputBox.classList.add(
+              "animate__animated",
+              "animate__shakeX"
+            );
 
-        // Check if the recognized letter matches the target letter at this position
-        const targetLetter = targetWord[0]; // Assuming we're only focusing on the first letter
-        if (recognizedLetter === targetLetter) {
-          letterElement.style.color = "green"; // Match (green)
-        } else {
-          letterElement.style.color = "var(--red)"; // Mismatch (red)
+            // Wait for 1 second before locking and enlarging the letter
+            setTimeout(function () {
+              // Remove shake animation after it's finished
+              currentInputBox.classList.remove("animate__shakeX");
+
+              // Lock the letter and apply the enlarge animation
+              currentInputBox.classList.add(
+                "animate__animated",
+                "animate__bounceIn"
+              );
+
+              // Wait for the enlarge animation to finish before proceeding
+              setTimeout(function () {
+                // Remove the enlarge animation after it's finished
+                currentInputBox.classList.remove("animate__bounceIn");
+
+                // Check if this is the last letter
+                if (i === inputBoxes.length - 1) {
+                  alert("You did it! All letters are correct!"); // Success message
+                }
+              }, 1000); // Wait for the duration of the bounceIn animation (1s)
+            }, 1000); // 1 second hold before moving to the next letter
+          } else {
+            currentInputBox.style.color = "red"; // Incorrect letter, turn red
+          }
+
+          break; // Exit the loop after the first letter is processed
         }
-
-        // Append the letter element to the first letter wrapper
-        firstLetterWrapper.appendChild(letterElement);
       }
     } else {
       // Handle incorrect recognition or other logic here
-      centeredBox.classList.remove("d-none"); // Show original box
-      newContent.classList.add("d-none");
+      // centeredBox.classList.remove("d-none"); // Show original box
+      // newContent.classList.add("d-none");
     }
   });
 
@@ -470,12 +577,14 @@
     syllablesContainer.appendChild(letterSyllableBox);
 
     letterSyllableBox.classList.add("selected");
+    currentSyllable = data.letter; // Set current syllable to the letter
     populateGuideDiv(data.letter);
-    populateInputDiv(data.letter); // Populate input div for the letter
+    populateInputDiv(data.letter);
 
     letterSyllableBox.addEventListener("click", function () {
       clearSelectedSyllables();
       letterSyllableBox.classList.add("selected");
+      currentSyllable = data.letter; // Update current syllable dynamically
       populateGuideDiv(data.letter);
       populateInputDiv(data.letter);
     });
@@ -490,13 +599,39 @@
         syllableBox.addEventListener("click", function () {
           clearSelectedSyllables();
           syllableBox.classList.add("selected");
+          currentSyllable = syllable; // Update current syllable dynamically
           populateGuideDiv(syllable);
-          populateInputDiv(syllable); // Populate input div based on selected syllable
-
-          // Set current syllable dynamically when a syllable is clicked
-          currentSyllable = syllable;
+          populateInputDiv(syllable);
         });
       });
+    }
+  }
+
+  // Function to populate the guide-div with letters and SVGs
+  function populateGuideDiv(syllable) {
+    const guideDiv = document.querySelector(".guide-div");
+    guideDiv.innerHTML = ""; // Clear existing content
+
+    for (let char of syllable) {
+      const charWrapper = document.createElement("div");
+      charWrapper.className = "char-wrapper";
+
+      const charText = document.createElement("div");
+      charText.className = "char-text";
+      charText.textContent = char.toUpperCase(); // Text above the box
+
+      const charBox = document.createElement("div");
+      charBox.className = "char-box guide-box";
+
+      const charIcon = document.createElement("img");
+      charIcon.src = `/static/assets/svg_icon/${char.toUpperCase()}.svg`; // Example path
+      charIcon.classList.add("char-icon");
+
+      charBox.appendChild(charIcon);
+      charWrapper.appendChild(charText);
+      charWrapper.appendChild(charBox);
+
+      guideDiv.appendChild(charWrapper);
     }
   }
 
@@ -504,16 +639,12 @@
     const inputDiv = document.querySelector(".input-div");
     inputDiv.innerHTML = ""; // Clear previous content
 
-    for (const char of syllable) {
-      const letterWrapper = document.createElement("span");
-      letterWrapper.className = "letter-wrapper";
+    for (let i = 0; i < syllable.length; i++) {
+      const inputBox = document.createElement("div");
+      inputBox.className = "char-box input-box";
+      inputBox.textContent = "_"; // Placeholder for user input
 
-      // Only create the underline for each character
-      const underline = document.createElement("span");
-      underline.className = "underline";
-
-      letterWrapper.appendChild(underline); // Append underline without the letter
-      inputDiv.appendChild(letterWrapper); // Append the wrapper to the input div
+      inputDiv.appendChild(inputBox);
     }
   }
 
@@ -524,45 +655,6 @@
       box.classList.remove("selected"); // Remove selected class from all boxes
     });
   }
-
-  // Function to populate the guide-div with letters and SVGs
-  function populateGuideDiv(syllable) {
-    const guideDiv = document.querySelector(".guide-div");
-    guideDiv.innerHTML = ""; // Clear existing content
-
-    for (let i = 0; i < syllable.length; i++) {
-      const letter = syllable[i];
-
-      // Create letter container
-      const letterWrapper = document.createElement("div");
-      letterWrapper.classList.add("letter-wrapper");
-
-      // Add letter display
-      const letterDisplay = document.createElement("span");
-      letterDisplay.textContent = letter;
-
-      // Add SVG icon
-      const letterIcon = document.createElement("img");
-      letterIcon.src = `/static/assets/svg_icon/${letter.toUpperCase()}.svg`; // Update path to SVGs
-      letterIcon.classList.add("letter-icon");
-      letterIcon.dataset.letter = letter;
-
-      // Add everything to the wrapper
-      letterWrapper.appendChild(letterDisplay);
-      letterWrapper.appendChild(letterIcon);
-
-      // Add arrow if it’s not the last letter
-      if (i < syllable.length - 1) {
-        const arrowIcon = document.createElement("span");
-        arrowIcon.classList.add("arrow-icon");
-        arrowIcon.textContent = "→";
-        letterWrapper.appendChild(arrowIcon);
-      }
-
-      guideDiv.appendChild(letterWrapper);
-    }
-  }
-
   // Function to check user input
   function checkInput() {
     const inputValue = userInput.value.trim().toLowerCase(); // Get user input and trim whitespace
