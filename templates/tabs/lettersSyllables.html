@@ -204,10 +204,18 @@
 
   /* Text above the box */
   .char-text {
-    font-size: 2rem;
+    font-size: 2rem; /* Adjust font size as needed */
     font-weight: bold;
-    color: #020202;
     text-align: center;
+    border: 2px solid #6c757d;
+    padding: 5px 15px; /* Padding for the pill shape */
+    background-color: #e9ecef; /* Background color for the pill */
+    border-radius: 50px; /* Ensures a pill shape */
+    display: inline-block; /* Keeps the text box from stretching */
+    margin-bottom: 5px; /* Space below the pill */
+    width: 100px;
+    opacity: 0.5; /* Fades the entire box */
+    filter: brightness(0.8); /* Adds a slightly darker look for a subtle fade */
   }
 
   .char-box {
@@ -229,6 +237,8 @@
 
   .guide-box {
     background-color: #e9ecef;
+    opacity: 0.5; /* Fades the entire box */
+    filter: brightness(0.8); /* Adds a slightly darker look for a subtle fade */
   }
 
   .input-box {
@@ -463,15 +473,16 @@
   const submitButton = document.getElementById("submitButton");
   const containerLoading = document.getElementById("loadingContainerDiv");
   const containerMain = document.getElementById("mainContent");
-  let currentSyllable = ""; // Tracks the currently selected syllable
-  let currentInputIndex = 0; // Tracks the current input box
-  // Establish a connection to the server using SocketIO
-  const socket = io.connect();
-  let currentIndex = 0;
 
   // Initialize loading state
   let isLoading = true;
   console.log("isLoading: ", isLoading);
+
+  // Establish a connection to the server using SocketIO
+  const socket = io.connect();
+  let currentIndex = 0;
+  let currentSyllable = ""; // Tracks the currently selected syllable
+  let currentInputIndex = 0; // Tracks the current input box
 
   socket.on("correct_detection", function (data) {
     const centeredBox = document.querySelector(".centered-box"); // Target the original centered-box div
@@ -483,28 +494,29 @@
       centeredBox.classList.add("d-none");
       newContent.classList.remove("d-none"); // Show new content
 
-      // Loop through all input boxes
-      for (let i = 0; i < inputBoxes.length; i++) {
-        const currentInputBox = inputBoxes[i]; // Get the current input box
-        const targetLetter = currentSyllable[i]; // Get the current target letter
+      let currentIndex = 0; // Start with the first input box
+
+      function processLetter() {
+        if (currentIndex >= inputBoxes.length) return; // Exit if all letters are processed
+
+        const currentInputBox = inputBoxes[currentIndex]; // Get the current input box
+        const targetLetter = currentSyllable[currentIndex]; // Get the target letter
+        let letterToDisplay = data.recognized_letter;
+
+        // Capitalize the first letter, lowercase the rest
+        if (currentIndex === 0) {
+          letterToDisplay = letterToDisplay.toUpperCase(); // First letter uppercase
+        } else {
+          letterToDisplay = letterToDisplay.toLowerCase(); // Subsequent letters lowercase
+        }
 
         // Only check the box if it's not already filled
-        if (currentInputBox.textContent === "_") {
-          // Determine the letter's casing
-          let letterToDisplay = data.recognized_letter;
-
-          // Capitalize the first letter, lowercase the rest
-          if (i === 0) {
-            letterToDisplay = letterToDisplay.toUpperCase(); // First letter should be uppercase
-          } else {
-            letterToDisplay = letterToDisplay.toLowerCase(); // Subsequent letters should be lowercase
-          }
-
-          // Display the recognized letter (even if it's wrong)
-          currentInputBox.textContent = letterToDisplay || "_"; // Set the recognized letter
-
-          // If the letter is correct, turn it green, otherwise, turn it red
+        if (
+          currentInputBox.textContent === "_" ||
+          currentInputBox.style.color === "red"
+        ) {
           if (letterToDisplay === targetLetter) {
+            currentInputBox.textContent = letterToDisplay; // Set the recognized letter
             currentInputBox.style.color = "green"; // Correct letter, turn green
 
             // Add shake animation for feedback
@@ -514,34 +526,37 @@
             );
 
             // Wait for 1 second before locking and enlarging the letter
-            setTimeout(function () {
-              // Remove shake animation after it's finished
-              currentInputBox.classList.remove("animate__shakeX");
-
-              // Lock the letter and apply the enlarge animation
+            setTimeout(() => {
+              currentInputBox.classList.remove("animate__shakeX"); // Remove shake animation
               currentInputBox.classList.add(
                 "animate__animated",
                 "animate__bounceIn"
               );
 
-              // Wait for the enlarge animation to finish before proceeding
-              setTimeout(function () {
-                // Remove the enlarge animation after it's finished
-                currentInputBox.classList.remove("animate__bounceIn");
+              // Wait for the enlarge animation to finish
+              setTimeout(() => {
+                currentInputBox.classList.remove("animate__bounceIn"); // Remove enlarge animation
 
                 // Check if this is the last letter
-                if (i === inputBoxes.length - 1) {
+                if (currentIndex === inputBoxes.length - 1) {
                   alert("You did it! All letters are correct!"); // Success message
                 }
-              }, 1000); // Wait for the duration of the bounceIn animation (1s)
-            }, 1000); // 1 second hold before moving to the next letter
-          } else {
-            currentInputBox.style.color = "red"; // Incorrect letter, turn red
-          }
 
-          break; // Exit the loop after the first letter is processed
+                currentIndex++; // Move to the next letter
+                processLetter(); // Recursively process the next letter
+              }, 500); // Wait for enlarge animation duration
+            }, 1000); // Wait for shake animation duration
+          } else {
+            currentInputBox.textContent = letterToDisplay; // Display incorrect letter
+            currentInputBox.style.color = "red"; // Turn red
+          }
+        } else {
+          currentIndex++; // Skip to the next letter if current is already filled
+          processLetter(); // Recursively process the next letter
         }
       }
+
+      processLetter(); // Start processing the first letter
     } else {
       // Handle incorrect recognition or other logic here
       // centeredBox.classList.remove("d-none"); // Show original box
@@ -643,6 +658,7 @@
       const inputBox = document.createElement("div");
       inputBox.className = "char-box input-box";
       inputBox.textContent = "_"; // Placeholder for user input
+      inputBox.setAttribute("data-index", i);
 
       inputDiv.appendChild(inputBox);
     }
