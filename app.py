@@ -15,7 +15,7 @@ import os
 import json
 import random
 import slr
-from databaseServices import addToHistory, get_all_letters, get_all_words, get_user_data_by_id, get_user_progress, get_words_by_letter, getHistory, initialize_firebase, add_user_to_db, get_all_users, markAsComplete, upload_file_to_storage, add_learned_word
+from databaseServices import addBadgesToComplete, addToHistory, get_all_letters, get_all_words, get_user_data_by_id, get_user_progress, get_words_by_letter, getHistory, initialize_firebase, add_user_to_db, get_all_users, markAsComplete, upload_file_to_storage, add_learned_word
 from camera import generate_frames
 from socketioInstance import socketio
 
@@ -352,7 +352,7 @@ def m_quiz(index=None):
     quiz_words = session.get('quiz_words')
 
     if not quiz_words:
-        print('No words available for the quiz. Please start a new quiz.')
+        # print('No words available for the quiz. Please start a new quiz.')
         return redirect(url_for('quiz'))
 
     # Use session to store the current index if not provided
@@ -363,11 +363,11 @@ def m_quiz(index=None):
 
     # Ensure the index is valid
     if index < 0 or index >= len(quiz_words):
-        print('Invalid word index selected.')
+        # print('Invalid word index selected.')
         return redirect(url_for('quiz'))
 
     selected_word = quiz_words[index]
-    print("quiz_words: ", quiz_words)
+    # print("quiz_words: ", quiz_words)
     return render_template(
         'tabs/m_quiz.html',
         word=selected_word,
@@ -415,7 +415,7 @@ def randomizeAll():
     session['quiz_words'] = quiz_words
     session['currentIndex'] = 0  # Reset current index to the first word
 
-    print("Hehe: ", quiz_words)
+    print("Quiz Words: ", quiz_words)
     print("Completed: ", completed_words)
     # Redirect to m_quiz with index 0
     return redirect(url_for('m_quiz', index=0))
@@ -578,7 +578,7 @@ def collection():
             else:
                 syllable_data[syllable].extend(words)
 
-    print("syllable data: ", syllable_data)
+    # print("syllable data: ", syllable_data)
     return render_template('tabs/collection.html', syllable_data=syllable_data, avatar=avatar)
 
 # POST route to handle quiz submission
@@ -674,6 +674,7 @@ def results():
         # Mark correct words as complete and add to history
         if user_id:
             markAsComplete(user_id, completed_data)
+            addBadgesToComplete(user_id, results_with_correctness)
             addToHistory(user_id, quiz_id, timestamp, score,
                          correct_answers, total_questions, results_with_correctness)
 
@@ -761,6 +762,7 @@ def profile():
 def get_user_data(user_id):
     user_data = db.collection('users').document(
         user_id).get().to_dict() if user_id else {}
+    # print("user_data: ", user_data)
     return jsonify(user_data)
 
 

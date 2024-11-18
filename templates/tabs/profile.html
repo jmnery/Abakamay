@@ -87,6 +87,38 @@ content %}
     animation: bounce 1s ease-in-out infinite; /* Apply bounce animation */
   }
 
+  /* Custom tooltip styling for true badges (gold background) */
+  .tooltip-inner.true-badge {
+    background-color: gold !important; /* Set the background to gold */
+    color: black !important; /* Set the text color to black */
+    border: 2px solid rgb(194, 153, 18); /* Black border */
+    border-radius: 5px;
+    padding: 5px 10px;
+  }
+
+  /* Custom tooltip styling for false badges (white background) */
+  .tooltip-inner.false-badge {
+    background-color: rgb(
+      57,
+      57,
+      57
+    ) !important; /* Set the background to white */
+    color: white !important; /* Set the text color to black */
+    border: 2px solid black; /* Black border */
+    border-radius: 5px;
+    padding: 5px 10px;
+  }
+
+  /* Tooltip arrow for true badges */
+  .tooltip-arrow.true-badge {
+    border-top-color: gold !important;
+  }
+
+  /* Tooltip arrow for false badges */
+  .tooltip-arrow.false-badge {
+    border-top-color: white !important;
+  }
+
   /* Keyframes for bouncing animation */
   @keyframes bounce {
     0%,
@@ -228,6 +260,9 @@ content %}
         src="{{ url_for('static', filename='assets/svg_icon/' + letter + '.svg') }}"
         alt="{{ letter }}"
         class="achievement-icon animate__animated animate__tada infinite-loop"
+        data-toggle="tooltip"
+        title="<strong>Pagbati!</strong> Natapos mo na ang lahat ng salita sa letrang <strong>{{ letter }}</strong> sa iyong <strong>pagsasanay</strong>"
+        data-tooltip-class="true-badge"
       />
       {% else %}
       <!-- If badge is False, display the outline image -->
@@ -235,6 +270,9 @@ content %}
         src="{{ url_for('static', filename='assets/svg_icon/' + letter + '_outline.svg') }}"
         alt="{{ letter }} outline"
         class="achievement-icon faded-icon"
+        data-toggle="tooltip"
+        title="Kumpletuhin lahat ng salita sa letrang <strong>{{ letter }}</strong> sa iyong <strong>pagsasanay</strong> upang makuha ang badge"
+        data-tooltip-class="false-badge"
       />
       {% endif %} {% endfor %}
     </div>
@@ -242,7 +280,18 @@ content %}
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {});
+  document.addEventListener("DOMContentLoaded", function () {
+    $(document).ready(function () {
+      // Initialize all tooltips with dynamic classes
+      $('[data-toggle="tooltip"]').each(function () {
+        var tooltipClass = $(this).data("tooltip-class"); // Get the class from the data attribute
+        $(this).tooltip({
+          template: `<div class="tooltip" role="tooltip"><div class="tooltip-arrow ${tooltipClass}"></div><div class="tooltip-inner ${tooltipClass}"></div></div>`, // Apply the class to the tooltip
+          html: true, // Allow HTML content inside the tooltip
+        });
+      });
+    });
+  });
 </script>
 
 {% endblock %}

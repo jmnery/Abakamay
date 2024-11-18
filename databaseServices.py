@@ -291,6 +291,51 @@ def addToHistory(user_id, quiz_id, timestamp, score, correct_answers, total_ques
     })
 
 
+def addBadgesToComplete(user_id, user_answers):
+
+    db = get_firestore_client()
+
+    # Filter user_answers for correct entries and extract their letters
+    correct_letters = [
+        answer['word']['letter']
+        for answer in user_answers
+        if answer.get('correct') == True
+    ]
+
+    # Create a dictionary to store results
+    results = {}
+
+    for letter in set(correct_letters):  # Use set to avoid duplicate processing
+        # Get user's completion data for the letter
+        user_complete_ref = db.collection('users').document(user_id)
+        user_complete_data = user_complete_ref.get().to_dict().get('complete', {})
+        letter_complete_data = user_complete_data.get(letter, {})
+
+        # Calculate the total number of completed words for this letter
+        completed_word_count = sum(len(words)
+                                   for words in letter_complete_data.values())
+
+        # Get total word count for this letter from the words collection
+        words_ref = db.collection('words').document(letter)
+        words_data = words_ref.get().to_dict()
+        total_word_count = words_data.get('wordCount', 0)
+
+        # Check if all words are completed
+        if completed_word_count == total_word_count and total_word_count > 0:
+            # Update badges map in Firestore
+            user_badges_ref = db.collection('users').document(user_id)
+            user_badges_ref.update({f'badges.{letter}': True})
+
+        # Add data to results
+        results[letter] = {
+            "completed_word_count": completed_word_count,
+            "total_word_count": total_word_count,
+            "badge_updated": completed_word_count == total_word_count
+        }
+
+    print("Badges: ", results)
+
+
 def getHistory(user_id):
     history_data = []
 
