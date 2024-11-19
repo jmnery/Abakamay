@@ -1,18 +1,18 @@
 {% extends 'base.html' %} {% block title %} Pag-aaral {% endblock %}{% block content %}  
 <style>
-  html,
-  body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
+
+  .dropdown-menu {
+    position: absolute;
+    z-index: 1050; /* Ensure it's above other elements */
   }
 
   .container-fluid {
-    height: calc(100vh - 56px); /* Full height minus the navbar height */
+    height: calc(100vh - 56px);
     padding: 0;
     margin-top: 56px;
-    overflow: hidden;
-  }
+    overflow: hidden; /* Allow dropdown menus to expand */
+    padding-bottom: 15px;
+}
 
   .row {
     height: 100%;
@@ -22,12 +22,11 @@
   .col-md-8,
   .col-md-4 {
     padding: 0;
-    overflow: hidden;
   }
 
   .col-md-4 {
     overflow-y: auto;
-    padding: 20px;
+    padding: 20px 20px 20px 0px;
     box-sizing: border-box;
   }
 
@@ -110,10 +109,6 @@
   .word-item.selected {
     border: 3px solid var(--primary);
     opacity: 0.9;
-  }
-
-  .btn {
-    height: calc(100% - 2px);
   }
 
   .message-card {
@@ -235,11 +230,22 @@
     font-size: 24px; /* Set the text size */
     margin-top: 5px; /* Space between the image and text */
   }
+
+  /* Ensure equal width for all buttons in the group */
+  .btn-group .btn {
+    width: 70px;
+  }
+
+  /* Make the letter dropdown menu scrollable */
+  .letter-dropdown-menu {
+    max-height: 400px;  /* Set a maximum height for the dropdown */
+    overflow-y: auto;   /* Enable vertical scrolling if the content overflows */
+  }
 </style>
 
 <!-- Top Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-  <a class="navbar-brand" href="javascript:history.back()">
+  <a class="navbar-brand" href="{{ url_for('learnOptions', letter=letter) }}">
     <i class="bi bi-arrow-left"></i>
     {{ letter }}
   </a>
@@ -265,10 +271,122 @@
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('collection') }}">Mga Salita</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
-      </li>
+      <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle d-flex align-items-center"
+            id="avatarDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <img
+              src="{{ avatar or 'https://via.placeholder.com/50' }}"
+              alt="Avatar"
+              class="rounded-circle"
+              style="width: 35px; height: 35px; margin-right: 5px"
+            />
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="avatarDropdown">
+            <li>
+              <a class="dropdown-item" href="{{ url_for('profile') }}"
+                >Profile</a
+              >
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+            </li>
+          </ul>
+        </li>
     </ul>
+
+    <!-- Add buttons for previous letter, letter dropdown, and next letter -->
+    <li class="nav-item list-unstyled">
+      <div
+        class="btn-group ms-auto"
+        role="group"
+        aria-label="Letter navigation"
+        style="margin-right: 20px;" 
+      >
+        <!-- Previous Letter Button -->
+        <a
+          class="btn btn-outline-light"
+          href="{{ url_for('m_learn', letter=previous_letter) }}"
+        >
+          {{ previous_letter }}
+        </a>
+
+        <!-- Current Letter Dropdown -->
+        <a
+          class="btn btn-outline-light dropdown-toggle"
+          id="letterDropdown"
+          role="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          style="border-radius: 0px !important;"
+        >
+          {{ letter }}
+        </a>
+        <ul class="dropdown-menu letter-dropdown-menu" aria-labelledby="letterDropdown">
+          {% for letter_option in letter_options %}
+          <li>
+            <a
+              class="dropdown-item"
+              href="{{ url_for('m_learn', letter=letter_option) }}"
+            >
+              {{ letter_option }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <!-- Next Letter Button -->
+        <a
+          class="btn btn-outline-light"
+          href="{{ url_for('m_learn', letter=next_letter) }}"
+        >
+          {{ next_letter }}
+        </a>
+      </div>
+    </li>
+
+    <!-- Help dropdown on the right side -->
+    <div class="nav-item dropdown ms-auto help-button">
+      <a
+        class="btn btn-outline-light dropdown-toggle"
+        id="helpDropdown"
+        role="button"
+        data-bs-toggle="dropdown"
+        data-bs-display="static"
+        aria-expanded="false"
+      >
+        Gabay
+      </a>
+      <ul
+        class="dropdown-menu dropdown-menu-end"
+        aria-labelledby="helpDropdown"
+      >
+        <li>
+          <a
+            class="dropdown-item"
+            href="javascript:void(0);"
+            onclick="startIntro()"
+          >
+            Gabay sa pahina ng pag-aaral
+          </a>
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            data-bs-toggle="modal"
+            data-bs-target="#summaryModal"
+          >
+            Pangkalahatang gabay
+          </a>
+        </li>
+      </ul>
+    </div>
+
   </div>
 </nav>
 
@@ -444,7 +562,7 @@
 <div
   aria-live="polite"
   aria-atomic="true"
-  style="position: relative; min-height: 200px"
+  style="position: fixed; top: 0; right: 0; z-index: 99"
 >
   <div
     class="toast-container position-fixed bottom-0 end-0 p-3"
@@ -905,6 +1023,7 @@
   videoModalEl.addEventListener("hidden.bs.modal", function () {
     videoFrame.src = ""; // Reset the video URL to stop the video
   });
+
 </script>
 
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block content %}
+{% block content %}
 <style>
   html,
   body {
@@ -78,7 +78,7 @@
     width: 100%;
     gap: 10px;
   }
-  .btn {
+  .primary-btn {
     border-radius: 10px !important;
   }
 
@@ -175,14 +175,22 @@
           autocomplete="off"
           spellcheck="false"
         />
-        <button class="btn btn-secondary" type="button" id="backspaceButton">
+        <button
+          class="btn btn-secondary primary-btn"
+          type="button"
+          id="backspaceButton"
+        >
           <i class="fas fa-backspace"></i>
         </button>
-        <button class="btn btn-danger" type="button" id="trashButton">
+        <button
+          class="btn btn-danger primary-btn"
+          type="button"
+          id="trashButton"
+        >
           <i class="fas fa-trash-alt"></i>
         </button>
         <button
-          class="btn"
+          class="btn primary-btn"
           type="button"
           id="submitButton"
           style="background-color: var(--green); color: white"

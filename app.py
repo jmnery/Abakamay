@@ -248,6 +248,20 @@ def lettersSyllables(letter):
 
 @app.route('/m_learn/<letter>')
 def m_learn(letter):
+
+    # List of available letters
+    letters = ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L',
+               'M', 'N', 'Ng', 'O', 'P', 'R', 'S', 'T', 'U', 'W', 'Y']
+
+    # Find the index of the current letter
+    letter_index = letters.index(letter)
+
+    # Get the previous and next letters
+    previous_letter = letters[letter_index -
+                              1] if letter_index > 0 else letters[-1]
+    next_letter = letters[letter_index +
+                          1] if letter_index < len(letters) - 1 else letters[0]
+
     # Fetch data from the 'words' collection
     letter_ref = db.collection('words').document(letter)
     letter_doc = letter_ref.get()
@@ -307,7 +321,7 @@ def m_learn(letter):
         syllable_data[syllable] = words
 
     print('syllable: ', syllable_data)
-    return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data, avatar=avatar)
+    return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data, avatar=avatar, letter_options=letters, previous_letter=previous_letter, next_letter=next_letter)
 
 
 @app.route('/mark_as_learned', methods=['POST'])

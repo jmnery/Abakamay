@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block content %}
+{% block content %}
 <div class="camera-wrapper">
   <div class="black-rectangle">
     <div class="camera-container">
@@ -39,13 +39,25 @@
           autocomplete="off"
           spellcheck="false"
         />
-        <button class="btn btn-secondary" type="button" id="backspaceButton">
+        <button
+          class="btn btn-secondary primary-btn"
+          type="button"
+          id="backspaceButton"
+        >
           <i class="fas fa-backspace"></i>
         </button>
-        <button class="btn btn-danger" type="button" id="trashButton">
+        <button
+          class="btn btn-danger primary-btn"
+          type="button"
+          id="trashButton"
+        >
           <i class="fas fa-trash-alt"></i>
         </button>
-        <button class="btn btn-primary" type="button" id="submitButton">
+        <button
+          class="btn btn-primary primary-btn"
+          type="button"
+          id="submitButton"
+        >
           Submit
         </button>
       </div>
@@ -133,7 +145,7 @@
     width: 100%;
     gap: 10px;
   }
-  .btn {
+  .primary-btn {
     border-radius: 10px !important;
   }
 

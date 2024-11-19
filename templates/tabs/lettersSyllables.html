@@ -250,13 +250,24 @@
     height: 60px;
     margin-left: 5px; /* Space between character and icon */
   }
+
+  /* Ensure equal width for all buttons in the group */
+  .btn-group .btn {
+    width: 70px;
+  }
+
+  /* Make the letter dropdown menu scrollable */
+  .letter-dropdown-menu {
+    max-height: 400px; /* Set a maximum height for the dropdown */
+    overflow-y: auto; /* Enable vertical scrolling if the content overflows */
+  }
 </style>
 
 <!-- Top Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-  <a class="navbar-brand" href="javascript:history.back()">
+  <a class="navbar-brand" href="{{ url_for('learnOptions', letter=letter) }}">
     <i class="bi bi-arrow-left"></i>
-    Letter {{letter}}
+    {{ letter }}
   </a>
   <button
     class="navbar-toggler"
@@ -270,15 +281,15 @@
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
+    <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a class="nav-link active" href="{{ url_for('learn') }}">Learn</a>
+        <a class="nav-link active" href="{{ url_for('learn') }}">Pag-aaral</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
+        <a class="nav-link" href="{{ url_for('quiz') }}">Pagsasanay</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('collection') }}">Collection</a>
+        <a class="nav-link" href="{{ url_for('collection') }}">Mga Salita</a>
       </li>
       <li class="nav-item dropdown">
         <a
@@ -305,55 +316,97 @@
           </li>
         </ul>
       </li>
-      <!-- Add buttons for previous letter, letter dropdown, and next letter -->
-      <li class="nav-item">
-        <div
-          class="btn-group ms-auto"
-          role="group"
-          aria-label="Letter navigation"
-        >
-          <!-- Previous Letter Button -->
-          <a
-            class="btn btn-outline-light"
-            href="{{ url_for('lettersSyllables', letter=previous_letter) }}"
-          >
-            {{ previous_letter }}
-          </a>
-
-          <!-- Current Letter Dropdown -->
-
-          <a
-            class="btn btn-outline-light dropdown-toggle"
-            id="letterDropdown"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            {{ letter }}
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="letterDropdown">
-            {% for letter_option in letter_options %}
-            <li>
-              <a
-                class="dropdown-item"
-                href="{{ url_for('lettersSyllables', letter=letter_option) }}"
-              >
-                {{ letter_option }}
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-
-          <!-- Next Letter Button -->
-          <a
-            class="btn btn-outline-light"
-            href="{{ url_for('lettersSyllables', letter=next_letter) }}"
-          >
-            {{ next_letter }}
-          </a>
-        </div>
-      </li>
     </ul>
+
+    <!-- Add buttons for previous letter, letter dropdown, and next letter -->
+    <li class="nav-item list-unstyled">
+      <div
+        class="btn-group ms-auto"
+        role="group"
+        aria-label="Letter navigation"
+        style="margin-right: 20px"
+      >
+        <!-- Previous Letter Button -->
+        <a
+          class="btn btn-outline-light"
+          href="{{ url_for('lettersSyllables', letter=previous_letter) }}"
+        >
+          {{ previous_letter }}
+        </a>
+
+        <!-- Current Letter Dropdown -->
+        <a
+          class="btn btn-outline-light dropdown-toggle"
+          id="letterDropdown"
+          role="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          style="border-radius: 0px !important"
+        >
+          {{ letter }}
+        </a>
+        <ul
+          class="dropdown-menu letter-dropdown-menu"
+          aria-labelledby="letterDropdown"
+        >
+          {% for letter_option in letter_options %}
+          <li>
+            <a
+              class="dropdown-item"
+              href="{{ url_for('lettersSyllables', letter=letter_option) }}"
+            >
+              {{ letter_option }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <!-- Next Letter Button -->
+        <a
+          class="btn btn-outline-light"
+          href="{{ url_for('lettersSyllables', letter=next_letter) }}"
+        >
+          {{ next_letter }}
+        </a>
+      </div>
+    </li>
+
+    <!-- Help dropdown on the right side -->
+    <div class="nav-item dropdown ms-auto help-button">
+      <a
+        class="btn btn-outline-light dropdown-toggle"
+        id="helpDropdown"
+        role="button"
+        data-bs-toggle="dropdown"
+        data-bs-display="static"
+        aria-expanded="false"
+      >
+        Gabay
+      </a>
+      <ul
+        class="dropdown-menu dropdown-menu-end"
+        aria-labelledby="helpDropdown"
+      >
+        <li>
+          <a
+            class="dropdown-item"
+            href="javascript:void(0);"
+            onclick="startIntro()"
+          >
+            Gabay sa pahina ng pag-aaral
+          </a>
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            data-bs-toggle="modal"
+            data-bs-target="#summaryModal"
+          >
+            Pangkalahatang gabay
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
 </nav>
 
