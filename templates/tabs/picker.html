@@ -289,6 +289,14 @@ content %}
           ).innerHTML = `<p class="mt-3" style="text-align: center; font-size: 2rem; font-weight: bold">Natitirang mga salita: ${remainingWords}</p>`;
           $("#wordCountModal").modal("show");
 
+          // Show or hide the "Magpatuloy sa pagsasanay" button based on remaining words
+          const proceedBtn = document.getElementById("proceedBtn");
+          if (remainingWords === 0) {
+            proceedBtn.style.display = "none"; // Hide the button if no remaining words
+          } else {
+            proceedBtn.style.display = "inline-block"; // Show the button otherwise
+          }
+
           // Attach event listeners for modal buttons
           document.getElementById("addBtn").onclick = function () {
             const redirectUrl = `/randomizeCategory/${letter}?action=add`;

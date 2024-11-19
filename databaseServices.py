@@ -41,7 +41,29 @@ def add_user_to_db(user_id, first_name, last_name, email, age, birthday, avatar)
         'age': age,
         "complete": {},
         'birthday': birthday,
-        'avatar': avatar
+        'avatar': avatar,
+        'badges': {
+            'A': False,
+            'B': False,
+            'K': False,
+            'D': False,
+            'E': False,
+            'G': False,
+            'H': False,
+            'I': False,
+            'L': False,
+            'M': False,
+            'N': False,
+            'NG': False,
+            'O': False,
+            'P': False,
+            'R': False,
+            'S': False,
+            'T': False,
+            'U': False,
+            'W': False,
+            'Y': False
+        }
     })
 
 # Function to get all users from Firestore
