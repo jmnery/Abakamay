@@ -321,7 +321,7 @@ content %}
       // Define pageItems outside of functions for global access
       const pageItems = document.querySelectorAll(".page-item");
       const inputField = document.querySelector(".input-group input"); // Ensure this matches your input field selector
-      const submitButton = document.getElementById("submit-btn"); // Get the submit button
+      const submitButton = document.getElementById("submitButton"); // Get the submit button
       const submitAllButton = document.getElementById("submit-all-btn"); // Submit all answers button
 
       updateWordDisplay(currentIndex);
@@ -416,6 +416,7 @@ content %}
         const userAnswer = inputField.value
           .trim()
           .toLowerCase()
+          .replace(/-/g, " ") // Replace all dashes with spaces
           .replace(/\s+/g, " ");
         if (userAnswer) {
           userAnswers[currentIndex] = userAnswer; // Store the answer

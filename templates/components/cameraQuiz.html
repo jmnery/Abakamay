@@ -1,6 +1,65 @@
-{% extends "base.html" %} {% block content %}
+{% block content %}
 <div class="camera-wrapper">
   <div class="black-rectangle">
+    <!-- Show Hand Message -->
+    <div class="show-hand-message">
+      <p class="display-text">Ipakita ang kamay</p>
+    </div>
+
+    <!-- Control Box -->
+    <div class="control-box d-none">
+      <div class="left-column">
+        <!-- Content for the left column -->
+        <p class="display-text">
+          Letra: <span id="recognizedLetter" class="recognized-letter"></span>
+        </p>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <div class="right-column">
+        {# Info 1 #}
+        <div class="icon-text-animation">
+          <div class="icon-text">
+            <i class="fa-solid fa-circle-info"></i>
+            <div class="text-content">
+              <p>Ibaba ang kamay</p>
+              <p>para magbaybay</p>
+            </div>
+          </div>
+
+          <div class="animation-container">
+            <i class="fa-solid fa-hand" id="hand-icon"></i>
+            <div class="letter-box" id="letter-box">A</div>
+          </div>
+        </div>
+        <!-- Divider -->
+        <div class="divider"></div>
+        {# Info 2 #}
+        <div class="icon-text-animation">
+          <div class="icon-text">
+            <i class="fa-solid fa-circle-info"></i>
+            <div class="text-content">
+              <p>Pindutin ang space</p>
+              <p>para magpantig</p>
+            </div>
+          </div>
+          <div class="animation-container">
+            <img
+              src="https://img.icons8.com/ios/50/space-key.png"
+              alt="space-key"
+              id="space-key-icon"
+            />
+          </div>
+        </div>
+        <!-- Divider -->
+        <div class="divider"></div>
+        {# Info 3 #}
+        <div class="icon-text"><i class="fa-solid fa-circle-question"></i></div>
+      </div>
+    </div>
+
     <div class="camera-container">
       <img
         src="{{ url_for('video_feed') }}"
@@ -14,16 +73,42 @@
         <div class="double-bounce2"></div>
       </div>
     </div>
+
     <div class="input-container" id="inputContainer">
       <div class="input-group input-group-lg">
-        <span class="input-group-text" id="inputGroup-sizing-lg">Input:</span>
+        <span class="input-group-text" id="inputGroup-sizing-lg">
+          <i class="fa-solid fa-hand" id="inputGroupIcon"></i>
+        </span>
         <input
           type="text"
           class="form-control"
+          id="inputField"
           aria-label="Sizing example input"
           aria-describedby="inputGroup-sizing-lg"
+          disabled
+          autocomplete="off"
+          spellcheck="false"
+          readonly
         />
-        <button class="button btn-primary" type="button" id="submit-btn">
+        <button
+          class="btn btn-secondary primary-btn"
+          type="button"
+          id="backspaceButton"
+        >
+          <i class="fas fa-backspace"></i>
+        </button>
+        <button
+          class="btn btn-danger primary-btn"
+          type="button"
+          id="trashButton"
+        >
+          <i class="fas fa-trash-alt"></i>
+        </button>
+        <button
+          class="btn btn-primary primary-btn"
+          type="button"
+          id="submitButton"
+        >
           Submit
         </button>
       </div>
@@ -84,25 +169,243 @@
     object-fit: cover;
   }
 
+  .show-hand-message {
+    border: 3px dashed #6c757d;
+    border-radius: 10px;
+    padding: 15px;
+    width: 100%; /* Adjust width as needed */
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    background-color: white;
+    opacity: 0.7; /* Adjust the opacity value (0 is fully transparent, 1 is fully opaque) */
+  }
+
+  .display-text {
+    margin: 0 !important;
+    font-weight: 500;
+    font-size: 20px;
+  }
+
+  .control-box {
+    border: 2px solid #6c757d;
+    border-radius: 10px;
+    width: 100%; /* Adjust width as needed */
+    display: flex;
+    z-index: 10;
+    background-color: white;
+    opacity: 0.7; /* Adjust the opacity value (0 is fully transparent, 1 is fully opaque) */
+    margin-bottom: 10px;
+    justify-content: space-evenly;
+  }
+
+  /* Divider styling */
+  .divider {
+    width: 1px; /* Divider thickness */
+    background-color: #ccc; /* Color of the divider */
+    height: 100%; /* Full height of the container */
+  }
+
+  .left-column {
+    width: 150px; /* Left column takes 30% of the space */
+    padding: 15px;
+    box-sizing: border-box;
+    background-color: #f8f9fa; /* Optional */
+  }
+
+  .recognized-letter {
+    font-weight: bold;
+    font-size: 26px; /* Adjust size as needed */
+    color: var(--green); /* Ensure --green is defined in your root styles */
+    margin-left: 5px;
+  }
+
+  /* Right column container */
+  .right-column {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row; /* This will allow the content to stack vertically */
+    justify-content: space-between; /* Space out children evenly */
+    align-items: center; /* Aligns content to the left */
+    padding: 0px 15px;
+  }
+
+  /* Parent container for icon-text and animation-container */
+  .icon-text-animation {
+    display: flex; /* Arrange children in a row */
+    flex-direction: row; /* Horizontal layout */
+    align-items: center; /* Vertically align items */
+    gap: 10px; /* Space between icon-text and animation-container */
+  }
+
+  /* Animation container */
+  .animation-container {
+    position: relative;
+    width: 60px; /* Fixed width for animation container */
+    height: 65px; /* Fixed height for animation container */
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Styling for the letter box */
+  .letter-box {
+    font-size: 30px; /* Font size for the letter */
+    font-weight: bold;
+    padding: 5px;
+    width: 40px;
+    height: 40px;
+    border: 2px solid;
+    border-radius: 8px;
+    background-color: white;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    position: absolute; /* Ensures it stays in place during animation */
+    opacity: 0; /* Start hidden */
+    transform: translateY(100px); /* Start offscreen */
+  }
+
+  .icon-text {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Space between the icon and the text */
+  }
+
+  .icon-text i {
+    font-size: 24px; /* Adjust icon size */
+  }
+
+  .text-content {
+    display: block; /* Make text content block level */
+  }
+
+  .text-content p {
+    margin: 0; /* Remove default margin from paragraphs */
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  /* Styling for the fa-hand icon */
+  #hand-icon {
+    position: absolute;
+    font-size: 40px;
+    transition: transform 1s ease;
+  }
+
+  /* Custom Animation for Hand Icon */
+  @keyframes handAnimation {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(70px); /* Move down out of frame */
+    }
+  }
+
+  /* Custom Animation for Letter Box */
+  @keyframes letterAnimation {
+    0% {
+      opacity: 0;
+      transform: translateY(100px) scale(0.5); /* Start offscreen below and scaled down */
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1); /* Final position, no scale */
+    }
+  }
+
+  /* Space key icon animation */
+  /* Space key icon animation */
+  #space-key-icon {
+    width: 50px;
+    height: 50px;
+    animation: spaceKeyClickAnimation 0.5s ease-in-out infinite; /* 3 repetitions with no loop */
+  }
+
+  /* Keyframes for the "click" animation */
+  @keyframes spaceKeyClickAnimation {
+    0% {
+      transform: scale(1); /* Start at original size */
+    }
+    60% {
+      transform: scale(0.8); /* Scale down */
+    }
+    100% {
+      transform: scale(1); /* Scale back to original size */
+    }
+  }
+
+  /* Adding bounce for the hand icon */
+  .hand-move {
+    animation: handAnimation 1s forwards;
+  }
+
+  /* Adding show animation for letter box */
+  .letter-show {
+    animation: letterAnimation 0.6s forwards;
+  }
+
   .input-container {
     width: 100%;
-    padding: 10px 0;
+    padding: 10px;
     box-sizing: border-box;
+    border: 2px solid #6c757d;
+    border-radius: 10px;
+    background-color: white;
+    opacity: 0.7; /* Adjust the opacity value (0 is fully transparent, 1 is fully opaque) */
+    margin-top: 10px;
   }
 
   .input-group {
     display: flex;
-    width: 100%; /* Make input field and button full width */
+    width: 100%;
+    gap: 10px;
+    align-items: center; /* Ensure buttons and input are vertically aligned */
   }
 
   .input-group .form-control {
-    flex: 1; /* Input field takes up remaining space */
-    margin-right: 10px; /* Space between input field and button */
+    font-size: 24px; /* Larger text */
+    text-align: center; /* Center the text */
+    height: auto; /* Adjust height for larger text */
+    padding: 10px 15px; /* Add padding for better spacing */
+    border-radius: 10px !important; /* Rounded corners */
+    letter-spacing: 2px; /* Add letter spacing */
+  }
+
+  .input-group .form-control:focus {
+    border: 1px solid var(--black); /* Add a custom border on focus */
+    outline: none;
+    box-shadow: none;
+  }
+
+  .input-group-text {
+    padding: 15px !important;
+  }
+
+  #inputGroupIcon {
+    /* Default icon color (gray) */
+    transition: color 0.3s ease; /* Smooth transition for color change */
+  }
+
+  #inputGroupIcon.recognized {
+    color: var(--green); /* Icon color when a recognized letter is present */
+  }
+
+  .primary-btn {
+    border-radius: 10px !important;
   }
 
   .button {
     border-radius: 5px;
-    padding: 0 30px 0 30px; /* Make button height match input field */
+    padding: 0 20px;
   }
   .spinner {
     position: absolute; /* Position the spinner absolutely */
@@ -143,6 +446,122 @@
   }
 </style>
 <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Initially hide the letter box
+    const letterBox = document.getElementById("letter-box");
+    const handIcon = document.getElementById("hand-icon");
+
+    // Simulate the animation flow
+    setInterval(function () {
+      // Apply animation to the hand icon
+      handIcon.classList.add("hand-move");
+
+      // After hand icon finishes animation, show the letter box
+      setTimeout(function () {
+        letterBox.classList.add("letter-show");
+      }, 400); // Delay for the hand animation to complete
+
+      // Reset the animation for the next cycle
+      setTimeout(function () {
+        handIcon.classList.remove("hand-move");
+        letterBox.classList.remove("letter-show");
+      }, 2000); // Reset both after animations are done
+    }, 3000); // Loop every 3 seconds
+
+    document.addEventListener("keydown", function (event) {
+      if (event.code === "Space") {
+        // Check if the pressed key is "Space"
+        event.preventDefault(); // Prevent the default scrolling behavior
+        const inputField = document.getElementById("inputField"); // Replace with your input field's ID
+        if (inputField) {
+          const currentValue = inputField.value;
+
+          // Append "-" only if:
+          // 1. The field is not empty
+          // 2. The last character is not "-"
+          if (currentValue !== "" && currentValue.slice(-1) !== "-") {
+            inputField.value += "-";
+          }
+        }
+      }
+    });
+  });
+
+  // Get the input field and buttons
+  const inputField = document.getElementById("inputField");
+  const backspaceButton = document.getElementById("backspaceButton");
+  const trashButton = document.getElementById("trashButton");
+
+  const socket = io.connect();
+  socket.on("correct_detection", function (data) {
+    const showHandMessage = document.querySelector(".show-hand-message");
+    const controlBox = document.querySelector(".control-box");
+    const recognizedLetterElement = document.getElementById("recognizedLetter");
+    const inputGroupIcon = document.getElementById("inputGroupIcon");
+
+    if (data.correct) {
+      // Hide the original box
+      showHandMessage.classList.add("d-none");
+      controlBox.classList.remove("d-none"); // Show new content
+
+      // Update the recognized letter in the left column
+      recognizedLetterElement.textContent = data.recognized_letter || "";
+      inputGroupIcon.classList.add("recognized");
+    } else {
+      recognizedLetterElement.textContent = "";
+      inputGroupIcon.classList.remove("recognized");
+      // Handle incorrect recognition or other logic here
+      showHandMessage.classList.remove("d-none"); // Show original box
+      controlBox.classList.add("d-none");
+    }
+  });
+
+  // Function to clean up spaces in real time while typing
+  function cleanInputRealTime(input) {
+    // Allow only one space between words
+    return input.replace(/\s{2,}/g, " "); // Replace two or more consecutive spaces with one space
+  }
+
+  // Function to ensure only the first letter is capitalized
+  function ensureFirstLetterCapitalized(input) {
+    if (input.length > 0) {
+      // Capitalize the first letter and make the rest lowercase
+      return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
+    }
+    return input;
+  }
+
+  // Handle real-time input cleaning
+  inputField.addEventListener("input", () => {
+    const cursorPosition = inputField.selectionStart; // Save cursor position
+    inputField.value = cleanInputRealTime(inputField.value); // Clean input on the fly
+    inputField.value = ensureFirstLetterCapitalized(inputField.value); // Ensure first letter is capitalized
+    inputField.setSelectionRange(cursorPosition, cursorPosition); // Restore cursor position
+  });
+
+  // Listen for 'recognized_letter' events and update the input field
+  socket.on("recognized_letter", function (data) {
+    if (data.letter) {
+      // Append the recognized letter to the input field's value
+      inputField.value += data.letter;
+      inputField.value = cleanInputRealTime(inputField.value); // Clean input on the fly
+      inputField.value = ensureFirstLetterCapitalized(inputField.value);
+    }
+  });
+
+  // Handle backspace button click: Remove last character
+  backspaceButton.addEventListener("click", () => {
+    if (inputField.value.length > 0) {
+      inputField.value = inputField.value.slice(0, -1);
+    }
+    inputField.value = cleanInputRealTime(inputField.value); // Clean input after backspace
+  });
+
+  // Handle trash button click: Clear the input field
+  trashButton.addEventListener("click", () => {
+    inputField.value = "";
+  });
+
   // Get the camera feed image and the loading spinner
   const cameraFeed = document.getElementById("cameraFeed");
   const loadingSpinner = document.getElementById("loadingSpinner");
