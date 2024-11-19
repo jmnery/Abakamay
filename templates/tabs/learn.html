@@ -250,24 +250,6 @@ content %}
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      console.log(
-        "data show summary: ",
-        document.body.getAttribute("data-show-summary")
-      );
-
-      const showModal =
-        document.body.getAttribute("data-show-summary") === "true";
-      console.log("modal status: ", showModal);
-      if (showModal) {
-        const summaryModalElement = document.getElementById("summaryModal");
-        if (summaryModalElement) {
-          const summaryModal = new bootstrap.Modal(summaryModalElement);
-          summaryModal.show();
-        }
-      }
-    });
-
     //Filter Options
     document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
       radio.addEventListener("change", function () {

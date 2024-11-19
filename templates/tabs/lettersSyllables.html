@@ -26,6 +26,7 @@ content %}
   }
 
   .syllable-box {
+    position: relative; /* Enable absolute positioning for child elements */
     background-color: #f1f1f1;
     border: 2px solid #ccc;
     border-radius: 10px;
@@ -37,6 +38,14 @@ content %}
     height: 15%; /* Each syllable box takes 13% height */
     transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
     cursor: pointer; /* Indicate that the box is clickable */
+  }
+
+  .icon-check {
+    position: absolute;
+    top: 5px; /* Adjust the top offset */
+    right: 5px; /* Adjust the right offset */
+    font-size: 20px; /* Adjust the size of the icon */
+    color: #28a745; /* Green color for the check icon */
   }
 
   .syllable-box:hover {
@@ -441,13 +450,13 @@ content %}
     <div class="col-md-5 h-100">
       <div class="d-flex h-100 align-items-center justify-content-center">
         <!-- Original div (centered-box) -->
-        <div class="centered-box w-100 d-none">
-          <p class="display-text">Show your hand</p>
+        <div class="centered-box w-100">
+          <p class="display-text">Ipakita ang kamay</p>
           <i class="bi bi-hand-index hand-icon"></i>
         </div>
 
         <!-- New divs (initially hidden) -->
-        <div class="assess-div w-100 flex-column">
+        <div class="assess-div w-100 flex-column d-none">
           <div class="guide-div"></div>
           <div class="input-div"></div>
         </div>
@@ -458,7 +467,7 @@ content %}
   <!-- Modal for Correct Answer -->
   <div
     class="modal fade"
-    id="correctModal"
+    id="correctModalLS"
     tabindex="-1"
     aria-labelledby="wordModalLabel"
     aria-hidden="true"
@@ -491,25 +500,39 @@ content %}
         <div class="modal-footer">
           <button
             type="button"
-            data-bs-dismiss="modal"
+            id="thumbsUpButton"
             style="
               background-color: var(--green);
               color: white;
               border-radius: 50% !important;
               border: 5px solid var(--dark-green);
+              position: relative; /* Set positioning context */
+              width: 70px;
+              height: 70px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
             "
           >
             <img
+              id="thumbsUpImage"
               src="{{ url_for('static', filename='assets/letter_icon/thumbs_Up.png') }}"
               alt="Done"
-              style="
-                width: 50px;
-                height: 50px;
-                margin: 5px;
-                margin-bottom: 10px;
-                margin-right: 8px;
-              "
+              style="width: 40px; height: 40px"
+              class="d-inline-block"
             />
+
+            <!-- Loading text (initially hidden) -->
+            <div
+              id="loadingText"
+              class="d-none spinner-border text-light"
+              style="
+                font-size: 16px;
+                font-weight: bold;
+                position: absolute;
+                z-index: 99;
+              "
+            ></div>
           </button>
         </div>
       </div>
@@ -518,230 +541,346 @@ content %}
 </div>
 
 <script type="module">
-  import { getLetterAndSyllables } from "../../static/js/databaseServices.js";
+  import {
+    getLetterAndSyllables,
+    getLettersSyllablesForTags,
+    addSyllableToLearned,
+  } from "../../static/js/databaseServices.js";
 
-  const currentLetter = "{{ letter }}"; // Ensure letter is treated as a string
-  // Reference to the input field and button
-  const userInput = document.getElementById("inputField");
-  const submitButton = document.getElementById("submitButton");
-  const containerLoading = document.getElementById("loadingContainerDiv");
-  const containerMain = document.getElementById("mainContent");
+  document.addEventListener("DOMContentLoaded", function () {
+    const currentLetter = "{{ letter }}"; // Ensure letter is treated as a string
+    const userId = "{{ user_id }}";
 
-  // Initialize loading state
-  let isLoading = true;
-  console.log("isLoading: ", isLoading);
-
-  // Establish a connection to the server using SocketIO
-  const socket = io.connect();
-  let currentIndex = 0;
-  let currentSyllable = ""; // Tracks the currently selected syllable
-  let currentInputIndex = 0; // Tracks the current input box
-
-  socket.on("correct_detection", function (data) {
+    // Reference to the input field and button
+    const containerLoading = document.getElementById("loadingContainerDiv");
+    const containerMain = document.getElementById("mainContent");
+    const modalText = document.getElementById("loadingText");
+    const yesImage = document.getElementById("thumbsUpImage");
+    const thumbsUpButton = document.getElementById("thumbsUpButton"); // Get the button element
     const centeredBox = document.querySelector(".centered-box"); // Target the original centered-box div
     const newContent = document.querySelector(".assess-div");
-    const inputBoxes = document.querySelectorAll(".input-div .input-box"); // Select all input boxes
 
-    if (data.correct) {
-      // Hide the original box
-      centeredBox.classList.add("d-none");
-      newContent.classList.remove("d-none"); // Show new content
+    // Initialize loading state
+    let isLoading = true;
+    console.log("isLoading: ", isLoading);
 
-      let currentIndex = 0; // Start with the first input box
+    // Establish a connection to the server using SocketIO
+    const socket = io.connect();
+    let currentIndex = 0;
+    let currentSyllable = ""; // Tracks the currently selected syllable
+    let currentInputIndex = 0; // Tracks the current input box
 
-      function processLetter() {
-        if (currentIndex >= inputBoxes.length) return; // Exit if all letters are processed
+    // Add event listener to the button
+    thumbsUpButton.addEventListener("click", handleAddToLearned);
 
-        const currentInputBox = inputBoxes[currentIndex]; // Get the current input box
-        const targetLetter = currentSyllable[currentIndex]; // Get the target letter
-        let letterToDisplay = data.recognized_letter;
+    async function handleAddToLearned() {
+      // Disable the button to prevent further clicks
+      thumbsUpButton.disabled = true;
 
-        // Capitalize the first letter, lowercase the rest
-        if (currentIndex === 0) {
-          letterToDisplay = letterToDisplay.toUpperCase(); // First letter uppercase
-        } else {
-          letterToDisplay = letterToDisplay.toLowerCase(); // Subsequent letters lowercase
-        }
+      // Hide the thumbs-up image and show the "Loading..." text
+      yesImage.classList.add("d-none"); // Hide thumbs-up image
+      modalText.classList.remove("d-none"); // Show "Loading..." text
 
-        // Only check the box if it's not already filled
-        if (
-          currentInputBox.textContent === "_" ||
-          currentInputBox.style.color === "red"
-        ) {
-          if (letterToDisplay === targetLetter) {
-            currentInputBox.textContent = letterToDisplay; // Set the recognized letter
-            currentInputBox.style.color = "green"; // Correct letter, turn green
+      try {
+        // Call your asynchronous function here
+        await addSyllableToLearned(userId, currentLetter, currentSyllable);
 
-            // Add shake animation for feedback
-            currentInputBox.classList.add(
-              "animate__animated",
-              "animate__shakeX"
-            );
+        // Once the operation completes, update the UI
+        console.log("Syllable added to learned list.");
 
-            // Wait for 1 second before locking and enlarging the letter
-            setTimeout(() => {
-              currentInputBox.classList.remove("animate__shakeX"); // Remove shake animation
+        // Update the check icon visibility for the current syllable
+        const syllablesContainer =
+          document.getElementById("syllablesContainer");
+        const syllableBoxes =
+          syllablesContainer.querySelectorAll(".syllable-box");
+        syllableBoxes.forEach((syllableBox) => {
+          if (syllableBox.textContent.trim() === currentSyllable) {
+            const checkIcon = syllableBox.querySelector(".icon-check");
+            if (checkIcon) {
+              checkIcon.style.visibility = "visible"; // Show the check icon
+            }
+          }
+        });
+
+        // Hide the "Loading..." text and show the thumbs-up image again after the operation completes
+        modalText.classList.add("d-none"); // Hide "Loading..." text
+        yesImage.classList.remove("d-none"); // Show thumbs-up image
+
+        // Enable the button again
+        thumbsUpButton.disabled = false;
+
+        // Optionally close the modal after the operation completes
+        $("#correctModalLS").modal("hide"); // Assuming the modal is correctly initialized
+      } catch (error) {
+        // Handle any errors that may occur during the async operation
+        console.error("Error during addSyllableToLearned:", error);
+
+        // Ensure the UI gets updated even if the operation fails
+        modalText.classList.add("d-none"); // Hide "Loading..." text
+        yesImage.classList.remove("d-none"); // Show thumbs-up image
+        thumbsUpButton.disabled = false;
+      }
+    }
+
+    socket.on("correct_detection", function (data) {
+      const inputBoxes = document.querySelectorAll(".input-div .input-box"); // Select all input boxes
+
+      if (data.correct) {
+        // Hide the original box
+        centeredBox.classList.add("d-none");
+        newContent.classList.remove("d-none"); // Show new content
+
+        let currentIndex = 0; // Start with the first input box
+
+        function processLetter() {
+          if (currentIndex >= inputBoxes.length) return; // Exit if all letters are processed
+
+          const currentInputBox = inputBoxes[currentIndex]; // Get the current input box
+          const targetLetter = currentSyllable[currentIndex]; // Get the target letter
+          let letterToDisplay = data.recognized_letter;
+
+          // Capitalize the first letter, lowercase the rest
+          if (currentIndex === 0) {
+            letterToDisplay = letterToDisplay.toUpperCase(); // First letter uppercase
+          } else {
+            letterToDisplay = letterToDisplay.toLowerCase(); // Subsequent letters lowercase
+          }
+
+          // Only check the box if it's not already filled
+          if (
+            currentInputBox.textContent === "_" ||
+            currentInputBox.style.color === "red"
+          ) {
+            if (letterToDisplay === targetLetter) {
+              currentInputBox.textContent = letterToDisplay; // Set the recognized letter
+              currentInputBox.style.color = "green"; // Correct letter, turn green
+
+              // Add shake animation for feedback
               currentInputBox.classList.add(
                 "animate__animated",
-                "animate__bounceIn"
+                "animate__shakeX"
               );
 
-              // Wait for the enlarge animation to finish
+              // Wait for 1 second before locking and enlarging the letter
               setTimeout(() => {
-                currentInputBox.classList.remove("animate__bounceIn"); // Remove enlarge animation
+                currentInputBox.classList.remove("animate__shakeX"); // Remove shake animation
+                currentInputBox.classList.add(
+                  "animate__animated",
+                  "animate__bounceIn"
+                );
 
-                // Check if this is the last letter
-                if (currentIndex === inputBoxes.length - 1) {
-                  alert("You did it! All letters are correct!"); // Success message
-                }
-
-                currentIndex++; // Move to the next letter
-                processLetter(); // Recursively process the next letter
-              }, 500); // Wait for enlarge animation duration
-            }, 1000); // Wait for shake animation duration
+                // Wait for the enlarge animation to finish
+                setTimeout(() => {
+                  currentInputBox.classList.remove("animate__bounceIn"); // Remove enlarge animation
+                  // Check if this is the last letter
+                  if (currentIndex === inputBoxes.length - 1) {
+                    // Show the correctModal instead of an alert
+                    const correctModal = new bootstrap.Modal(
+                      document.getElementById("correctModalLS"),
+                      {
+                        backdrop: "static", // Prevent closing by clicking outside
+                      }
+                    );
+                    correctModal.show(); // Display the modal
+                    console.log("currentLetter: ", currentLetter);
+                    console.log("currentSyllable: ", currentSyllable);
+                  } else {
+                    currentIndex++; // Move to the next letter
+                    processLetter(); // Recursively process the next letter
+                  }
+                }, 500); // Wait for enlarge animation duration
+              }, 1000); // Wait for shake animation duration
+            } else {
+              currentInputBox.textContent = letterToDisplay; // Display incorrect letter
+              currentInputBox.style.color = "red"; // Turn red
+            }
           } else {
-            currentInputBox.textContent = letterToDisplay; // Display incorrect letter
-            currentInputBox.style.color = "red"; // Turn red
+            currentIndex++; // Skip to the next letter if current is already filled
+            processLetter(); // Recursively process the next letter
           }
-        } else {
-          currentIndex++; // Skip to the next letter if current is already filled
-          processLetter(); // Recursively process the next letter
         }
+
+        processLetter(); // Start processing the first letter
+      } else {
+        // Handle incorrect recognition or other logic here
+        centeredBox.classList.remove("d-none"); // Show original box
+        newContent.classList.add("d-none");
       }
-
-      processLetter(); // Start processing the first letter
-    } else {
-      // Handle incorrect recognition or other logic here
-      // centeredBox.classList.remove("d-none"); // Show original box
-      // newContent.classList.add("d-none");
-    }
-  });
-
-  // Call the function to get the letter and syllables
-  getLetterAndSyllables(currentLetter)
-    .then((data) => {
-      console.log("Letter and Syllables:", data);
-      displaySyllables(data);
-      loadingContainerDiv.style.setProperty("display", "none", "important");
-      containerMain.style.display = "flex"; // Show main content
-      console.log("isLoading Done: ", isLoading);
-    })
-    .catch((error) => {
-      console.error("Error fetching letter and syllables:", error);
-      containerLoading.innerHTML =
-        "<p>Error loading data. Please try again.</p>"; // Show error message
-      console.log("isLoading not Done: ", isLoading);
     });
 
-  function displaySyllables(data) {
-    const syllablesContainer = document.getElementById("syllablesContainer");
+    Promise.all([
+      getLetterAndSyllables(currentLetter), // Fetch all syllables
+      getLettersSyllablesForTags(userId, currentLetter), // Fetch learned syllables
+    ])
+      .then(([allSyllablesData, learnedSyllablesData]) => {
+        console.log("All Syllables:", allSyllablesData);
+        console.log("Learned Syllables:", learnedSyllablesData);
 
-    const vowels = new Set(["A", "E", "I", "O", "U", "a", "e", "i", "o", "u"]);
+        // Safeguard against null or undefined values
+        const learnedSyllables =
+          learnedSyllablesData && learnedSyllablesData.syllables
+            ? learnedSyllablesData.syllables
+            : []; // Default to an empty array if no learned syllables
 
-    const letterSyllableBox = document.createElement("h2");
-    letterSyllableBox.className =
-      "syllable-box" + (vowels.has(data.letter) ? " vowel" : "");
-    letterSyllableBox.textContent = data.letter;
-    syllablesContainer.appendChild(letterSyllableBox);
+        // Merge the data
+        const mergedData = {
+          letter: allSyllablesData.letter,
+          syllables: allSyllablesData.syllables,
+          learned: learnedSyllables, // Use the fallback
+        };
 
-    letterSyllableBox.classList.add("selected");
-    currentSyllable = data.letter; // Set current syllable to the letter
-    populateGuideDiv(data.letter);
-    populateInputDiv(data.letter);
+        // Display the syllables with the merged data
+        displaySyllables(mergedData);
 
-    letterSyllableBox.addEventListener("click", function () {
-      clearSelectedSyllables();
+        loadingContainerDiv.style.setProperty("display", "none", "important");
+        containerMain.style.display = "flex"; // Show main content
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        containerLoading.innerHTML =
+          "<p>Error loading data. Please try again.</p>"; // Show error message
+      });
+
+    function displaySyllables(data) {
+      const syllablesContainer = document.getElementById("syllablesContainer");
+      const vowels = new Set([
+        "A",
+        "E",
+        "I",
+        "O",
+        "U",
+        "a",
+        "e",
+        "i",
+        "o",
+        "u",
+      ]);
+
+      // Function to check if a syllable is learned
+      const isLearned = (syllable) => {
+        // If `learned` is undefined or empty, return false
+        if (!data.learned || !Array.isArray(data.learned)) {
+          return false;
+        }
+        return data.learned.includes(syllable);
+      };
+
+      // Create the box for the main letter
+      const letterSyllableBox = document.createElement("h2");
+      letterSyllableBox.className =
+        "syllable-box" + (vowels.has(data.letter) ? " vowel" : "");
+      letterSyllableBox.textContent = data.letter;
+      syllablesContainer.appendChild(letterSyllableBox);
+
+      // Create the icon and append it to the letter syllable box
+      const checkIcon = document.createElement("i");
+      checkIcon.className = "fas fa-circle-check icon-check"; // Font Awesome class for the check icon
+      if (!isLearned(data.letter)) {
+        checkIcon.style.visibility = "hidden"; // Hide icon if not learned
+      }
+      letterSyllableBox.appendChild(checkIcon);
+
       letterSyllableBox.classList.add("selected");
-      currentSyllable = data.letter; // Update current syllable dynamically
+      currentSyllable = data.letter; // Set current syllable to the letter
       populateGuideDiv(data.letter);
       populateInputDiv(data.letter);
-    });
 
-    if (!vowels.has(data.letter)) {
-      data.syllables.forEach((syllable) => {
-        const syllableBox = document.createElement("h2");
-        syllableBox.className = "syllable-box";
-        syllableBox.textContent = syllable;
-        syllablesContainer.appendChild(syllableBox);
+      letterSyllableBox.addEventListener("click", function () {
+        clearSelectedSyllables();
+        letterSyllableBox.classList.add("selected");
+        currentSyllable = data.letter; // Update current syllable dynamically
+        populateGuideDiv(data.letter);
+        populateInputDiv(data.letter);
+      });
 
-        syllableBox.addEventListener("click", function () {
-          clearSelectedSyllables();
-          syllableBox.classList.add("selected");
-          currentSyllable = syllable; // Update current syllable dynamically
-          populateGuideDiv(syllable);
-          populateInputDiv(syllable);
+      // Create boxes for the syllables if the letter is not a vowel
+      if (!vowels.has(data.letter)) {
+        // Sort the syllables alphabetically
+        const sortedSyllables = data.syllables
+          .slice()
+          .sort((a, b) => a.localeCompare(b));
+
+        sortedSyllables.forEach((syllable) => {
+          const syllableBox = document.createElement("h2");
+          syllableBox.className = "syllable-box";
+          syllableBox.textContent = syllable;
+          syllablesContainer.appendChild(syllableBox);
+
+          // Create the icon and append it to the syllable box
+          const syllableCheckIcon = document.createElement("i");
+          syllableCheckIcon.className = "fas fa-circle-check icon-check"; // Font Awesome class for the check icon
+
+          if (!isLearned(syllable)) {
+            syllableCheckIcon.style.visibility = "hidden"; // Hide icon if not learned
+          }
+          syllableBox.appendChild(syllableCheckIcon);
+
+          syllableBox.addEventListener("click", function () {
+            clearSelectedSyllables();
+            syllableBox.classList.add("selected");
+            currentSyllable = syllable; // Update current syllable dynamically
+            populateGuideDiv(syllable);
+            populateInputDiv(syllable);
+          });
         });
+      }
+    }
+
+    // Function to populate the guide-div with letters and SVGs
+    function populateGuideDiv(syllable) {
+      const guideDiv = document.querySelector(".guide-div");
+      guideDiv.innerHTML = ""; // Clear existing content
+
+      for (let char of syllable) {
+        const charWrapper = document.createElement("div");
+        charWrapper.className = "char-wrapper";
+
+        const charText = document.createElement("div");
+        charText.className = "char-text";
+        charText.textContent = char.toUpperCase(); // Text above the box
+
+        const charBox = document.createElement("div");
+        charBox.className = "char-box guide-box";
+
+        const charIcon = document.createElement("img");
+        charIcon.src = `/static/assets/svg_icon/${char.toUpperCase()}.svg`; // Example path
+        charIcon.classList.add("char-icon");
+
+        charBox.appendChild(charIcon);
+        charWrapper.appendChild(charText);
+        charWrapper.appendChild(charBox);
+
+        guideDiv.appendChild(charWrapper);
+      }
+    }
+
+    function populateInputDiv(syllable) {
+      const inputDiv = document.querySelector(".input-div");
+      inputDiv.innerHTML = ""; // Clear previous content
+
+      for (let i = 0; i < syllable.length; i++) {
+        const inputBox = document.createElement("div");
+        inputBox.className = "char-box input-box";
+        inputBox.textContent = "_"; // Placeholder for user input
+        inputBox.setAttribute("data-index", i);
+
+        inputDiv.appendChild(inputBox);
+      }
+    }
+
+    // Function to clear previous selections
+    function clearSelectedSyllables() {
+      const syllableBoxes = document.querySelectorAll(".syllable-box");
+      syllableBoxes.forEach((box) => {
+        box.classList.remove("selected"); // Remove selected class from all boxes
       });
     }
-  }
 
-  // Function to populate the guide-div with letters and SVGs
-  function populateGuideDiv(syllable) {
-    const guideDiv = document.querySelector(".guide-div");
-    guideDiv.innerHTML = ""; // Clear existing content
-
-    for (let char of syllable) {
-      const charWrapper = document.createElement("div");
-      charWrapper.className = "char-wrapper";
-
-      const charText = document.createElement("div");
-      charText.className = "char-text";
-      charText.textContent = char.toUpperCase(); // Text above the box
-
-      const charBox = document.createElement("div");
-      charBox.className = "char-box guide-box";
-
-      const charIcon = document.createElement("img");
-      charIcon.src = `/static/assets/svg_icon/${char.toUpperCase()}.svg`; // Example path
-      charIcon.classList.add("char-icon");
-
-      charBox.appendChild(charIcon);
-      charWrapper.appendChild(charText);
-      charWrapper.appendChild(charBox);
-
-      guideDiv.appendChild(charWrapper);
-    }
-  }
-
-  function populateInputDiv(syllable) {
-    const inputDiv = document.querySelector(".input-div");
-    inputDiv.innerHTML = ""; // Clear previous content
-
-    for (let i = 0; i < syllable.length; i++) {
-      const inputBox = document.createElement("div");
-      inputBox.className = "char-box input-box";
-      inputBox.textContent = "_"; // Placeholder for user input
-      inputBox.setAttribute("data-index", i);
-
-      inputDiv.appendChild(inputBox);
-    }
-  }
-
-  // Function to clear previous selections
-  function clearSelectedSyllables() {
-    const syllableBoxes = document.querySelectorAll(".syllable-box");
-    syllableBoxes.forEach((box) => {
-      box.classList.remove("selected"); // Remove selected class from all boxes
-    });
-  }
-  // Function to check user input
-  function checkInput() {
-    const inputValue = userInput.value.trim().toLowerCase(); // Get user input and trim whitespace
-    const currentSyllable = document
-      .querySelector(".card-body span")
-      .textContent.toLowerCase(); // Get the currently displayed syllable
-
-    if (inputValue === currentSyllable) {
-      // Show modal for correct answer
-      $("#correctModal").modal("show"); // Ensure you have a modal with this ID in your HTML
-    } else {
-      // Optionally handle incorrect answers
-      alert("Try again!"); // Or use a different method to inform the user
-    }
-  }
-
-  // Add event listener to submit button
-  submitButton.addEventListener("click", checkInput);
+    // Add event listener to the button
+    document
+      .getElementById("thumbsUpButton")
+      .addEventListener("click", handleAddToLearned);
+  });
 </script>
 
 <!-- JavaScript to handle loading modal -->

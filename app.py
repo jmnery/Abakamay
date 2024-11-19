@@ -229,6 +229,7 @@ def learnOptions(letter):
 
 @app.route('/lettersSyllables/<letter>')
 def lettersSyllables(letter):
+    user_id = session.get('user_id')
     avatar = session.get('avatar')
     # List of available letters
     letters = ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L',
@@ -243,7 +244,7 @@ def lettersSyllables(letter):
     next_letter = letters[letter_index +
                           1] if letter_index < len(letters) - 1 else letters[0]
     return render_template('tabs/lettersSyllables.html', avatar=avatar, letter=letter,  previous_letter=previous_letter, next_letter=next_letter,
-                           letter_options=letters)
+                           letter_options=letters, user_id=user_id)
 
 
 @app.route('/m_learn/<letter>')
