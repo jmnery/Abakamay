@@ -743,6 +743,8 @@
   let selectedValue = "";
   let syllable = ""; // Declare the syllable variable globally
 
+  const userInput = document.getElementById("inputField");
+
   //Modal Controllers
   let wordModalCorrectEl = document.getElementById("wordModalCorrect");
   let wordModalCorrect = new bootstrap.Modal(wordModalCorrectEl);
@@ -816,6 +818,7 @@
     userInput = userInput
       .toLowerCase() // Convert to lowercase
       .trim() // Remove whitespaces at the beginning and end
+      .replace(/-/g, " ") // Replace all dashes with spaces
       .replace(/\s+/g, " "); // Replace multiple spaces with a single space
 
     // Check if the word is already learned
