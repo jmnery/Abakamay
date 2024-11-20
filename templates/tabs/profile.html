@@ -78,7 +78,7 @@ content %}
 
   /* Faded effect for False icons */
   .faded-icon {
-    opacity: 0.5; /* Make it slightly faded */
+    opacity: 0.2; /* Make it slightly faded */
     transition: opacity 0.3s ease; /* Smooth transition on hover */
   }
 
@@ -197,11 +197,44 @@ content %}
         </ul>
       </li>
     </ul>
+    <!-- Help dropdown on the right side -->
+    <div class="nav-item dropdown ms-auto help-button">
+      <a
+        class="btn btn-outline-light dropdown-toggle"
+        id="helpDropdown"
+        role="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        Gabay
+      </a>
+      <ul
+        class="dropdown-menu dropdown-menu-end"
+        aria-labelledby="helpDropdown"
+      >
+        <li>
+          <a
+            class="dropdown-item"
+            href="javascript:void(0);"
+            onclick="startIntro()"
+            >Gabay sa pahina ng pag-aaral</a
+          >
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            data-bs-toggle="modal"
+            data-bs-target="#summaryModal"
+            >Pangkalahatang gabay</a
+          >
+        </li>
+      </ul>
+    </div>
   </div>
 </nav>
 
 <div class="container-profile">
-  <div class="card">
+  <div class="card myProfile">
     <div class="card-header">Aking profile</div>
     <div class="card-body text-center">
       <img
@@ -292,6 +325,42 @@ content %}
       });
     });
   });
+
+  function startIntro() {
+    // Start the intro tour
+    introJs()
+      .setOptions({
+        disableInteraction: true,
+        steps: [
+          {
+            element: document.querySelector(".myProfile"),
+            title: "Detalye ng user",
+            intro: "",
+            position: "left",
+          },
+          {
+            element: document.querySelector(".achievements-card"),
+            title: "Tropeyo",
+            intro:
+              "Ipinapakita dito ang mga letra na nakumpleto na ng user sa kaniyang pagsasanay",
+          },
+          {
+            element: document.querySelector(".navbar-nav"),
+            title: "Menu",
+            intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
+            position: "bottom",
+          },
+          {
+            element: document.querySelector(".help-button"),
+            title: "Gabay",
+            intro:
+              "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
+            position: "bottom",
+          },
+        ],
+      })
+      .start();
+  }
 </script>
 
 {% endblock %}

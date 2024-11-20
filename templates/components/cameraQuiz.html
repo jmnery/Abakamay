@@ -470,7 +470,20 @@
     }, 3000); // Loop every 3 seconds
 
     document.addEventListener("keydown", function (event) {
-      if (event.code === "Space") {
+      const inputField = document.getElementById("inputField"); // Replace with your input field's ID
+
+      if (event.altKey) {
+        // Check if the Alt key is pressed
+        event.preventDefault(); // Prevent the default action (e.g., browser actions)
+        const recognizedLetter =
+          document.getElementById("recognizedLetter").textContent; // Get recognized letter
+
+        if (recognizedLetter && inputField) {
+          inputField.value = ensureFirstLetterCapitalized(
+            inputField.value + recognizedLetter
+          ); // Append the recognized letter to the input field
+        }
+      } else if (event.code === "Space") {
         // Check if the pressed key is "Space"
         event.preventDefault(); // Prevent the default scrolling behavior
         const inputField = document.getElementById("inputField"); // Replace with your input field's ID

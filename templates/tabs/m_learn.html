@@ -301,7 +301,7 @@
     </ul>
 
     <!-- Add buttons for previous letter, letter dropdown, and next letter -->
-    <li class="nav-item list-unstyled">
+    <li class="nav-item list-unstyled letterNav">
       <div
         class="btn-group ms-auto"
         role="group"
@@ -400,7 +400,7 @@
     <div class="col-md-4">
       <!-- Tabs for syllables -->
       <ul
-        class="nav nav-tabs justify-content-center"
+        class="nav nav-tabs justify-content-center syllableTabs"
         id="syllableTabs"
         role="tablist"
       >
@@ -1027,6 +1027,60 @@
     videoFrame.src = ""; // Reset the video URL to stop the video
   });
 
+  function startIntro() {
+    // Start the intro tour
+    introJs()
+      .setOptions({
+        disableInteraction: true,
+        steps: [
+          {
+            element: document.querySelector(".black-rectangle"),
+            title: "Camera Feed",
+            intro:
+              "Ipakita ang iyong kamay para madetect ang letra gamit ang wikang pasenyas",
+            position: "top",
+          },
+          {
+            element: document.querySelector(".syllableTabs"),
+            title: "Mga tab sa bawat pantig",
+            intro:
+              "Mag-navigate sa bawat pantig kung saan nakabase ang ibang mga salita",
+          },
+          {
+            element: document.querySelector(".word-box-container"),
+            title: "Mga salita",
+            intro:
+              "Pumili ng salita na iyong ibabaybay at ipapantig",
+          },
+          {
+            element: document.querySelector(".question-icon"),
+            title: "Pahiwatig",
+            intro:
+              "Pinapakita ang tamang pagbaybay at pagpantig para sa napiling salita",
+          },
+          {
+            element: document.querySelector(".navbar-nav"),
+            title: "Menu",
+            intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
+            position: "bottom",
+          },
+          {
+            element: document.querySelector(".letterNav"),
+            title: "Nabigasyon",
+            intro: "Mag-navigate sa ibang letra",
+            position: "bottom",
+          },
+          {
+            element: document.querySelector(".help-button"),
+            title: "Gabay",
+            intro:
+              "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
+            position: "bottom",
+          },
+        ],
+      })
+      .start();
+  }
 </script>
 
 {% endblock %}

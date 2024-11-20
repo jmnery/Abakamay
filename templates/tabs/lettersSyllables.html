@@ -328,7 +328,7 @@ content %}
     </ul>
 
     <!-- Add buttons for previous letter, letter dropdown, and next letter -->
-    <li class="nav-item list-unstyled">
+    <li class="nav-item list-unstyled letterNav">
       <div
         class="btn-group ms-auto"
         role="group"
@@ -447,7 +447,7 @@ content %}
     </div>
 
     <!-- Third Column -->
-    <div class="col-md-5 h-100">
+    <div class="col-md-5 h-100 thirdColumn">
       <div class="d-flex h-100 align-items-center justify-content-center">
         <!-- Original div (centered-box) -->
         <div class="centered-box w-100">
@@ -885,6 +885,55 @@ content %}
 
 <!-- JavaScript to handle loading modal -->
 <script>
+  function startIntro() {
+    // Start the intro tour
+    introJs()
+      .setOptions({
+        disableInteraction: true,
+        steps: [
+          {
+            element: document.querySelector(".black-rectangle"),
+            title: "Camera Feed",
+            intro:
+              "Ipakita ang iyong kamay para madetect ang letra gamit ang wikang pasenyas",
+            position: "top",
+          },
+          {
+            element: document.querySelector(".syllable-box"),
+            title: "Kahon ng Letra at Pantig",
+            intro:
+              "Pumili ng letra o pantig na ibabaybay gamit ang wikang pasenyas",
+          },
+          {
+            element: document.querySelector(".thirdColumn"),
+            title: "Gabay sa pagbababaybay",
+            intro:
+              "Tumingin sa mga imahe upang maging gabay sa iyong pagsenyas",
+          },
+          {
+            element: document.querySelector(".navbar-nav"),
+            title: "Menu",
+            intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
+            position: "bottom",
+          },
+          {
+            element: document.querySelector(".letterNav"),
+            title: "Nabigasyon",
+            intro: "Mag-navigate sa ibang letra",
+            position: "bottom",
+          },
+          {
+            element: document.querySelector(".help-button"),
+            title: "Gabay",
+            intro:
+              "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
+            position: "bottom",
+          },
+        ],
+      })
+      .start();
+  }
+
   // Handle page show event
   window.addEventListener("pageshow", function (event) {
     $("#mainLoadingModal").modal("hide");

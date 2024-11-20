@@ -242,6 +242,39 @@ content %}
         </ul>
       </li>
     </ul>
+    <!-- Help dropdown on the right side -->
+    <div class="nav-item dropdown ms-auto help-button">
+      <a
+        class="btn btn-outline-light dropdown-toggle"
+        id="helpDropdown"
+        role="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        Gabay
+      </a>
+      <ul
+        class="dropdown-menu dropdown-menu-end"
+        aria-labelledby="helpDropdown"
+      >
+        <li>
+          <a
+            class="dropdown-item"
+            href="javascript:void(0);"
+            onclick="startIntro()"
+            >Gabay sa pahina ng pag-aaral</a
+          >
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            data-bs-toggle="modal"
+            data-bs-target="#summaryModal"
+            >Pangkalahatang gabay</a
+          >
+        </li>
+      </ul>
+    </div>
   </div>
 </nav>
 
@@ -252,7 +285,7 @@ content %}
       <div class="filter-options">
         <!-- Search Input and Button -->
         <div
-          class="mb-3"
+          class="mb-3 searchField"
           style="padding-bottom: 0 !important; margin-bottom: 0 !important"
         >
           <input
@@ -282,7 +315,7 @@ content %}
           </button>
           <button
             id="clear-button"
-            class="btn btn-secondary"
+            class="btn btn-secondary clearButton"
             style="flex: 1; margin-bottom: 0 !important"
             onclick="document.getElementById('search-input').value='';"
           >
@@ -292,14 +325,14 @@ content %}
 
         <hr />
         <!-- Main Filter Group -->
-        <label>
+        <label class="lahat">
           <input type="radio" name="filter-main" value="all" checked /> Lahat ng
           mga salita
         </label>
       </div>
       <hr />
       <!-- Divider -->
-      <div class="filter-options">
+      <div class="filter-options pagsalaSanay">
         <!-- Complete Filter Group -->
         <label>
           <input type="radio" name="filter-complete" value="completed" />
@@ -312,7 +345,7 @@ content %}
       </div>
       <hr />
       <!-- Divider -->
-      <div class="filter-options">
+      <div class="filter-options pagsalaAral">
         <!-- Learn Filter Group -->
         <label>
           <input type="radio" name="filter-learn" value="learned" /> Naaral na
@@ -600,6 +633,64 @@ content %}
       spinner.style.display = "none"; // Hide spinner if image fails to load
     };
   });
+
+  function startIntro() {
+    // Start the intro tour
+    introJs()
+      .setOptions({
+        disableInteraction: true,
+        steps: [
+          {
+            element: document.querySelector(".letter-section"),
+            title: "Koleksyon ng mga salita",
+            intro:
+              "Naglalaman ng mga salita na nakapaloob sa letra o pantig na kinakatawan",
+            position: "left",
+          },
+          {
+            element: document.querySelector(".searchField"),
+            title: "Search Field",
+            intro:
+              "Maglagay ng isang letra upang hanapin ang mga salita na nakapaloob sa letrang iyon",
+          },
+          {
+            element: document.querySelector(".clearButton"),
+            title: "Clear Button",
+            intro:
+              "Tanggalin ang letra sa Search Field at i-reset ang mga salita na ipinapakita",
+          },
+          {
+            element: document.querySelector(".lahat"),
+            title: "Isala sa lahat",
+            intro: "Ipakita ang lahat ng salita",
+          },
+          {
+            element: document.querySelector(".pagsalaSanay"),
+            title: "Isala sa mga nasanay",
+            intro: "Ipakita ang mga salitang nasanay na",
+          },
+          {
+            element: document.querySelector(".pagsalaAral"),
+            title: "Isala sa mga naaral",
+            intro: "Ipakita ang mga salitang naaral na",
+          },
+          {
+            element: document.querySelector(".navbar-nav"),
+            title: "Menu",
+            intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
+            position: "bottom",
+          },
+          {
+            element: document.querySelector(".help-button"),
+            title: "Gabay",
+            intro:
+              "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
+            position: "bottom",
+          },
+        ],
+      })
+      .start();
+  }
 </script>
 
 {% endblock %}
