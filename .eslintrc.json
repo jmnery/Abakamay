@@ -5,7 +5,8 @@
   },
   "extends": "eslint:recommended",
   "rules": {
-    "no-unused-vars": "off" // or any other rules you want to disable
+    "no-unused-vars": "off", // or any other rules you want to disable
+    "no-undef": "off"
   },
   "overrides": [
     {

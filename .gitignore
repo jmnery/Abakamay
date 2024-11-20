@@ -2,3 +2,5 @@
 .venv/
 # Ignore services directory- where credentials is stored
 services/
+
+.env

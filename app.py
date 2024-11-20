@@ -18,6 +18,10 @@ import slr
 from databaseServices import addBadgesToComplete, addToHistory, get_all_letters, get_all_words, get_user_data_by_id, get_user_progress, get_words_by_letter, getHistory, initialize_firebase, add_user_to_db, get_all_users, markAsComplete, upload_file_to_storage, add_learned_word
 from camera import generate_frames
 from socketioInstance import socketio
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)  # Only this instance should exist
 socketio.init_app(app)
@@ -25,17 +29,19 @@ socketio.init_app(app)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
 
 # Initialize Firebase
-credentials_path = r'C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\services\credentials.json'
-firebase_url = 'https://abakada-flask-default-rtdb.firebaseio.com/'
-storage_bucket = 'abakada-flask.appspot.com'
+credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH')
+firebase_url = os.getenv('FIREBASE_DATABASE_URL',
+                         'https://abakada-flask-default-rtdb.firebaseio.com/')
+storage_bucket = os.getenv('FIREBASE_STORAGE_BUCKET',
+                           'abakada-flask.appspot.com')
 config = {
-    "apiKey": "AIzaSyBcZtR-dsbHDzcrjhGdIHzNh0ggFNvXPz0",
-    "authDomain": "abakada-flask.firebaseapp.com",
-    "databaseURL": "https://abakada-flask-default-rtdb.firebaseio.com",
-    "projectId": "abakada-flask",
-    "storageBucket": "abakada-flask.appspot.com",
-    "messagingSenderId": "456845640805",
-    "appId": "1:456845640805:web:1d85c1ac3826ce25d9728c"
+    "apiKey": os.getenv('FIREBASE_API_KEY'),
+    "authDomain": os.getenv('FIREBASE_AUTH_DOMAIN'),
+    "databaseURL": firebase_url,
+    "projectId": os.getenv('FIREBASE_PROJECT_ID'),
+    "storageBucket": storage_bucket,
+    "messagingSenderId": os.getenv('FIREBASE_MESSAGING_SENDER_ID'),
+    "appId": os.getenv('FIREBASE_APP_ID')
 }
 initialize_firebase(credentials_path, firebase_url, storage_bucket)
 
@@ -244,7 +250,7 @@ def lettersSyllables(letter):
     next_letter = letters[letter_index +
                           1] if letter_index < len(letters) - 1 else letters[0]
     return render_template('tabs/lettersSyllables.html', avatar=avatar, letter=letter,  previous_letter=previous_letter, next_letter=next_letter,
-                           letter_options=letters, user_id=user_id)
+                           letter_options=letters, user_id=user_id, firebase_config=config)
 
 
 @app.route('/m_learn/<letter>')
