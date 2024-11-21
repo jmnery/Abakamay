@@ -290,7 +290,7 @@ content %}
       %}
       <!-- If badge is True, display the regular image -->
       <img
-        src="{{ url_for('static', filename='assets/svg_icon/' + letter + '.svg') }}"
+        src="{{ url_for('static', filename='assets/achievements/' + letter + '.png') }}"
         alt="{{ letter }}"
         class="achievement-icon animate__animated animate__tada infinite-loop"
         data-toggle="tooltip"
@@ -300,7 +300,7 @@ content %}
       {% else %}
       <!-- If badge is False, display the outline image -->
       <img
-        src="{{ url_for('static', filename='assets/svg_icon/' + letter + '_outline.svg') }}"
+        src="{{ url_for('static', filename='assets/achievements/' + letter + '_OUTLINE.png') }}"
         alt="{{ letter }} outline"
         class="achievement-icon faded-icon"
         data-toggle="tooltip"

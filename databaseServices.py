@@ -80,13 +80,19 @@ def get_all_users():
     return users
 
 
-def upload_file_to_storage(file, letter, syllable, letterType, words, value):
+def upload_file_to_storage(file, letter, syllable, letterType, value):
     try:
-        # Extract the file extension
+        # Ensure the letter is uppercase
+        letter = letter.upper()
+
+        # Ensure the first letter of the syllable is capitalized
+        syllable = syllable.capitalize()
+        # Extract the file name (without extension) and the file extension
+        file_name = os.path.splitext(file.filename)[0].lower()
         file_extension = os.path.splitext(file.filename)[1]
 
         # Define the path for storing the file in Firebase Storage
-        file_path = f'{file.filename}'
+        file_path = file.filename.lower()
 
         # Get a reference to the Firebase Storage bucket
         bucket = storage.bucket()
@@ -110,24 +116,27 @@ def upload_file_to_storage(file, letter, syllable, letterType, words, value):
         letter_ref = db.collection('words').document(letter)
         letter_doc = letter_ref.get()
 
-        # Prepare new word entries for the syllable
-        new_words = [{'text': word.lower(), 'extension': file_extension, 'value': value, 'wordID': str(uuid.uuid4())}
-                     for word in words]
+        # Prepare the word entry for the syllable
+        new_word = {
+            'text': file_name,
+            'extension': file_extension,
+            'value': value,
+            'wordID': str(uuid.uuid4())
+        }
 
         if letter_doc.exists:
             # Get the existing data
             letter_data = letter_doc.to_dict()
             syllables = letter_data.get('syllables', {})
 
-            # Append the new words to the existing ones for the syllable
+            # Append the new word to the existing ones for the syllable
             if syllable in syllables:
-                syllables[syllable].extend(new_words)
+                syllables[syllable].append(new_word)
             else:
-                syllables[syllable] = new_words
+                syllables[syllable] = [new_word]
 
             # Check if letterType is provided; otherwise, keep the existing one
             if not letterType:
-                # Default to empty if no existing type
                 letterType = letter_data.get('type', '')
 
             # Update the Firestore document, including the letterType
@@ -137,10 +146,9 @@ def upload_file_to_storage(file, letter, syllable, letterType, words, value):
             })
         else:
             # Create a new document if it doesn't exist
-            syllables = {syllable: new_words}
+            syllables = {syllable: [new_word]}
             letter_ref.set({
                 'syllables': syllables,
-                # Add letterType or set as empty if not provided
                 'type': letterType if letterType else '',
                 'wordCount': 1
             })

@@ -146,19 +146,26 @@ def signup():
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     if request.method == 'POST':
-        letter = request.form['letter']
-        syllable = request.form['syllable']
-        letter_type = request.form['type']
-        words = request.form['words'].split(',')
-        value = request.form['value']
-        file = request.files['file']  # The uploaded file from the form
+        # Safely retrieve form data with defaults
+        letter = request.form.get('letter', '').strip()
+        syllable = request.form.get('syllable', '').strip()
+        # Use default '' if 'type' is missing
+        letter_type = request.form.get('type', '').strip()
+        value = request.form.get('value', '').strip()
+        file = request.files.get('file')  # Safely retrieve the uploaded file
 
-        # Call the function to upload file and save data
-        # Pass all the necessary data
+        # Ensure all required fields are present
+        if not letter or not syllable or not value or not file:
+            return "Missing required fields", 400
+
+        # Call the function to upload the file and save data
         result = upload_file_to_storage(
-            file, letter,  syllable, letter_type, words, value)
+            file, letter, syllable, letter_type, value)
 
-        return redirect(url_for('admin'))
+        if result['status'] == 'success':
+            return redirect(url_for('admin'))
+        else:
+            return f"Error: {result['message']}", 500
 
     return render_template('admin.html')
 
