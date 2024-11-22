@@ -755,6 +755,12 @@
   const handSignsContainer = document.getElementById("handSignsContainer");
   const videoFrame = document.getElementById("videoFrame");
 
+  // Check if the tour should start
+    const showTour = {{ show_tour | tojson }};
+    if (showTour) {
+      startIntro();
+    }
+
   // Enable input container on word box click
   document.querySelectorAll(".word-item").forEach(function (wordItem) {
     const imgUrl = wordItem.style.backgroundImage.slice(5, -2); // Extract the image URL

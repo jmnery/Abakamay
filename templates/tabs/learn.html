@@ -250,63 +250,69 @@ content %}
   </div>
 
   <script>
-    //Filter Options
-    document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
-      radio.addEventListener("change", function () {
-        var filter = this.value;
 
-        document.querySelectorAll(".letter-box").forEach(function (box) {
-          if (filter === "all") {
-            box.style.display = "block";
-          } else if (filter === "vowels" && box.classList.contains("vowel")) {
-            box.style.display = "block";
-          } else if (
-            filter === "consonants" &&
-            box.classList.contains("consonant")
-          ) {
-            box.style.display = "block";
-          } else {
-            box.style.display = "none";
-          }
+    // Check if the tour should start
+    const showTour = {{ show_tour | tojson }};
+    if (showTour) {
+      startIntro();
+    }
+      //Filter Options
+      document.querySelectorAll('input[name="filter"]').forEach(function (radio) {
+        radio.addEventListener("change", function () {
+          var filter = this.value;
+
+          document.querySelectorAll(".letter-box").forEach(function (box) {
+            if (filter === "all") {
+              box.style.display = "block";
+            } else if (filter === "vowels" && box.classList.contains("vowel")) {
+              box.style.display = "block";
+            } else if (
+              filter === "consonants" &&
+              box.classList.contains("consonant")
+            ) {
+              box.style.display = "block";
+            } else {
+              box.style.display = "none";
+            }
+          });
         });
       });
-    });
-    function startIntro() {
-      // Start the intro tour
-      introJs()
-        .setOptions({
-          disableInteraction: true,
-          steps: [
-            {
-              element: document.querySelector(".button_container"),
-              title: "Kahon ng letra",
-              intro:
-                "Pumindot ng letra para aralin ito at i-aplay sa pagbabaybay ng mga salita",
-              position: "left",
-            },
-            {
-              element: document.querySelector(".card"),
-              title: "Pangsala",
-              intro:
-                "Isala ang mga letra sa iyong pagpili (Lahat, Patinig, Katinig)",
-            },
-            {
-              element: document.querySelector(".navbar-nav"),
-              title: "Menu",
-              intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
-              position: "bottom",
-            },
-            {
-              element: document.querySelector(".help-button"),
-              title: "Gabay",
-              intro:
-                "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
-              position: "bottom",
-            },
-          ],
-        })
-        .start();
-    }
+      function startIntro() {
+        // Start the intro tour
+        introJs()
+          .setOptions({
+            disableInteraction: true,
+            steps: [
+              {
+                element: document.querySelector(".button_container"),
+                title: "Kahon ng letra",
+                intro:
+                  "Pumindot ng letra para aralin ito at i-aplay sa pagbabaybay ng mga salita",
+                position: "left",
+              },
+              {
+                element: document.querySelector(".card"),
+                title: "Pangsala",
+                intro:
+                  "Isala ang mga letra sa iyong pagpili (Lahat, Patinig, Katinig)",
+              },
+              {
+                element: document.querySelector(".navbar-nav"),
+                title: "Menu",
+                intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
+                position: "bottom",
+              },
+              {
+                element: document.querySelector(".help-button"),
+                title: "Gabay",
+                intro:
+                  "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
+                position: "bottom",
+              },
+            ],
+          })
+          .start();
+      }
   </script>
 </body>
 

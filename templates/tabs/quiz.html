@@ -224,6 +224,11 @@ content %}
   </div>
 </div>
 <script>
+  // Check if the tour should start
+  const showTour = {{ show_tour | tojson }};
+    if (showTour) {
+      startIntro();
+  }
   function startIntro() {
     // Start the intro tour
     introJs()

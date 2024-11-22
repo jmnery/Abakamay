@@ -83,14 +83,18 @@ def login():
         try:
             user = firebaseAuth.sign_in_with_email_and_password(
                 email, password)
-            session['user_id'] = user['localId']
-            # Adjust this based on your login system
-            user_id = session.get('user_id')
+            user_id = user['localId']
             # Fetch user data (including firstName) from your database
             user_data = get_user_data_by_id(user_id)
+
+            # Clear the session before setting new session variables for the new user
+            session.clear()  # This removes all session data
+
             # Store firstName in the session
+            session['user_id'] = user_id
             session['first_name'] = user_data.get('firstName', '')
             session['avatar'] = user_data.get('avatar', '')
+            session['new_user'] = False
             return redirect(url_for('learn'))
         except (HTTPError, FirebaseError) as e:
             # Capture error messages from Firebase
@@ -132,9 +136,14 @@ def signup():
             )
             add_user_to_db(user.uid, first_name,
                            last_name, email, age, birthday, avatar)
+
+            # Clear the session before setting new session variables for the new user
+            session.clear()  # This removes all session data
+
             session['user_id'] = user.uid
             session['first_name'] = first_name
             session['avatar'] = avatar
+            session['new_user'] = True
             return redirect(url_for('learn', show_summary_modal=True))
         except ValueError as ve:
             flash(f'Error: {ve}')
@@ -177,6 +186,26 @@ def main():
 
 @app.route('/learn')
 def learn():
+
+    # Check if the user is new and hasn't seen the tour yet
+    new_user = session.get('new_user')
+
+    if new_user:
+        # Check if the 'learn_tour_shown' key is in session, and if not, mark it as False
+        if 'learn_tour_shown' not in session:
+            session['learn_tour_shown'] = False
+
+        # Show tour if it hasn't been shown yet
+        # True if tour hasn't been shown yet
+        show_tour = not session['learn_tour_shown']
+
+        # Mark tour as shown for future visits
+        if show_tour:
+            session['learn_tour_shown'] = True  # Mark as shown
+
+    else:
+        show_tour = False  # If not a new user, do not show the tour
+
     show_summary_modal = request.args.get(
         'show_summary_modal', 'false').lower() == 'true'
     # Fetch the user_id from session or however you store the user's login information
@@ -231,17 +260,54 @@ def learn():
 
     # Sort all_letters based on the custom order
     all_letters.sort(key=lambda letter: custom_order.index(letter))
-    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data, firstName=user_fName, avatar=avatar, show_summary_modal=show_summary_modal)
+    return render_template('tabs/learn.html', letters=all_letters, vowels=vowels, consonants=consonants, progress_data=progress_data, firstName=user_fName, avatar=avatar, show_summary_modal=show_summary_modal, show_tour=show_tour)
 
 
 @app.route('/learnOptions/<letter>')
 def learnOptions(letter):
+    # Check if the user is new and hasn't seen the tour yet
+    new_user = session.get('new_user')
+
+    if new_user:
+        # Check if the key is in session, and if not, mark it as False
+        if 'learn_options_tour_shown' not in session:
+            session['learn_options_tour_shown'] = False
+
+        # Show tour if it hasn't been shown yet
+        # True if tour hasn't been shown yet
+        show_tour = not session['learn_options_tour_shown']
+
+        # Mark tour as shown for future visits
+        if show_tour:
+            session['learn_options_tour_shown'] = True  # Mark as shown
+
+    else:
+        show_tour = False  # If not a new user, do not show the tour
     avatar = session.get('avatar')
-    return render_template('tabs/learnOptions.html', avatar=avatar, letter=letter)
+    return render_template('tabs/learnOptions.html', avatar=avatar, letter=letter, show_tour=show_tour)
 
 
 @app.route('/lettersSyllables/<letter>')
 def lettersSyllables(letter):
+    # Check if the user is new and hasn't seen the tour yet
+    new_user = session.get('new_user')
+
+    if new_user:
+        # Check if the key is in session, and if not, mark it as False
+        if 'lettersSyllables_tour_shown' not in session:
+            session['lettersSyllables_tour_shown'] = False
+
+        # Show tour if it hasn't been shown yet
+        # True if tour hasn't been shown yet
+        show_tour = not session['lettersSyllables_tour_shown']
+
+        # Mark tour as shown for future visits
+        if show_tour:
+            session['lettersSyllables_tour_shown'] = True  # Mark as shown
+
+    else:
+        show_tour = False  # If not a new user, do not show the tour
+
     user_id = session.get('user_id')
     avatar = session.get('avatar')
     # List of available letters
@@ -257,11 +323,30 @@ def lettersSyllables(letter):
     next_letter = letters[letter_index +
                           1] if letter_index < len(letters) - 1 else letters[0]
     return render_template('tabs/lettersSyllables.html', avatar=avatar, letter=letter,  previous_letter=previous_letter, next_letter=next_letter,
-                           letter_options=letters, user_id=user_id, firebase_config=config)
+                           letter_options=letters, user_id=user_id, firebase_config=config, show_tour=show_tour)
 
 
 @app.route('/m_learn/<letter>')
 def m_learn(letter):
+
+    # Check if the user is new and hasn't seen the tour yet
+    new_user = session.get('new_user')
+
+    if new_user:
+        # Check if the key is in session, and if not, mark it as False
+        if 'm_learn_tour_shown' not in session:
+            session['m_learn_tour_shown'] = False
+
+        # Show tour if it hasn't been shown yet
+        # True if tour hasn't been shown yet
+        show_tour = not session['m_learn_tour_shown']
+
+        # Mark tour as shown for future visits
+        if show_tour:
+            session['m_learn_tour_shown'] = True  # Mark as shown
+
+    else:
+        show_tour = False  # If not a new user, do not show the tour
 
     # List of available letters
     letters = ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L',
@@ -282,7 +367,7 @@ def m_learn(letter):
 
     if not letter_doc.exists:
         # If the document doesn't exist, return an empty template
-        return render_template('tabs/m_learn.html', letter=letter, syllable_data={}, learned_words=set())
+        return render_template('tabs/m_learn.html', letter=letter, syllable_data={}, learned_words=set(), show_tour=show_tour)
 
     letter_data = letter_doc.to_dict()
     syllables = letter_data.get('syllables', {})
@@ -335,7 +420,7 @@ def m_learn(letter):
         syllable_data[syllable] = words
 
     print('syllable: ', syllable_data)
-    return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data, avatar=avatar, letter_options=letters, previous_letter=previous_letter, next_letter=next_letter)
+    return render_template('tabs/m_learn.html', letter=letter, syllable_data=syllable_data, avatar=avatar, letter_options=letters, previous_letter=previous_letter, next_letter=next_letter, show_tour=show_tour)
 
 
 @app.route('/mark_as_learned', methods=['POST'])
@@ -363,13 +448,50 @@ def mark_as_learned():
 
 @app.route('/quiz')
 def quiz():
+    # Check if the user is new and hasn't seen the tour yet
+    new_user = session.get('new_user')
+
+    if new_user:
+        # Check if the  key is in session, and if not, mark it as False
+        if 'quiz_tour_shown' not in session:
+            session['quiz_tour_shown'] = False
+
+        # Show tour if it hasn't been shown yet
+        # True if tour hasn't been shown yet
+        show_tour = not session['quiz_tour_shown']
+
+        # Mark tour as shown for future visits
+        if show_tour:
+            session['quiz_tour_shown'] = True  # Mark as shown
+
+    else:
+        show_tour = False  # If not a new user, do not show the tour
     avatar = session.get('avatar')
-    return render_template('tabs/quiz.html', avatar=avatar)
+    return render_template('tabs/quiz.html', avatar=avatar, show_tour=show_tour)
 
 
 @app.route('/m_quiz/<int:index>', methods=['GET'])
 @app.route('/m_quiz', methods=['GET'])
 def m_quiz(index=None):
+    # Check if the user is new and hasn't seen the tour yet
+    new_user = session.get('new_user')
+
+    if new_user:
+        # Check if the key is in session, and if not, mark it as False
+        if 'm_quiz_tour_shown' not in session:
+            session['m_quiz_tour_shown'] = False
+
+        # Show tour if it hasn't been shown yet
+        # True if tour hasn't been shown yet
+        show_tour = not session['m_quiz_tour_shown']
+
+        # Mark tour as shown for future visits
+        if show_tour:
+            session['m_quiz_tour_shown'] = True  # Mark as shown
+
+    else:
+        show_tour = False  # If not a new user, do not show the tour
+
     user_id = session.get('user_id')
     avatar = session.get('avatar')
 
@@ -403,7 +525,7 @@ def m_quiz(index=None):
         totalWords=len(quiz_words),
         all_words=json.dumps(quiz_words),  # Pass all words as JSON
         quizWords=json.dumps(quiz_words),
-        avatar=avatar
+        avatar=avatar, show_tour=show_tour
     )
 
 
@@ -502,6 +624,26 @@ def randomizeCategory(letter):
 
 @app.route('/picker')
 def picker():
+
+    # Check if the user is new and hasn't seen the tour yet
+    new_user = session.get('new_user')
+
+    if new_user:
+        # Check if the key is in session, and if not, mark it as False
+        if 'picker_tour_shown' not in session:
+            session['picker_tour_shown'] = False
+
+        # Show tour if it hasn't been shown yet
+        # True if tour hasn't been shown yet
+        show_tour = not session['picker_tour_shown']
+
+        # Mark tour as shown for future visits
+        if show_tour:
+            session['picker_tour_shown'] = True  # Mark as shown
+
+    else:
+        show_tour = False  # If not a new user, do not show the tour
+
     # Fetch the user_id from session or however you store the user's login information
     user_id = session.get('user_id')  # Adjust this based on your login system
     avatar = session.get('avatar')
@@ -542,11 +684,30 @@ def picker():
 
     # Sort all_letters based on the custom order
     all_letters.sort(key=lambda x: custom_order.index(x['letter']))
-    return render_template('tabs/picker.html', all_letters=all_letters, vowels=vowels, consonants=consonants, userId=user_id, avatar=avatar)
+    return render_template('tabs/picker.html', all_letters=all_letters, vowels=vowels, consonants=consonants, userId=user_id, avatar=avatar, show_tour=show_tour)
 
 
 @app.route('/collection')
 def collection():
+    # Check if the user is new and hasn't seen the tour yet
+    new_user = session.get('new_user')
+
+    if new_user:
+        # Check if the key is in session, and if not, mark it as False
+        if 'collection_tour_shown' not in session:
+            session['collection_tour_shown'] = False
+
+        # Show tour if it hasn't been shown yet
+        # True if tour hasn't been shown yet
+        show_tour = not session['collection_tour_shown']
+
+        # Mark tour as shown for future visits
+        if show_tour:
+            session['collection_tour_shown'] = True  # Mark as shown
+
+    else:
+        show_tour = False  # If not a new user, do not show the tour
+
     user_id = session.get('user_id')  # Get the current user's ID
     avatar = session.get('avatar')
 
@@ -607,7 +768,7 @@ def collection():
                 syllable_data[syllable].extend(words)
 
     # print("syllable data: ", syllable_data)
-    return render_template('tabs/collection.html', syllable_data=syllable_data, avatar=avatar)
+    return render_template('tabs/collection.html', syllable_data=syllable_data, avatar=avatar, show_tour=show_tour)
 
 # POST route to handle quiz submission
 
@@ -644,8 +805,8 @@ def results():
         completed_data = {}  # To track completed words by letter
 
         for i, word in enumerate(quiz_words):
-            correct_answer = word['value'].lower().replace(" ", "")
-            user_answer = user_answers[i].lower().replace(" ", "")
+            correct_answer = word['value'].strip().lower()
+            user_answer = user_answers[i].strip().lower()
             is_correct = correct_answer == user_answer
 
             # Increment the correct answer count if the answer is correct
@@ -748,6 +909,25 @@ def history():
 
 @app.route('/profile')
 def profile():
+    # Check if the user is new and hasn't seen the tour yet
+    new_user = session.get('new_user')
+
+    if new_user:
+        # Check if the key is in session, and if not, mark it as False
+        if 'profile_tour_shown' not in session:
+            session['profile_tour_shown'] = False
+
+        # Show tour if it hasn't been shown yet
+        # True if tour hasn't been shown yet
+        show_tour = not session['profile_tour_shown']
+
+        # Mark tour as shown for future visits
+        if show_tour:
+            session['profile_tour_shown'] = True  # Mark as shown
+
+    else:
+        show_tour = False  # If not a new user, do not show the tour
+
     # Fetch the user document (replace 'user_id' with the actual user ID or retrieve dynamically)
     user_id = session.get('user_id')
     user_doc = db.collection('users').document(user_id).get()
@@ -781,7 +961,7 @@ def profile():
                                user_id=user_id,
                                age=user_data.get('age', ''),
                                birthday=formatted_birthday,
-                               avatar=avatar, badges=badges)
+                               avatar=avatar, badges=badges, show_tour=show_tour)
     else:
         return "User not found", 404
 

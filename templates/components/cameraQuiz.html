@@ -77,7 +77,7 @@
     <div class="input-container" id="inputContainer">
       <div class="input-group input-group-lg">
         <span class="input-group-text" id="inputGroup-sizing-lg">
-          <i class="fa-solid fa-hand" id="inputGroupIcon"></i>
+          <i class="fa-solid fa-hand" id="inputGroupIcon" data-mode="sign"></i>
         </span>
         <input
           type="text"
@@ -451,6 +451,28 @@
     // Initially hide the letter box
     const letterBox = document.getElementById("letter-box");
     const handIcon = document.getElementById("hand-icon");
+
+    // Toggle input mode between signing and typing
+    inputGroupIcon.addEventListener("click", () => {
+      const currentMode = inputGroupIcon.getAttribute("data-mode");
+
+      if (currentMode === "sign") {
+        // Switch to typing mode
+        inputGroupIcon.setAttribute("data-mode", "type");
+        inputGroupIcon.classList.remove("fa-hand");
+        inputGroupIcon.classList.add("fa-pen");
+        inputField.removeAttribute("readonly");
+        inputField.removeAttribute("disabled");
+        inputField.focus();
+      } else {
+        // Switch to signing mode
+        inputGroupIcon.setAttribute("data-mode", "sign");
+        inputGroupIcon.classList.remove("fa-pen");
+        inputGroupIcon.classList.add("fa-hand");
+        inputField.setAttribute("readonly", true);
+        inputField.setAttribute("disabled", true);
+      }
+    });
 
     // Simulate the animation flow
     setInterval(function () {

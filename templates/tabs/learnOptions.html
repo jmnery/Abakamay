@@ -179,46 +179,51 @@ content %}
 
 <!-- JavaScript to handle loading modal -->
 <script>
-  function startIntro() {
-    // Start the intro tour
-    introJs()
-      .setOptions({
-        disableInteraction: true,
-        steps: [
-          {
-            element: document.querySelector(".letraAtPantig"),
-            title: "Letra at Pantig",
-            intro:
-              "Pag-aralan ang wikang pasenyas ng bawat letra at pantig sa Filipino Sign Language(FSL)",
-            position: "top",
-          },
-          {
-            element: document.querySelector(".mgaSalita"),
-            title: "Pangsala",
-            intro:
-              "Pag-aralan ang pagbabaybay at pagpapantig ng mga salita sa pamamagitan ng wikang pasenyas",
-          },
-          {
-            element: document.querySelector(".navbar-nav"),
-            title: "Menu",
-            intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
-            position: "bottom",
-          },
-          {
-            element: document.querySelector(".help-button"),
-            title: "Gabay",
-            intro:
-              "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
-            position: "bottom",
-          },
-        ],
-      })
-      .start();
-  }
-  // Handle page show event
-  window.addEventListener("pageshow", function (event) {
-    $("#mainLoadingModal").modal("hide");
-  });
+  // Check if the tour should start
+      const showTour = {{ show_tour | tojson }};
+      if (showTour) {
+        startIntro();
+      }
+    function startIntro() {
+      // Start the intro tour
+      introJs()
+        .setOptions({
+          disableInteraction: true,
+          steps: [
+            {
+              element: document.querySelector(".letraAtPantig"),
+              title: "Letra at Pantig",
+              intro:
+                "Pag-aralan ang wikang pasenyas ng bawat letra at pantig sa Filipino Sign Language(FSL)",
+              position: "top",
+            },
+            {
+              element: document.querySelector(".mgaSalita"),
+              title: "Pangsala",
+              intro:
+                "Pag-aralan ang pagbabaybay at pagpapantig ng mga salita sa pamamagitan ng wikang pasenyas",
+            },
+            {
+              element: document.querySelector(".navbar-nav"),
+              title: "Menu",
+              intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
+              position: "bottom",
+            },
+            {
+              element: document.querySelector(".help-button"),
+              title: "Gabay",
+              intro:
+                "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
+              position: "bottom",
+            },
+          ],
+        })
+        .start();
+    }
+    // Handle page show event
+    window.addEventListener("pageshow", function (event) {
+      $("#mainLoadingModal").modal("hide");
+    });
 </script>
 
 {% endblock %}

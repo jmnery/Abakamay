@@ -313,6 +313,12 @@ content %}
 </div>
 
 <script>
+  // Check if the tour should start
+  const showTour = {{ show_tour | tojson }};
+  if (showTour) {
+    startIntro();
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     $(document).ready(function () {
       // Initialize all tooltips with dynamic classes
