@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import mediapipe as mp
+import os
 
 # Initialize MediaPipe Hands
 mp_hands = mp.solutions.hands
@@ -8,8 +9,10 @@ hands = mp_hands.Hands(static_image_mode=False,
                        max_num_hands=1, min_detection_confidence=0.5)
 mp_drawing = mp.solutions.drawing_utils
 
+# Get the base directory dynamically
+base_dir = os.path.dirname(os.path.abspath(__file__))
 # Load the Keras model
-model_path = r"C:\Users\Daniel\Desktop\Flask Project\Abakada\abakada_flask\static\assets\SLR Model 11-14.h5"
+model_path = os.path.join(base_dir, 'static', 'assets', 'SLR Model 11-14.h5')
 model = tf.keras.models.load_model(model_path)
 
 # List of letters for ASL gestures
