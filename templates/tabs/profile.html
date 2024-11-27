@@ -286,8 +286,9 @@ content %}
 
     <!-- Achievements Grid -->
     <div class="card-body achievements-grid" id="achievementsGrid">
-      {% for letter in 'ABKDEGHILMNOPRSTUWY' %} {% if badges.get(letter, False)
-      %}
+      {% for letter in ['A', 'B', 'K', 'D', 'E', 'G', 'H', 'I', 'L', 'M', 'N',
+      'Ng', 'O','P', 'R', 'S', 'T', 'U', 'W', 'Y'] %} {% if badges.get(letter,
+      False) %}
       <!-- If badge is True, display the regular image -->
       <img
         src="{{ url_for('static', filename='assets/achievements/' + letter + '.png') }}"

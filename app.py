@@ -585,9 +585,15 @@ def randomizeCategory(letter):
         available_words = [
             word for word in all_words if word['text'] not in completed_words]
 
+        # Shuffle the available words and take all of them
+        random.shuffle(available_words)
+        quiz_words = available_words  # Use all remaining words (randomized)
+    elif request.args.get('action') == 'retry':
+        # Retrieve all words for the specific letter
+        all_words = get_words_by_letter(letter)
         # Get up to 10 random uncompleted words from the available words
-        quiz_words = random.sample(available_words, 10) if len(
-            available_words) >= 10 else available_words
+        quiz_words = random.sample(all_words, 10) if len(
+            all_words) >= 10 else all_words
     elif request.args.get('action') == 'add':
         all_words = get_all_words()  # Get all words from Firestore
         # Filter words by letter and those that have not been completed
@@ -617,7 +623,6 @@ def randomizeCategory(letter):
     session['quiz_words'] = quiz_words
     session['currentIndex'] = 0  # Reset current index to the first word
 
-    print("Quiz: ", quiz_words)
     # Redirect to m_quiz with index 0
     return redirect(url_for('m_quiz', index=0))
 
@@ -661,8 +666,10 @@ def picker():
         letter_data = doc.to_dict()
         letter_type = letter_data.get('type', '')
 
-        # Get the total words using wordCount from letter_data
-        total_words = letter_data.get('wordCount', 0)
+        # Calculate the total words from syllables map
+        syllables = letter_data.get('syllables', {})
+        total_words = sum(len(words)
+                          for words in syllables.values() if isinstance(words, list))
 
         # Create a dictionary for each letter
         letter_info = {

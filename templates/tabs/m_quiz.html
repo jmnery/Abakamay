@@ -301,7 +301,7 @@ content %}
               disabled
               style="background-color: var(--green); color: white"
             >
-              Submit Answer
+              Ipasa ang pagsasanay
             </button>
           </li>
         </ul>
@@ -325,7 +325,7 @@ content %}
           style="background-color: var(--black); color: white"
         >
           <h5 class="modal-title" id="submitConfirmModalLabel">
-            Confirm Submission
+            Kumpirmahin ang pagpapasa?
           </h5>
           <button
             type="button"
@@ -337,11 +337,11 @@ content %}
           </button>
         </div>
         <div class="modal-body">
-          Are you sure you want to submit all your answers?
+          Sigurado ka bang nais mong ipasa ang lahat ng iyong sagot?
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">
-            Cancel
+            Ikansela
           </button>
           <button
             type="button"
@@ -349,7 +349,7 @@ content %}
             id="confirm-submit"
             style="background-color: var(--green); color: white"
           >
-            Submit
+            Ipasa
           </button>
         </div>
       </div>
@@ -470,11 +470,25 @@ content %}
 
       // Handle answer submission
       submitButton.addEventListener("click", function () {
+        handleAnswerSubmission();
+      });
+
+      // Allow pressing Enter to move to the next question
+      inputField.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault(); // Prevent default form submission (if inside a form)
+          handleAnswerSubmission();
+        }
+      });
+
+      // Function to handle answer submission logic
+      function handleAnswerSubmission() {
         const userAnswer = inputField.value
           .trim()
           .toLowerCase()
           .replace(/-/g, " ") // Replace all dashes with spaces
           .replace(/\s+/g, " ");
+
         if (userAnswer) {
           userAnswers[currentIndex] = userAnswer; // Store the answer
           inputField.value = ""; // Clear the input field
@@ -494,7 +508,7 @@ content %}
           // Update the Submit All button state after answering
           updateSubmitAllButton();
         }
-      });
+      }
 
       // Input field event listener to update submit button state
       inputField.addEventListener("input", function () {
@@ -512,7 +526,7 @@ content %}
         .getElementById("confirm-submit")
         .addEventListener("click", function () {
           // Show "Loading..." text in the modal body
-          document.querySelector(".modal-body").textContent = "Loading...";
+          document.querySelector(".modal-body").textContent = "Nagloload...";
 
           // Disable the submit button
           const submitButton = document.getElementById("confirm-submit");

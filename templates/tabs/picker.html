@@ -265,6 +265,19 @@ content %}
         >
           Magpatuloy sa pagsasanay
         </button>
+        <button
+          type="button"
+          class="btn d-none"
+          id="retryBtn"
+          style="
+            background-color: var(--black);
+            color: white;
+            font-size: 1.2rem;
+            margin-left: 10px;
+          "
+        >
+          Subukan muli ang mga salita sa letra
+        </button>
       </div>
     </div>
   </div>
@@ -293,9 +306,7 @@ content %}
     });
   });
 
-  // This assumes that Bootstrap's modal is correctly initialized
   function checkCompletedCount(letter, totalWordCount, userId) {
-    // Fetch user data from the Flask API
     fetch(`/api/user/${userId}`)
       .then((response) => {
         if (!response.ok) {
@@ -304,44 +315,57 @@ content %}
         return response.json();
       })
       .then((userData) => {
-        // Check if the letter exists in the 'complete' map
         const userLetterData = userData.complete && userData.complete[letter];
-
-        // If the letter is found, calculate the word count by summing the lengths of arrays
         const userWordCount = userLetterData
           ? Object.values(userLetterData).reduce(
               (acc, syllableWords) => acc + syllableWords.length,
               0
             )
           : 0;
-        // Check if there are enough completed words
-        if (totalWordCount - userWordCount < 10) {
-          const remainingWords = totalWordCount - userWordCount;
 
+        console.log("userWordCount: ", userWordCount);
+        console.log("totalWordCount: ", totalWordCount);
+        console.log("remaining words: ", totalWordCount - userWordCount);
+
+        const remainingWords = totalWordCount - userWordCount;
+
+        // Show modal if there are fewer than 10 words remaining
+        if (remainingWords < 10) {
           document.querySelector(
             ".modal-body"
           ).innerHTML = `<p class="mt-3" style="text-align: center; font-size: 2rem; font-weight: bold">Natitirang mga salita: ${remainingWords}</p>`;
           $("#wordCountModal").modal("show");
 
-          // Show or hide the "Magpatuloy sa pagsasanay" button based on remaining words
           const proceedBtn = document.getElementById("proceedBtn");
+          const retryBtn = document.getElementById("retryBtn");
+          const addBtn = document.getElementById("addBtn");
+
+          // If the user has completed all words
           if (remainingWords === 0) {
-            proceedBtn.style.display = "none"; // Hide the button if no remaining words
+            proceedBtn.style.display = "none"; // Hide the proceed button
+            retryBtn.classList.remove("d-none"); // Show the retry button
           } else {
-            proceedBtn.style.display = "inline-block"; // Show the button otherwise
+            proceedBtn.style.display = "inline-block"; // Show the proceed button
+            retryBtn.classList.add("d-none"); // Hide the retry button
           }
 
-          // Attach event listeners for modal buttons
-          document.getElementById("addBtn").onclick = function () {
+          // Attach event listeners
+          addBtn.onclick = function () {
             const redirectUrl = `/randomizeCategory/${letter}?action=add`;
             window.location.href = redirectUrl;
           };
 
-          document.getElementById("proceedBtn").onclick = function () {
+          proceedBtn.onclick = function () {
             const redirectUrl = `/randomizeCategory/${letter}?action=proceed`;
             window.location.href = redirectUrl;
           };
+
+          retryBtn.onclick = function () {
+            const redirectUrl = `/randomizeCategory/${letter}?action=retry`;
+            window.location.href = redirectUrl;
+          };
         } else {
+          // Automatically redirect to proceed if enough words are available
           const redirectUrl = `/randomizeCategory/${letter}?action=proceed`;
           window.location.href = redirectUrl;
         }
@@ -351,6 +375,7 @@ content %}
         alert("Error fetching data. Please try again later.");
       });
   }
+
 
   // Initialize the popover on the help icon
   $(document).ready(function () {

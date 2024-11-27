@@ -234,6 +234,7 @@ def get_words_by_letter(letter):
                     # Word extension
                     'extension': word_info.get('extension', ''),
                     'value': word_info.get('value', ''),
+                    'wordId': word_info.get('wordID', ''),
                     'syllable': syllable,
                     'letter': letter
                 }

@@ -587,11 +587,24 @@
 
   // Handle backspace button click: Remove last character
   backspaceButton.addEventListener("click", () => {
+    handleBackspace();
+  });
+
+  // Allow pressing Backspace key to remove the last character
+  inputField.addEventListener("keydown", (event) => {
+    if (event.key === "Backspace") {
+      event.preventDefault(); // Prevent default behavior (optional)
+      handleBackspace();
+    }
+  });
+
+  // Function to handle backspace logic
+  function handleBackspace() {
     if (inputField.value.length > 0) {
       inputField.value = inputField.value.slice(0, -1);
     }
     inputField.value = cleanInputRealTime(inputField.value); // Clean input after backspace
-  });
+  }
 
   // Handle trash button click: Clear the input field
   trashButton.addEventListener("click", () => {

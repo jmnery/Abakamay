@@ -479,7 +479,7 @@
           type="button"
           id="submitButton"
         >
-          Submit
+          Ipasa
         </button>
       </div>
     </div>
@@ -617,7 +617,10 @@
 
   // Listen for 'recognized_letter' events and update the input field
   socket.on("recognized_letter", function (data) {
-    if (data.letter) {
+    const inputField = document.getElementById("inputField");
+
+    // Check if the input field is visible (not hidden)
+    if (inputField && inputField.offsetParent !== null && data.letter) {
       // Append the recognized letter to the input field's value
       inputField.value += data.letter;
       inputField.value = cleanInputRealTime(inputField.value); // Clean input on the fly
@@ -627,11 +630,24 @@
 
   // Handle backspace button click: Remove last character
   backspaceButton.addEventListener("click", () => {
+    handleBackspace();
+  });
+
+  // Allow pressing Backspace key to remove the last character
+  inputField.addEventListener("keydown", (event) => {
+    if (event.key === "Backspace") {
+      event.preventDefault(); // Prevent default behavior (optional)
+      handleBackspace();
+    }
+  });
+
+  // Function to handle backspace logic
+  function handleBackspace() {
     if (inputField.value.length > 0) {
       inputField.value = inputField.value.slice(0, -1);
     }
     inputField.value = cleanInputRealTime(inputField.value); // Clean input after backspace
-  });
+  }
 
   // Handle trash button click: Clear the input field
   trashButton.addEventListener("click", () => {
