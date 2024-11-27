@@ -577,7 +577,10 @@
 
   // Listen for 'recognized_letter' events and update the input field
   socket.on("recognized_letter", function (data) {
-    if (data.letter) {
+    const inputField = document.getElementById("inputField");
+
+    // Check if the input field is visible (not hidden)
+    if (inputField && inputField.offsetParent !== null && data.letter) {
       // Append the recognized letter to the input field's value
       inputField.value += data.letter;
       inputField.value = cleanInputRealTime(inputField.value); // Clean input on the fly

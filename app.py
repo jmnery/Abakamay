@@ -735,19 +735,23 @@ def collection():
     if user_doc.exists:
         user_data = user_doc.to_dict()
 
-        # Fetch learned words
+       # Fetch learned words
         learned_data = user_data.get('learned', {})
         for letter, syllables in learned_data.items():
             for syllable, words in syllables.items():
                 if isinstance(words, list):
-                    learned_words.update(words)
+                    for word in words:
+                        # Store as a tuple (letter, syllable, word)
+                        learned_words.add((letter, syllable, word))
 
         # Fetch completed words
         completed_data = user_data.get('complete', {})
         for letter, syllables in completed_data.items():
             for syllable, words in syllables.items():
                 if isinstance(words, list):
-                    completed_words.update(words)
+                    for word in words:
+                        # Store as a tuple (letter, syllable, word)
+                        completed_words.add((letter, syllable, word))
 
     # Structure the data for all letters and their syllables
     syllable_data = {}
@@ -763,8 +767,8 @@ def collection():
                     'text': word.get('text', ''),
                     'extension': word.get('extension', ''),
                     'value': word.get('value', ''),
-                    'learned': word.get('text') in learned_words,
-                    'completed': word.get('text') in completed_words,
+                    'learned': (letter, syllable, word.get('text', '')) in learned_words,
+                    'completed': (letter, syllable, word.get('text', '')) in completed_words,
                     'letter': letter
                 }
                 for word in words_list if word
@@ -774,6 +778,7 @@ def collection():
             else:
                 syllable_data[syllable].extend(words)
 
+    print("syllable_data: ", syllable_data)
     # print("syllable data: ", syllable_data)
     return render_template('tabs/collection.html', syllable_data=syllable_data, avatar=avatar, show_tour=show_tour)
 

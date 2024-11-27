@@ -26,10 +26,12 @@ def generate_frames():
             result = slr.process_frame(image_rgb)
             if isinstance(result, tuple):
                 # If it’s a tuple, unpack it
-                recognized_letter, hand_in_frame = result
+                recognized_letter, certainty = result
+                hand_in_frame = True
             else:
                 # If it’s not a tuple, assume it’s only the recognized letter
                 recognized_letter = result
+                certainty = 0  # If no certainty is returned, set it to 0
                 # Assume hand is present if a letter is detected
                 hand_in_frame = recognized_letter is not None
 
@@ -37,8 +39,8 @@ def generate_frames():
                 # Update the last recognized letter if a hand is detected in the frame
                 hand_present = True
                 last_recognized_letter = recognized_letter
-                cv2.putText(image, f"Predicted Letter: {recognized_letter}", (10, 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                cv2.putText(image, f"Predicted Letter: {recognized_letter} ({certainty:.2f}%)",
+                            (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3, cv2.LINE_AA)
                 socketio.emit('correct_detection', {
                               'correct': True, 'recognized_letter': recognized_letter})
             else:

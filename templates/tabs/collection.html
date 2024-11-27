@@ -417,287 +417,294 @@ content %}
 
 <script>
 
-  // Check if the tour should start
-  const showTour = {{ show_tour | tojson }};
-    if (showTour) {
-      startIntro();
-    }
-
-  // Get the filter groups
-  const filterMain = document.querySelectorAll('input[name="filter-main"]');
-  const filterComplete = document.querySelectorAll(
-    'input[name="filter-complete"]'
-  );
-  const filterLearn = document.querySelectorAll('input[name="filter-learn"]');
-
-  // Add event listeners to handle interaction
-  filterMain.forEach((radio) => {
-    radio.addEventListener("change", () => {
-      if (radio.checked) {
-        // Deselect 'filter-complete' and 'filter-learn' when 'filter-main' is selected
-        filterComplete.forEach(
-          (completeRadio) => (completeRadio.checked = false)
-        );
-        filterLearn.forEach((learnRadio) => (learnRadio.checked = false));
+    // Check if the tour should start
+    const showTour = {{ show_tour | tojson }};
+      if (showTour) {
+        startIntro();
       }
-    });
-  });
 
-  const handleSubFilter = (subFilterGroup) => {
-    subFilterGroup.forEach((radio) => {
-      radio.addEventListener("change", () => {
-        if (radio.checked) {
-          // Deselect 'filter-main' when any 'filter-complete' or 'filter-learn' is selected
-          filterMain.forEach((mainRadio) => (mainRadio.checked = false));
-        }
-      });
-    });
-  };
-
-  // Apply the same logic for 'filter-complete' and 'filter-learn'
-  handleSubFilter(filterComplete);
-  handleSubFilter(filterLearn);
-
-  document.addEventListener("DOMContentLoaded", function () {
+    // Get the filter groups
     const filterMain = document.querySelectorAll('input[name="filter-main"]');
     const filterComplete = document.querySelectorAll(
       'input[name="filter-complete"]'
     );
     const filterLearn = document.querySelectorAll('input[name="filter-learn"]');
-    const wordBoxes = document.querySelectorAll(".word-box");
-    const letterSections = document.querySelectorAll(".letter-section");
-    const searchInput = document.getElementById("search-input");
-    const searchButton = document.getElementById("search-button");
 
-    // Helper function to get the checked filter value
-    const getCheckedValue = (filters) => {
-      let value = null;
-      filters.forEach((radio) => {
-        if (radio.checked) {
-          value = radio.value;
-        }
-      });
-      return value;
-    };
-
-    // Function to apply filters to word boxes and letter sections
-    const applyFilters = () => {
-      const filterMainValue = getCheckedValue(filterMain);
-      const filterCompleteValue = getCheckedValue(filterComplete);
-      const filterLearnValue = getCheckedValue(filterLearn);
-      const searchValue = searchInput.value.trim().toLowerCase();
-
-      // Iterate over each letter section
-      letterSections.forEach((section) => {
-        const boxes = section.querySelectorAll(".word-box");
-        let visibleCount = 0;
-
-        boxes.forEach((box) => {
-          const isCompleted = box.classList.contains("completed");
-          const isLearned = box.querySelector(".bookmark.learned") !== null;
-          const wordText = box
-            .querySelector(".word-text")
-            .textContent.toLowerCase();
-
-          // Show or hide the word box based on the filters
-          let showBox = true;
-
-          // Apply 'completed' filter
-          if (filterCompleteValue === "completed" && !isCompleted) {
-            showBox = false;
-          } else if (filterCompleteValue === "not-complete" && isCompleted) {
-            showBox = false;
-          }
-
-          // Apply 'learned' filter
-          if (filterLearnValue === "learned" && !isLearned) {
-            showBox = false;
-          } else if (filterLearnValue === "not-learned" && isLearned) {
-            showBox = false;
-          }
-
-          // Apply 'main' filter (optional: you can extend this logic for the "all" case)
-          if (filterMainValue === "all") {
-            showBox = true;
-          }
-
-          // Check if the box should be shown based on the search input
-          if (searchValue.length === 1 && !wordText.startsWith(searchValue)) {
-            showBox = false;
-          }
-          // Show or hide the box
-          if (showBox) {
-            box.style.display = "flex"; // Show the box
-            visibleCount++;
-          } else {
-            box.style.display = "none"; // Hide the box
-          }
-        });
-
-        // If no boxes are visible in this section, hide the section and its letter heading
-
-        if (visibleCount === 0) {
-          section.style.display = "none";
-        } else {
-          section.style.display = "block"; // Show the section if any word box is visible
-        }
-      });
-    };
-
-    // Attach change event listeners to filters
+    // Add event listeners to handle interaction
     filterMain.forEach((radio) => {
-      radio.addEventListener("change", applyFilters);
+      radio.addEventListener("change", () => {
+        if (radio.checked) {
+          // Deselect 'filter-complete' and 'filter-learn' when 'filter-main' is selected
+          filterComplete.forEach(
+            (completeRadio) => (completeRadio.checked = false)
+          );
+          filterLearn.forEach((learnRadio) => (learnRadio.checked = false));
+        }
+      });
     });
 
-    filterComplete.forEach((radio) => {
-      radio.addEventListener("change", applyFilters);
-    });
+    const handleSubFilter = (subFilterGroup) => {
+      subFilterGroup.forEach((radio) => {
+        radio.addEventListener("change", () => {
+          if (radio.checked) {
+            // Deselect 'filter-main' when any 'filter-complete' or 'filter-learn' is selected
+            filterMain.forEach((mainRadio) => (mainRadio.checked = false));
+          }
+        });
+      });
+    };
 
-    filterLearn.forEach((radio) => {
-      radio.addEventListener("change", applyFilters);
-    });
-    // Attach event listener to search button
-    searchButton.addEventListener("click", applyFilters);
+    // Apply the same logic for 'filter-complete' and 'filter-learn'
+    handleSubFilter(filterComplete);
+    handleSubFilter(filterLearn);
 
-    // Function to filter word boxes based on the search input
-    const filterByLetter = () => {
-      const searchValue = searchInput.value.trim().toLowerCase();
+    document.addEventListener("DOMContentLoaded", function () {
+      const filterMain = document.querySelectorAll('input[name="filter-main"]');
+      const filterComplete = document.querySelectorAll(
+        'input[name="filter-complete"]'
+      );
+      const filterLearn = document.querySelectorAll('input[name="filter-learn"]');
+      const wordBoxes = document.querySelectorAll(".word-box");
+      const letterSections = document.querySelectorAll(".letter-section");
+      const searchInput = document.getElementById("search-input");
+      const searchButton = document.getElementById("search-button");
 
-      // Check if search value is exactly one character
-      if (searchValue.length !== 1) {
-        alert("Please enter only one letter.");
-        return; // Exit if the input is invalid
-      }
+      // Helper function to get the checked filter value
+      const getCheckedValue = (filters) => {
+        let value = null;
+        filters.forEach((radio) => {
+          if (radio.checked) {
+            value = radio.value;
+          }
+        });
+        return value;
+      };
 
-      // Iterate over each letter section
-      letterSections.forEach((section) => {
-        const boxes = section.querySelectorAll(".word-box");
-        let visibleCount = 0;
+      // Function to apply filters to word boxes and letter sections
+      const applyFilters = () => {
+        const filterMainValue = getCheckedValue(filterMain);
+        const filterCompleteValue = getCheckedValue(filterComplete);
+        const filterLearnValue = getCheckedValue(filterLearn);
+        const searchValue = searchInput.value.trim().toLowerCase();
 
+        // Iterate over each letter section
+        letterSections.forEach((section) => {
+          const boxes = section.querySelectorAll(".word-box");
+          let visibleCount = 0;
+
+          boxes.forEach((box) => {
+            const isCompleted = box.classList.contains("completed");
+            const isLearned = box.querySelector(".bookmark.learned") !== null;
+            const wordText = box
+              .querySelector(".word-text")
+              .textContent.toLowerCase();
+
+            // Show or hide the word box based on the filters
+            let showBox = true;
+
+            // Apply 'completed' filter
+            if (filterCompleteValue === "completed" && !isCompleted) {
+              showBox = false;
+            } else if (filterCompleteValue === "not-complete" && isCompleted) {
+              showBox = false;
+            }
+
+            // Apply 'learned' filter
+            if (filterLearnValue === "learned" && !isLearned) {
+              showBox = false;
+            } else if (filterLearnValue === "not-learned" && isLearned) {
+              showBox = false;
+            }
+
+            // Apply 'main' filter (optional: you can extend this logic for the "all" case)
+            if (filterMainValue === "all") {
+              showBox = true;
+            }
+
+            // Check if the box should be shown based on the search input
+            if (searchValue.length === 1 && !wordText.startsWith(searchValue)) {
+              showBox = false;
+            }
+            // Show or hide the box
+            if (showBox) {
+              box.style.display = "flex"; // Show the box
+              visibleCount++;
+            } else {
+              box.style.display = "none"; // Hide the box
+            }
+          });
+
+          // If no boxes are visible in this section, hide the section and its letter heading
+
+          if (visibleCount === 0) {
+            section.style.display = "none";
+          } else {
+            section.style.display = "block"; // Show the section if any word box is visible
+          }
+        });
+      };
+
+      // Attach change event listeners to filters
+      filterMain.forEach((radio) => {
+        radio.addEventListener("change", applyFilters);
+      });
+
+      filterComplete.forEach((radio) => {
+        radio.addEventListener("change", applyFilters);
+      });
+
+      filterLearn.forEach((radio) => {
+        radio.addEventListener("change", applyFilters);
+      });
+      // Attach event listener to search button
+      searchButton.addEventListener("click", applyFilters);
+
+      // Function to filter word boxes based on the search input
+  const filterByLetter = () => {
+    const searchValue = searchInput.value.trim().toLowerCase();
+
+    // Check if search value is exactly one character
+    if (searchValue.length !== 1) {
+      alert("Please enter only one letter.");
+      return; // Exit if the input is invalid
+    }
+
+    // Iterate over each letter section
+    letterSections.forEach((section) => {
+      const boxes = section.querySelectorAll(".word-box");
+      const syllableHeading = section.querySelector(".letter-heading").textContent.toLowerCase();
+      let visibleCount = 0;
+
+      // Only show the syllable section if it starts with the search value
+      let showSection = syllableHeading.startsWith(searchValue);
+
+      if (showSection) {
         boxes.forEach((box) => {
-          const wordText = box
-            .querySelector(".word-text")
-            .textContent.toLowerCase();
+          const wordText = box.querySelector(".word-text").textContent.toLowerCase();
 
-          // Check if the box should be shown based on the search input
+          // Check if the word in the syllable section starts with the search letter
           if (wordText.startsWith(searchValue)) {
-            box.style.display = "flex"; // Show the box
+            box.style.display = "flex"; // Show the word box
             visibleCount++;
           } else {
-            box.style.display = "none"; // Hide the box
+            box.style.display = "none"; // Hide the word box
           }
         });
 
-        // If no boxes are visible in this section, hide the section and its letter heading
-        const letterHeading = section.querySelector(".letter-heading");
+        // Show or hide the syllable section based on whether any word boxes are visible
         if (visibleCount === 0) {
-          section.style.display = "none";
+          section.style.display = "none"; // Hide this section if no matching word boxes
         } else {
-          section.style.display = "block"; // Show the section if any word box is visible
+          section.style.display = "block"; // Show this section if there are matching word boxes
         }
-      });
-    };
-
-    // Attach event listener to search button
-    searchButton.addEventListener("click", filterByLetter);
-
-    // Optional: Add an event listener for pressing 'Enter' key to trigger the search
-    searchInput.addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        filterByLetter();
+      } else {
+        // Hide the syllable section if it doesn't start with the search value
+        section.style.display = "none";
       }
     });
+  };
 
-    // Restrict input to single character and no spaces
-    searchInput.addEventListener("input", function () {
-      this.value = this.value.replace(/[^a-zA-Z]/g, "").slice(0, 1);
-    });
-    document
-      .getElementById("clear-button")
-      .addEventListener("click", function () {
-        document.getElementById("search-input").value = ""; // Clear the input
-        applyFilters(); // Reapply filters to show all words
+
+      // Attach event listener to search button
+      searchButton.addEventListener("click", filterByLetter);
+
+      // Optional: Add an event listener for pressing 'Enter' key to trigger the search
+      searchInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          filterByLetter();
+        }
       });
 
-    // Initial filter application
-    applyFilters();
-  });
+      // Restrict input to single character and no spaces
+      searchInput.addEventListener("input", function () {
+        this.value = this.value.replace(/[^a-zA-Z]/g, "").slice(0, 1);
+      });
+      document
+        .getElementById("clear-button")
+        .addEventListener("click", function () {
+          document.getElementById("search-input").value = ""; // Clear the input
+          applyFilters(); // Reapply filters to show all words
+        });
 
-  document.querySelectorAll(".word-box").forEach(function (box) {
-    const spinner = box.querySelector(".spinner");
-    const imageUrl = box.style.backgroundImage.slice(5, -2); // Extract the URL from the style
+      // Initial filter application
+      applyFilters();
+    });
 
-    spinner.style.display = "block"; // Show spinner initially
+    document.querySelectorAll(".word-box").forEach(function (box) {
+      const spinner = box.querySelector(".spinner");
+      const imageUrl = box.style.backgroundImage.slice(5, -2); // Extract the URL from the style
 
-    const img = new Image();
-    img.src = imageUrl;
+      spinner.style.display = "block"; // Show spinner initially
 
-    img.onload = function () {
-      spinner.style.display = "none"; // Hide spinner when image loads
-    };
+      const img = new Image();
+      img.src = imageUrl;
 
-    img.onerror = function () {
-      spinner.style.display = "none"; // Hide spinner if image fails to load
-    };
-  });
+      img.onload = function () {
+        spinner.style.display = "none"; // Hide spinner when image loads
+      };
 
-  function startIntro() {
-    // Start the intro tour
-    introJs()
-      .setOptions({
-        disableInteraction: true,
-        steps: [
-          {
-            element: document.querySelector(".letter-section"),
-            title: "Koleksyon ng mga salita",
-            intro:
-              "Naglalaman ng mga salita na nakapaloob sa letra o pantig na kinakatawan",
-            position: "left",
-          },
-          {
-            element: document.querySelector(".searchField"),
-            title: "Search Field",
-            intro:
-              "Maglagay ng isang letra upang hanapin ang mga salita na nakapaloob sa letrang iyon",
-          },
-          {
-            element: document.querySelector(".clearButton"),
-            title: "Clear Button",
-            intro:
-              "Tanggalin ang letra sa Search Field at i-reset ang mga salita na ipinapakita",
-          },
-          {
-            element: document.querySelector(".lahat"),
-            title: "Isala sa lahat",
-            intro: "Ipakita ang lahat ng salita",
-          },
-          {
-            element: document.querySelector(".pagsalaSanay"),
-            title: "Isala sa mga nasanay",
-            intro: "Ipakita ang mga salitang nasanay na",
-          },
-          {
-            element: document.querySelector(".pagsalaAral"),
-            title: "Isala sa mga naaral",
-            intro: "Ipakita ang mga salitang naaral na",
-          },
-          {
-            element: document.querySelector(".navbar-nav"),
-            title: "Menu",
-            intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
-            position: "bottom",
-          },
-          {
-            element: document.querySelector(".help-button"),
-            title: "Gabay",
-            intro:
-              "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
-            position: "bottom",
-          },
-        ],
-      })
-      .start();
-  }
+      img.onerror = function () {
+        spinner.style.display = "none"; // Hide spinner if image fails to load
+      };
+    });
+
+    function startIntro() {
+      // Start the intro tour
+      introJs()
+        .setOptions({
+          disableInteraction: true,
+          steps: [
+            {
+              element: document.querySelector(".letter-section"),
+              title: "Koleksyon ng mga salita",
+              intro:
+                "Naglalaman ng mga salita na nakapaloob sa letra o pantig na kinakatawan",
+              position: "left",
+            },
+            {
+              element: document.querySelector(".searchField"),
+              title: "Search Field",
+              intro:
+                "Maglagay ng isang letra upang hanapin ang mga salita na nakapaloob sa letrang iyon",
+            },
+            {
+              element: document.querySelector(".clearButton"),
+              title: "Clear Button",
+              intro:
+                "Tanggalin ang letra sa Search Field at i-reset ang mga salita na ipinapakita",
+            },
+            {
+              element: document.querySelector(".lahat"),
+              title: "Isala sa lahat",
+              intro: "Ipakita ang lahat ng salita",
+            },
+            {
+              element: document.querySelector(".pagsalaSanay"),
+              title: "Isala sa mga nasanay",
+              intro: "Ipakita ang mga salitang nasanay na",
+            },
+            {
+              element: document.querySelector(".pagsalaAral"),
+              title: "Isala sa mga naaral",
+              intro: "Ipakita ang mga salitang naaral na",
+            },
+            {
+              element: document.querySelector(".navbar-nav"),
+              title: "Menu",
+              intro: "Mag-navigate sa iba't ibang bahagi ng aplikasyon",
+              position: "bottom",
+            },
+            {
+              element: document.querySelector(".help-button"),
+              title: "Gabay",
+              intro:
+                "Pindutin upang makakuha ng tulong at gabay sa paggamit ng aplikasyon",
+              position: "bottom",
+            },
+          ],
+        })
+        .start();
+    }
 </script>
 
 {% endblock %}
