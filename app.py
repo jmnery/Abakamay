@@ -585,9 +585,17 @@ def randomizeCategory(letter):
         available_words = [
             word for word in all_words if word['text'] not in completed_words]
 
-        # Get up to 10 random uncompleted words from the available words
+        # Shuffle the available words and take all of them
+        random.shuffle(available_words)
+        # quiz_words = available_words  # Use all remaining words (randomized)
         quiz_words = random.sample(available_words, 10) if len(
             available_words) >= 10 else available_words
+    elif request.args.get('action') == 'retry':
+        # Retrieve all words for the specific letter
+        all_words = get_words_by_letter(letter)
+        # Get up to 10 random uncompleted words from the available words
+        quiz_words = random.sample(all_words, 10) if len(
+            all_words) >= 10 else all_words
     elif request.args.get('action') == 'add':
         all_words = get_all_words()  # Get all words from Firestore
         # Filter words by letter and those that have not been completed
@@ -617,7 +625,6 @@ def randomizeCategory(letter):
     session['quiz_words'] = quiz_words
     session['currentIndex'] = 0  # Reset current index to the first word
 
-    print("Quiz: ", quiz_words)
     # Redirect to m_quiz with index 0
     return redirect(url_for('m_quiz', index=0))
 
@@ -661,8 +668,10 @@ def picker():
         letter_data = doc.to_dict()
         letter_type = letter_data.get('type', '')
 
-        # Get the total words using wordCount from letter_data
-        total_words = letter_data.get('wordCount', 0)
+        # Calculate the total words from syllables map
+        syllables = letter_data.get('syllables', {})
+        total_words = sum(len(words)
+                          for words in syllables.values() if isinstance(words, list))
 
         # Create a dictionary for each letter
         letter_info = {
@@ -728,19 +737,23 @@ def collection():
     if user_doc.exists:
         user_data = user_doc.to_dict()
 
-        # Fetch learned words
+       # Fetch learned words
         learned_data = user_data.get('learned', {})
         for letter, syllables in learned_data.items():
             for syllable, words in syllables.items():
                 if isinstance(words, list):
-                    learned_words.update(words)
+                    for word in words:
+                        # Store as a tuple (letter, syllable, word)
+                        learned_words.add((letter, syllable, word))
 
         # Fetch completed words
         completed_data = user_data.get('complete', {})
         for letter, syllables in completed_data.items():
             for syllable, words in syllables.items():
                 if isinstance(words, list):
-                    completed_words.update(words)
+                    for word in words:
+                        # Store as a tuple (letter, syllable, word)
+                        completed_words.add((letter, syllable, word))
 
     # Structure the data for all letters and their syllables
     syllable_data = {}
@@ -756,8 +769,8 @@ def collection():
                     'text': word.get('text', ''),
                     'extension': word.get('extension', ''),
                     'value': word.get('value', ''),
-                    'learned': word.get('text') in learned_words,
-                    'completed': word.get('text') in completed_words,
+                    'learned': (letter, syllable, word.get('text', '')) in learned_words,
+                    'completed': (letter, syllable, word.get('text', '')) in completed_words,
                     'letter': letter
                 }
                 for word in words_list if word
@@ -767,6 +780,7 @@ def collection():
             else:
                 syllable_data[syllable].extend(words)
 
+    print("syllable_data: ", syllable_data)
     # print("syllable data: ", syllable_data)
     return render_template('tabs/collection.html', syllable_data=syllable_data, avatar=avatar, show_tour=show_tour)
 
